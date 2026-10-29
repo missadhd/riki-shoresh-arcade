@@ -350,9 +350,37 @@ function finishStudio(){
 }
 
 /* ================= hook into the arcade ================= */
+/* 2D learning fallback when 3D/WebGL cannot run. */
+function startStudio2D(id){
+ const def=GAMES[id],data=words(),W=data.W,pool=data.pool;
+ if(!def||!W.length||!pool.length)return false;
+ const order=shuffle(pool).slice(0,Math.min(def.steps.length,pool.length));
+ let at=0,score=0,missed=false;
+ function frame2D(html,pct){const fr=G('frame');if(fr)fr(def.emoji+' '+def.title,html,pct);else document.getElementById('app').innerHTML=html;}
+ function show(){
+  if(at>=order.length){
+   frame2D('<div class="end"><h2>🎉 Fantastic work!</h2><p>⭐ '+score+' stars earned!</p><button class="primary" id="studio2DAgain">Play again</button><button class="secondary" id="studio2DMenu">Other games</button></div>',100);
+   document.getElementById('studio2DAgain').onclick=()=>startStudio2D(id);
+   document.getElementById('studio2DMenu').onclick=()=>{const menu=G('menu');if(menu)menu();};
+   return;
+  }
+  missed=false;
+  const w=W[order[at]],others=shuffle(pool.filter(x=>x!==order[at])).slice(0,2),options=shuffle([order[at],...others]);
+  frame2D('<div class="panel"><h2>'+esc(def.title)+' — 2D mode</h2><p>Choose the Hebrew word that means:</p><div class="prompt"><strong>'+esc(w[1])+'</strong></div><div class="extra-choices">'+options.map(i=>'<button class="secondary" data-studio2d="'+i+'">'+esc(W[i][0])+'</button>').join('')+'</div><p id="studio2DHint" aria-live="polite"></p><p>⭐ '+score+' stars · Question '+(at+1)+' of '+order.length+'</p></div>',Math.round(at/order.length*100));
+  document.querySelectorAll('[data-studio2d]').forEach(b=>b.onclick=()=>{
+   if(+b.dataset.studio2d!==order[at]){
+    missed=true;b.disabled=true;document.getElementById('studio2DHint').textContent='Try again! '+(w[2]||'');const bad=G('incorrect');if(bad&&G('session'))bad();return;
+   }
+   const points=missed?1:3;score+=points;const good=G('correct');
+   if(good&&G('session'))good(points);else{const award=G('award');if(award)award(points*2);}
+   at++;show();
+  });
+ }
+ show();return true;
+}
 const prevStart=G('start'),prevRender=G('render');
 if(typeof prevStart==='function'){
-  window.__stStart=function(g){if(IDS.includes(g)&&studioWebGLAvailable()){if(startStudio(g))return;}return prevStart.apply(this,arguments);};
+  window.__stStart=function(g){if(IDS.includes(g)){if(studioWebGLAvailable()&&startStudio(g))return;if(startStudio2D(g))return;}return prevStart.apply(this,arguments);};
   SET('start=window.__stStart;');
 }
 if(typeof prevRender==='function'){
@@ -360,6 +388,6 @@ if(typeof prevRender==='function'){
   SET('render=window.__stRender;');
 }
 /* menu cards call start through their own handlers; route them here too */
-document.addEventListener('click',e=>{const b=e.target.closest('[data-creative],[data-extra],[data-special]');if(!b)return;const id=b.dataset.creative||b.dataset.extra||b.dataset.special;if(IDS.includes(id)&&studioWebGLAvailable()){e.stopPropagation();e.preventDefault();startStudio(id);}},true);
+document.addEventListener('click',e=>{const b=e.target.closest('[data-creative],[data-extra],[data-special]');if(!b)return;const id=b.dataset.creative||b.dataset.extra||b.dataset.special;if(IDS.includes(id)){e.stopPropagation();e.preventDefault();if(!studioWebGLAvailable()||!startStudio(id))startStudio2D(id);}},true);
 window.RikiStudio={start:startStudio,games:GAMES,state:()=>S};
 })();
