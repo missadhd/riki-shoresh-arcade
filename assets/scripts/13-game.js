@@ -355,8 +355,8 @@ function startStudio2D(id){
  const def=GAMES[id],data=words(),W=data.W,pool=data.pool;
  if(!def||!W.length||!pool.length)return false;
  const order=shuffle(pool).slice(0,Math.min(def.steps.length,pool.length));
- let at=0,score=0,missed=false;const fallbackSession={order,at:0,score:0,missed:[],done:false};SET('session=window.__st2DSession;');window.__st2DSession=fallbackSession;
- function frame2D(html,pct){const fr=G('frame');if(fr)fr(def.emoji+' '+def.title,html,pct);else document.getElementById('app').innerHTML=html;}
+ let at=0,score=0,missed=false;const fallbackSession={order,at:0,score:0,missed:[],done:false};window.__st2DSession=fallbackSession;SET('session=window.__st2DSession;');
+ function frame2D(html,pct){const fr=G('frame');if(fr)fr(def.emoji+' '+def.title,html,pct);else document.getElementById('app').innerHTML=html;sync2DHeader();}function sync2DHeader(){const h=document.querySelector('.gamehead .pill');if(h)h.textContent=score+' ⭐';}
  function show(){
   if(at>=order.length){
    fallbackSession.done=true;frame2D('<div class="end"><h2>🎉 Fantastic work!</h2><p>⭐ '+score+' stars earned!</p><button class="primary" id="studio2DAgain">Play again</button><button class="secondary" id="studio2DMenu">Other games</button></div>',100);
@@ -371,9 +371,9 @@ function startStudio2D(id){
    if(+b.dataset.studio2d!==order[at]){
     missed=true;b.disabled=true;document.getElementById('studio2DHint').textContent='Try again! '+(w[2]||'');const bad=G('incorrect');if(bad&&G('session'))bad();return;
    }
-   const points=missed?1:3;score+=points;const good=G('correct');
+   const points=missed?1:3;score+=points;fallbackSession.score=score;const good=G('correct');
    if(good&&G('session'))good(points);else{const award=G('award');if(award)award(points*2);}
-   at++;fallbackSession.at=at;fallbackSession.score=score;show();
+   at++;fallbackSession.at=at;show();sync2DHeader();
   });
  }
  show();return true;
