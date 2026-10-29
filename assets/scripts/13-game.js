@@ -355,11 +355,11 @@ function startStudio2D(id){
  const def=GAMES[id],data=words(),W=data.W,pool=data.pool;
  if(!def||!W.length||!pool.length)return false;
  const order=shuffle(pool).slice(0,Math.min(def.steps.length,pool.length));
- let at=0,score=0,missed=false;
+ let at=0,score=0,missed=false;const fallbackSession={order,at:0,score:0,missed:[],done:false};SET('session=window.__st2DSession;');window.__st2DSession=fallbackSession;
  function frame2D(html,pct){const fr=G('frame');if(fr)fr(def.emoji+' '+def.title,html,pct);else document.getElementById('app').innerHTML=html;}
  function show(){
   if(at>=order.length){
-   frame2D('<div class="end"><h2>🎉 Fantastic work!</h2><p>⭐ '+score+' stars earned!</p><button class="primary" id="studio2DAgain">Play again</button><button class="secondary" id="studio2DMenu">Other games</button></div>',100);
+   fallbackSession.done=true;frame2D('<div class="end"><h2>🎉 Fantastic work!</h2><p>⭐ '+score+' stars earned!</p><button class="primary" id="studio2DAgain">Play again</button><button class="secondary" id="studio2DMenu">Other games</button></div>',100);
    document.getElementById('studio2DAgain').onclick=()=>startStudio2D(id);
    document.getElementById('studio2DMenu').onclick=()=>{const menu=G('menu');if(menu)menu();};
    return;
@@ -373,7 +373,7 @@ function startStudio2D(id){
    }
    const points=missed?1:3;score+=points;const good=G('correct');
    if(good&&G('session'))good(points);else{const award=G('award');if(award)award(points*2);}
-   at++;show();
+   at++;fallbackSession.at=at;fallbackSession.score=score;show();
   });
  }
  show();return true;
