@@ -250,7 +250,12 @@ function snap(key,build){if(snapCache[key])return snapCache[key];const {r,s,c}=s
 const IDS=Object.keys(GAMES);
 let S=null;
 function words(){const W=G('W')||[];const idsFn=G('ids');const pool=typeof idsFn==='function'?idsFn():W.map((_,i)=>i);return {W,pool};}
+function studioWebGLAvailable(){
+  if(!window.THREE || typeof window.THREE.WebGLRenderer!=='function')return false;
+  try{const canvas=document.createElement('canvas');const gl=canvas.getContext('webgl2')||canvas.getContext('webgl')||canvas.getContext('experimental-webgl');return !!gl;}catch(_){return false;}
+}
 function startStudio(id){
+  if(!studioWebGLAvailable())return false;
   const def=GAMES[id];const {W,pool}=words();if(!W.length)return false;
   try{const a=G('audio');a&&a('tap');}catch(_){}
   SET(`game=${JSON.stringify(id)};round=(typeof round==='number'?round+1:1);`);
@@ -347,7 +352,7 @@ function finishStudio(){
 /* ================= hook into the arcade ================= */
 const prevStart=G('start'),prevRender=G('render');
 if(typeof prevStart==='function'){
-  window.__stStart=function(g){if(IDS.includes(g)&&window.THREE!==null){if(startStudio(g))return;}return prevStart.apply(this,arguments);};
+  window.__stStart=function(g){if(IDS.includes(g)&&studioWebGLAvailable()){if(startStudio(g))return;}return prevStart.apply(this,arguments);};
   SET('start=window.__stStart;');
 }
 if(typeof prevRender==='function'){
@@ -355,6 +360,6 @@ if(typeof prevRender==='function'){
   SET('render=window.__stRender;');
 }
 /* menu cards call start through their own handlers; route them here too */
-document.addEventListener('click',e=>{const b=e.target.closest('[data-creative],[data-extra],[data-special]');if(!b)return;const id=b.dataset.creative||b.dataset.extra||b.dataset.special;if(IDS.includes(id)){e.stopPropagation();e.preventDefault();startStudio(id);}},true);
+document.addEventListener('click',e=>{const b=e.target.closest('[data-creative],[data-extra],[data-special]');if(!b)return;const id=b.dataset.creative||b.dataset.extra||b.dataset.special;if(IDS.includes(id)&&studioWebGLAvailable()){e.stopPropagation();e.preventDefault();startStudio(id);}},true);
 window.RikiStudio={start:startStudio,games:GAMES,state:()=>S};
 })();
