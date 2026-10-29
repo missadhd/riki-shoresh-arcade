@@ -330,4 +330,5 @@ wrap('furnitureArt',a=>a[0]&&a[0][0]);wrap('dreamFurnitureArt',a=>a[0]&&a[0][0])
 /* catch any art that rendered before the wrap (e.g. a shop already on screen) */
 try{const gm=G('game');if(gm==='house'){const hr=G('houseRender');hr&&hr();}}catch(_){}
 window.RK3.thumb=renderThumb;
+Object.assign(window.RK3,{face,heartShape,starShape,moonShape,ext,puff,balloon,books,cushion,toy,glow,toadstool,C});
 })();
