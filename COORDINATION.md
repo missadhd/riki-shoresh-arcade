@@ -4,6 +4,7 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
+| ChatGPT | `chatgpt/source-layered-riki` | `preview-layered-riki.html`, `assets/characters/riki-layered/*`, `COORDINATION.md` | Building a true single-source layered Riki facial rig preview |
 
 ## Map of the code
 
