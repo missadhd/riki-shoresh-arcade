@@ -21,8 +21,8 @@
   ],
   "parts": {
     "neutralBase": "neutral-base-seamless.png",
-    "eyeLeft": "eye-left.webp",
-    "eyeRight": "eye-right.webp",
+    "eyeLeft": "eye-left-tight.png",
+    "eyeRight": "eye-right-tight.png",
     "blink": "eyes-blink.webp",
     "mouthClosed": "mouth-closed-tight.png",
     "mouthSmall": "mouth-small-fitted.png",
@@ -35,12 +35,12 @@
       176
     ],
     "earLeft": [
-      331,
-      584
+      323,
+      598
     ],
     "earRight": [
-      793,
-      584
+      801,
+      598
     ],
     "shoulderLeft": [
       422,
@@ -101,7 +101,7 @@
   },
   "wearables": {
     "dress": "outfit-pink-dress-fitted-v3.webp",
-    "earrings": "accessory-earrings-drop-v8.png",
+    "earrings": "accessory-earrings-drop-v9.png",
     "hairClips": "accessory-hair-clips.webp",
     "mintDress": "outfit-mint-dress-fitted-v2.webp",
     "headbandOn": "accessory-headband-pink-clean.png",
@@ -158,7 +158,7 @@
   },
   "rendering": {
     "neutralPose": "Flattened seamless base prevents rectangular hair, neck, shoulder, and wrist slice boundaries.",
-    "facialFeatures": "Eyes, blink, and four tightly masked mouth states remain independent.",
+    "facialFeatures": "Eyes use tightly masked sclera, iris, and lash pixels with no surrounding skin discs; blink and four mouth states remain independent.",
     "accessories": "Headband, earrings, shoes, and two-sided bracelet remain togglable overlays."
   },
   "walkRig": {
