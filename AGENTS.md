@@ -32,13 +32,13 @@ Rachel owns the project. Follow these rules on every task, without being reminde
   `rickyDreamPetsV2`, `rickyDreamPositionsV2`, `rickyRoomInteriorsV3`, `rickyTinyOwnedV1`, `rickyTinyPlacedV1`,
   `rickyAdventureXPV1`, `rickySpatialMusicV1`, `riki3dOrbit`, `rikiReal3dAz`.
 - Test in a phone-sized browser (about 390 px wide) before marking a PR ready.
-- Only Rachel merges into `main`, which deploys to the live Netlify site.
+- Merging into `main` deploys to the live Netlify site. Rachel has approved Claude merging its own pull requests once they are tested and don't overlap anyone else's open work. Anyone else merges only with Rachel's approval.
 
 ## Finishing
 
 1. Mark the PR ready for review and write what changed and how you tested it.
 2. Remove your claim from `COORDINATION.md` in the same PR.
-3. Tell Rachel the PR is ready. She merges it.
+3. Merge it if you're allowed to (see Hard rules), otherwise tell Rachel it's ready.
 
 ## If you collide
 
