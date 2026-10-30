@@ -5,7 +5,6 @@ Add a row when you open your draft PR and remove it in the same PR when you fini
 
 | Who | Branch | Files | Status |
 |---|---|---|---|
-| ChatGPT | `chatgpt/remove-duplicate-game-art` | `assets/styles/16-styles.css`, `index.html` | Removing duplicate game-card artwork |
 
 ## Map of the code
 

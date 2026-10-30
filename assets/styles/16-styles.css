@@ -275,7 +275,7 @@ body:has(#app .gamehead) .top .brand{display:none}
 /* Fixed art slots keep titles and descriptions aligned, even on a narrow phone. */
 .games .gamecard .emoji{display:grid!important;place-items:center;width:100%!important;height:88px!important;aspect-ratio:auto!important;margin:0 0 6px!important;font-size:0!important;background:#fff7f2!important;border-radius:16px}
 .games .gamecard .emoji img{display:none!important}
-.games .gamecard .emoji::before{content:"";display:block;width:80px;height:80px;background-image:url('../images/clay/icons.webp');background-size:400% 400%;background-position:var(--clay-x,0%) var(--clay-y,0%);background-repeat:no-repeat}
+.games .gamecard .emoji::before{content:"";display:block;width:80px;height:80px;background-image:url('../images/clay/icons.webp');background-size:400% 400%;background-position:var(--clay-x,0%) var(--clay-y,0%);background-repeat:no-repeat}\n.games .gamecard .emoji.game-card-art::before{display:none}
 .shop-item,.interior-product{border-radius:22px!important;background:linear-gradient(155deg,#fffdf9,#fff5f0)!important;border-color:#efd8ce!important;box-shadow:0 5px 0 #ead3c7!important}
 .shop-item .pic{border-radius:17px;background:radial-gradient(ellipse at 50% 30%,#fffefa,#f9ece2);padding:6px;overflow:hidden}
 .shop-item .pic .rk3-thumb{filter:drop-shadow(0 5px 4px #865d4720)}
