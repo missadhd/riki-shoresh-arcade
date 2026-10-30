@@ -112,8 +112,8 @@
     "earrings": "accessory-earrings.webp",
     "hairClips": "accessory-hair-clips.webp",
     "mintDress": "outfit-mint-dress-fitted-v2.webp",
-    "braceletBack": "accessory-bracelet-back.webp",
-    "braceletFront": "accessory-bracelet-front.webp"
+    "braceletBack": "accessory-bangle-fitted-v2-back.webp",
+    "braceletFront": "accessory-bangle-fitted-v2-front.webp"
   },
   "garmentZones": {
     "upperBody": [
