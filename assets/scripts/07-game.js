@@ -1016,6 +1016,35 @@ newHub=function(){zStop();zCur='';lastUnit=null;game='sel';const tm=todaysMissio
  if(typeof selClassicHub==='function'){const mb=document.createElement('button');mb.className='secondary';mb.style.cssText='display:block;margin:14px auto 0';mb.textContent='📚 More Social Skills adventures';mb.onclick=()=>{audio('tap');selClassicHub();};app.querySelector('.panel').appendChild(mb);}
  window.scrollTo(0,0);};
 
+/* Simple menu (Claude, Oct 30): one screen, the 10 best games. Everything else lives in Grown-ups. */
+const KID_GAMES=[['arc:balloon','🎈','Balloon Pop','Pop the best answer','#ffb3d1'],['arc:claw','🦾','Claw Catch','Grab the best answer, win a prize','#b9a6ff'],['arc:racer','🏎️','Answer Racer','Drive into the right gate','#8fd3ff'],['arc:whack','🐹','Bonk-a-Mole','Bonk the best answer','#a6e3a1'],
+ ['volcano','🌋','Cool the Volcano','Calm Riki down','#ffb38a'],['waitfor','🧁','Wait For It','Hold on for 2 cupcakes','#ffd9a0'],['swipe','💖','Kind or Oops?','Swipe the cards','#ffc2dc'],['feelmatch','🃏','Feelings Match','Match faces to feelings','#c9e8ff'],['sport','🏆','Good Sport','Play rock, paper, scissors','#ffe08a'],['says','🙋','Riki Says','Only tap when Riki says','#d8c8ff']];
+const runKid=id=>{audio('tap');if(id.startsWith('arc:'))drawArc(id.slice(4));else runGame(id);window.scrollTo(0,0);};
+newHub=function(){zStop();zCur='';lastUnit=null;game='sel';const got=zSave.album.got.length;
+ app.innerHTML=`<section class="panel sk"><div class="sk-head"><h1>💖 Social Skills</h1><button class="secondary" id="backHebrewNew">🎮 Hebrew</button></div>
+  <div class="sk-top"><button class="sk-big" id="scBig" type="button"><b>🌟</b><span><strong>Riki’s Big Day</strong><small>3 games in one story</small></span></button><button class="sk-alb" id="scAlb" type="button"><b>📒</b><small>${got}/48</small></button></div>
+  <div class="sk-grid">${KID_GAMES.map(([id,e,n,d,c])=>{const st=zSave.stars[id.startsWith('arc:')?'arc-mix':id]||0;return `<button class="sk-g" data-kid="${id}" type="button" style="--c:${c}"><b>${e}</b><strong>${n}</strong><small>${d}</small>${st&&!id.startsWith('arc:')?`<i>⭐${st}</i>`:''}</button>`;}).join('')}</div>
+  <button class="sk-grown" id="scGrown" type="button">👩‍🏫 Grown-ups</button></section>`;
+ $id('backHebrewNew').onclick=menu;$id('scBig').onclick=()=>{audio('tap');drawBigDay();window.scrollTo(0,0);};$id('scAlb').onclick=()=>{audio('tap');drawAlbum();window.scrollTo(0,0);};
+ document.querySelectorAll('[data-kid]').forEach(b=>b.onclick=()=>runKid(b.dataset.kid));$id('scGrown').onclick=()=>{audio('tap');grownGate(()=>grownups());};window.scrollTo(0,0);};
+/* Grown-ups gets the extras: stories, check-in, every other game by skill */
+const grownupsPrior=grownups;grownups=function(g){grownupsPrior(g);const host=document.querySelector('#zRoot .gu');if(!host)return;const kid=new Set(KID_GAMES.map(k=>k[0]));
+ const sec=document.createElement('div');sec.innerHTML=`<h3>🎬 Stories to watch together</h3><div class="gx-row">${UNITS.map(u=>`<button class="gx" data-gw="${u.id}" type="button">${u.ic} ${u.name}</button>`).join('')}</div>
+  <h3>🎯 Practice one skill</h3><p class="gu-sub">Arcade rounds using only that skill’s situations.</p><div class="gx-row">${UNITS.map(u=>`<button class="gx" data-gu="${u.id}" type="button">🎪 ${u.name}</button>`).join('')}</div>
+  <h3>🧩 More games</h3><div class="gx-row">${[...zDupSeen().flatMap(u=>u.games),['hoop','🏀','Hoop Shot'],['catch','🧺','Star Catcher'],['sizesort','🐘','Size Sorter']].filter(g=>!kid.has(g[0])).map(([id,e,n])=>`<button class="gx" data-gg="${id}" type="button">${e} ${n}</button>`).join('')}${typeof selClassicHub==='function'?'<button class="gx" id="gxClassic" type="button">📚 Classic adventures</button>':''}</div>`;
+ host.insertBefore(sec,host.querySelector('.pd-row'));
+ sec.querySelectorAll('[data-gw]').forEach(b=>b.onclick=()=>{audio('tap');drawWatch(b.dataset.gw);});
+ sec.querySelectorAll('[data-gu]').forEach(b=>b.onclick=()=>{audio('tap');const ks=Object.keys(ARC_GAMES);drawArc(ks[Math.floor(Math.random()*ks.length)],b.dataset.gu);});
+ sec.querySelectorAll('[data-gg]').forEach(b=>b.onclick=()=>{const id=b.dataset.gg;if(id==='hoop'||id==='catch'){audio('tap');drawArc(id);}else runGame(id);});
+ const cl=sec.querySelector('#gxClassic');if(cl)cl.onclick=()=>{audio('tap');selClassicHub();};window.scrollTo(0,0);};
+const SKCSS=`.sk-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.sk-head h1{margin:0;font-size:26px;font-family:"Baloo 2",system-ui,sans-serif;color:#4a2338}
+.sk-top{display:grid;grid-template-columns:1fr auto;gap:8px;margin:12px 0}.sk-big{border:0;border-radius:22px;padding:12px 14px;display:flex;align-items:center;gap:10px;text-align:left;color:#fff;background:linear-gradient(135deg,#ffb547,#ff6f9e);box-shadow:0 6px 0 #d4507e;cursor:pointer}.sk-big b{font-size:38px}.sk-big strong{display:block;font-size:20px;font-family:"Baloo 2",system-ui,sans-serif}.sk-big small{font-weight:800;opacity:.9}
+.sk-alb{border:0;border-radius:22px;padding:8px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#8f6cf2,#d48cff);box-shadow:0 6px 0 #6a4fc4;cursor:pointer}.sk-alb b{font-size:32px}.sk-alb small{font-weight:900}
+.sk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.sk-g{position:relative;border:0;border-radius:22px;padding:14px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;background:linear-gradient(160deg,#fff,color-mix(in srgb,var(--c) 45%,#fff));box-shadow:0 5px 0 color-mix(in srgb,var(--c) 70%,#a36);cursor:pointer;color:#4a2338}.sk-g b{font-size:44px;line-height:1.1}.sk-g strong{font-size:16px}.sk-g small{font-size:11.5px;font-weight:800;opacity:.75}.sk-g i{position:absolute;top:6px;right:8px;font-style:normal;font-size:11px;font-weight:900;background:#fff;border-radius:999px;padding:1px 6px}.sk-g:active{transform:translateY(3px);box-shadow:0 2px 0 color-mix(in srgb,var(--c) 70%,#a36)}
+.sk-grown{display:block;margin:16px auto 0;border:0;background:none;color:#8a6577;font-weight:900;text-decoration:underline;cursor:pointer}
+.gx-row{display:flex;flex-wrap:wrap;gap:6px}.gx{border:0;border-radius:999px;padding:8px 12px;background:#fff;font-weight:900;font-size:13px;color:#4a2338;box-shadow:0 0 0 2px #f3d6dc;cursor:pointer}`;
+if(!document.getElementById('skCss')){const st=document.createElement('style');st.id='skCss';st.textContent=SKCSS;document.head.appendChild(st);}
+
 window.RikiSocial={state:()=>({boardPick,good:boardPick!==null?scenes[boardPick].good:null,pieces:talks[dialogueStep%talks.length].pieces,sortAnswer:sortCases[sortIndex%sortCases.length][1],sortIndex,planStep,zone:zSave,zCur})};
 selHub=newHub;
 })();
