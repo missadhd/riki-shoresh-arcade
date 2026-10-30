@@ -491,22 +491,23 @@ function mount(el){ensureRenderer();stageEl=el;el.prepend(R.domElement);resize()
 
 /* ---------------- grab animation ---------------- */
 async function grab(){
+  const run=S;
   const item=M.pile.filter(p=>!p.taken).sort(()=>Math.random()-.5)[0];if(!item)return null;item.taken=true;
   const claw=M.claw,home=M.home.clone(),tx=item.group.position.x,tz=item.group.position.z;
-  const a0=claw.position.clone();await tween(650,p=>{const e=ease(p);claw.position.x=a0.x+(tx-a0.x)*e;claw.position.z=a0.z+(tz-a0.z)*e;});
+  const a0=claw.position.clone();await tween(650,p=>{const e=ease(p);claw.position.x=a0.x+(tx-a0.x)*e;claw.position.z=a0.z+(tz-a0.z)*e;});if(!clawActive(run))return null;
   openClaw(-.45);beep(520);
-  await tween(520,p=>{claw.position.y=2.0-(2.0-(PIT+.42))*ease(p);});
+  await tween(520,p=>{claw.position.y=2.0-(2.0-(PIT+.42))*ease(p);});if(!clawActive(run))return null;
   openClaw(.2);beep(700);item.group.position.set(0,-.3,0);item.group.rotation.set(0,item.group.rotation.y,0);claw.add(item.group);
-  await tween(520,p=>{claw.position.y=(PIT+.42)+(2.0-(PIT+.42))*ease(p);claw.rotation.z=Math.sin(p*Math.PI*3)*.05;});claw.rotation.z=0;
-  const b=claw.position.clone();await tween(650,p=>{const e=ease(p);claw.position.x=b.x+(-.5-b.x)*e;claw.position.z=b.z+(.28-b.z)*e;});
+  await tween(520,p=>{claw.position.y=(PIT+.42)+(2.0-(PIT+.42))*ease(p);claw.rotation.z=Math.sin(p*Math.PI*3)*.05;});if(!clawActive(run))return null;claw.rotation.z=0;
+  const b=claw.position.clone();await tween(650,p=>{const e=ease(p);claw.position.x=b.x+(-.5-b.x)*e;claw.position.z=b.z+(.28-b.z)*e;});if(!clawActive(run))return null;
   openClaw(-.45);beep(440);claw.remove(item.group);M.g.add(item.group);item.group.position.set(-.5,1.65,.28);
-  await tween(380,p=>{item.group.position.y=1.65-(1.65-.7)*p*p;item.group.scale.setScalar(.5*(1-p*.4));});
+  await tween(380,p=>{item.group.position.y=1.65-(1.65-.7)*p*p;item.group.scale.setScalar(.5*(1-p*.4));});if(!clawActive(run))return null;
   M.g.remove(item.group);M.pile=M.pile.filter(x=>x!==item);openClaw(0);
-  tween(700,p=>{const e=ease(p);claw.position.x=-.5+(home.x+.5)*e;claw.position.z=.28+(home.z-.28)*e;});
+  tween(700,p=>{const e=ease(p);claw.position.x=-.5+(home.x+.5)*e;claw.position.z=.28+(home.z-.28)*e;});if(!clawActive(run))return null;
   /* flap swings, plush pops out toward Riki */
-  M.flap.rotation.x=0;tween(500,p=>{M.flap.rotation.x=-Math.sin(p*Math.PI)*1.1;M.flap.position.z=.63+Math.sin(p*Math.PI)*.12;});
+  M.flap.rotation.x=0;tween(500,p=>{M.flap.rotation.x=-Math.sin(p*Math.PI)*1.1;M.flap.position.z=.63+Math.sin(p*Math.PI)*.12;});if(!clawActive(run))return null;
   const prize=buildPlush(item.id);scene.add(prize);prize.position.set(-.5,.3,.75);prize.scale.setScalar(.2);camShake=.05;beep(880,.18);
-  await tween(820,p=>{const e=1-Math.pow(1-p,3);prize.position.set(-.5+.5*e,.3+.75*e+Math.sin(p*Math.PI)*.55,.75+.9*e);prize.scale.setScalar(.2+.8*e);prize.rotation.y=p*Math.PI*2;});
+  await tween(820,p=>{const e=1-Math.pow(1-p,3);prize.position.set(-.5+.5*e,.3+.75*e+Math.sin(p*Math.PI)*.55,.75+.9*e);prize.scale.setScalar(.2+.8*e);prize.rotation.y=p*Math.PI*2;});if(!clawActive(run))return null;
   prize.userData.baseY=prize.position.y;showPrize=prize;
   /* refill the pile so it stays full */
   const spot=item.spot;const pool=PLUSH.filter(p=>!p[2]&&!M.pile.some(x=>x.id===p[0])&&p[0]!==item.id);addToPile(pool[Math.floor(Math.random()*pool.length)][0],spot,true);
@@ -517,6 +518,7 @@ let actx=null;function beep(f,d=.09){try{if(G('soundOn')===false)return;actx=act
 
 /* ---------------- game flow ---------------- */
 const ROUNDS=8;let S=null;
+function clawActive(run=S){return !!run&&S===run&&G('game')==='claw'&&!!document.getElementById('cmPanel');}
 function words(){const W=G('W')||[];const f=G('ids');return {W,pool:typeof f==='function'?f():W.map((_,i)=>i)};}
 function webgl(){try{const c=document.createElement('canvas');return !!(window.WebGLRenderingContext&&(c.getContext('webgl')||c.getContext('experimental-webgl')));}catch(e){return false;}}
 function start(){
@@ -526,32 +528,33 @@ function start(){
   S={order,at:0,score:0,won:[]};
   const fr=G('frame');fr&&fr('🕹️ Claw Machine',`<div class="cm"><div class="cm-top"><span class="cm-dots" id="cmDots"></span><span class="cm-col" id="cmCol"></span></div><div class="cm-stage" id="cmStage"><div class="cm-banner" id="cmBanner" hidden></div><div class="cm-burst" id="cmBurst"></div></div><div class="cm-panel" id="cmPanel"></div></div>`);
   const el=document.getElementById('cmStage');
-  K.loadThree(()=>{buildMachine();fillPile();mount(el);showGrab();},()=>{const p=document.getElementById('cmPanel');if(p)p.innerHTML='<p>The Claw Machine needs an internet connection to load.</p>';});
+  const run=S;K.loadThree(()=>{if(!clawActive(run)||!el.isConnected)return;buildMachine();fillPile();mount(el);showGrab();},()=>{const p=document.getElementById('cmPanel');if(p)p.innerHTML='<p>The Claw Machine needs an internet connection to load.</p>';});
   return true;
 }
 function dots(){const d=document.getElementById('cmDots');if(d)d.innerHTML=Array.from({length:ROUNDS},(_,i)=>`<i class="${i<S.at?'on':i===S.at?'now':''}"></i>`).join('');const c=document.getElementById('cmCol');if(c){const n=Object.keys(plushData()).filter(k=>PBY[k]).length;c.textContent=`🧸 ${n} / ${PLUSH.length} collected`;}}
 function panel(html){const p=document.getElementById('cmPanel');if(p)p.innerHTML=html;return p;}
 function banner(html,cls=''){const b=document.getElementById('cmBanner');if(!b)return;if(!html){b.hidden=true;return;}b.className='cm-banner '+cls;b.innerHTML=html;b.hidden=false;}
 function burst(n=26){const b=document.getElementById('cmBurst');if(!b||matchMedia('(prefers-reduced-motion: reduce)').matches)return;const cols=['#ff71ad','#ffd45b','#5bd8bf','#8fc6e8','#c8a2ff'];for(let i=0;i<n;i++){const d=document.createElement('i');d.style.background=cols[i%5];const a=Math.random()*Math.PI*2,r=70+Math.random()*110;d.style.setProperty('--dx',Math.cos(a)*r+'px');d.style.setProperty('--dy',Math.sin(a)*r+'px');b.appendChild(d);setTimeout(()=>d.remove(),1000);}}
-function showGrab(){dots();banner('');panel(`<button type="button" class="cm-big cm-grab" id="cmGrab">🕹️ GRAB A PRIZE!</button>`);document.getElementById('cmGrab').onclick=async e=>{const b=e.currentTarget;b.disabled=true;b.textContent='Grabbing…';clearPrize();const id=await grab();if(!id){showGrab();return;}winPlush(id);S.won.push(id);dots();const p=PBY[id];
-  banner(`${p[2]?'<span class="cm-rare">✨ RARE ✨</span>':''}<b>You got ${esc(p[1])}!</b>`,p[2]?'rare':'');burst(p[2]?44:24);try{const a=G('audio');a&&a(p[2]?'win':'good');}catch(_){}setTimeout(question,650);};}
+function showGrab(){if(!clawActive())return;const run=S;dots();banner('');panel(`<button type="button" class="cm-big cm-grab" id="cmGrab">🕹️ GRAB A PRIZE!</button>`);document.getElementById('cmGrab').onclick=async e=>{const b=e.currentTarget;b.disabled=true;b.textContent='Grabbing…';clearPrize();const id=await grab();if(!clawActive(run))return;if(!id){showGrab();return;}winPlush(id);S.won.push(id);dots();const p=PBY[id];
+  banner(`${p[2]?'<span class="cm-rare">✨ RARE ✨</span>':''}<b>You got ${esc(p[1])}!</b>`,p[2]?'rare':'');burst(p[2]?44:24);try{const a=G('audio');a&&a(p[2]?'win':'good');}catch(_){}setTimeout(()=>{if(clawActive(run))question();},650);};}
 function question(){
+  if(!clawActive())return;const run=S;
   const {W,pool}=words();const id=S.order[S.at];const four=!!(window.RikiProgress&&window.RikiProgress.mastered&&window.RikiProgress.mastered(id));
   const opts=shuffle([id,...shuffle(pool.filter(x=>x!==id)).slice(0,four?3:2)]);let first=true;
   const p=panel(`<div class="prompt cm-q"><div class="eyebrow">Unlock your prize! What does it mean?</div><div class="hebrew" lang="he">${esc(W[id][0])}</div></div><div class="cm-answers${four?' four':''}">${opts.map((o,i)=>`<button type="button" class="cm-ans c${i}" data-choice="${o}">${esc(W[o][1])}</button>`).join('')}</div><p class="cm-hint" id="cmHint" hidden></p>`);
   p.querySelectorAll('.cm-ans').forEach(b=>b.onclick=()=>{if(b.disabled)return;const pick=+b.dataset.choice;
     if(pick!==id){first=false;b.disabled=true;b.classList.add('bad');try{const inc=G('incorrect');inc&&inc();}catch(_){}const h=document.getElementById('cmHint');if(h){h.hidden=false;h.textContent='💡 '+(W[id][2]||'Try another one!');}return;}
     p.querySelectorAll('.cm-ans').forEach(x=>x.disabled=true);b.classList.add('good');try{const cor=G('correct');cor&&cor(first?3:1);}catch(_){}S.score+=first?3:1;S.at++;window.__cmSession.at=S.at;window.__cmSession.score=S.score;burst(16);
-    setTimeout(()=>{if(S.at>=ROUNDS)coinPhase();else showGrab();},900);});
+    setTimeout(()=>{if(!clawActive(run))return;if(S.at>=ROUNDS)coinPhase();else showGrab();},900);});
   if(window.RikiFit)setTimeout(window.RikiFit,60);
 }
 /* ---------------- golden Claw Coin + mystery prize ---------------- */
 let coinMesh=null;
-function coinPhase(){dots();clearPrize();window.__cmSession.done=true;banner('<b>🌟 8 roots! You earned a golden Claw Coin!</b>','gold');burst(40);try{const a=G('audio');a&&a('win');const c=G('celebrate');c&&c();}catch(_){}
+function coinPhase(){if(!clawActive())return;const run=S;dots();clearPrize();window.__cmSession.done=true;banner('<b>🌟 8 roots! You earned a golden Claw Coin!</b>','gold');burst(40);try{const a=G('audio');a&&a('win');const c=G('celebrate');c&&c();}catch(_){}
   coinMesh=new THREE.Group();const cy=CY(coinMesh,.22,.22,.05,metalM('#f2c94c'),0,0,0,40);cy.rotation.x=Math.PI/2;ext(coinMesh,starShape(.1),.02,glow('#fff3a8',.8),0,0,.03,.01);coinMesh.position.set(0,1.15,1.6);scene.add(coinMesh);
   const spin=()=>{if(!coinMesh)return;coinMesh.rotation.y+=.05;requestAnimationFrame(spin);};spin();
   panel(`<button type="button" class="cm-big cm-coin" id="cmInsert">🪙 INSERT COIN</button>`);document.getElementById('cmInsert').onclick=async e=>{e.currentTarget.disabled=true;banner('');const c=coinMesh;const from=c.position.clone(),to=new THREE.Vector3(.42,.58,.66);
-    await tween(900,p=>{const k=ease(p);c.position.lerpVectors(from,to,k);c.position.y+=Math.sin(p*Math.PI)*.4;c.scale.setScalar(1-.55*k);});scene.remove(c);coinMesh=null;beep(660);beep(990,.2);
+    await tween(900,p=>{const k=ease(p);c.position.lerpVectors(from,to,k);c.position.y+=Math.sin(p*Math.PI)*.4;c.scale.setScalar(1-.55*k);});if(!clawActive(run))return;scene.remove(c);coinMesh=null;beep(660);beep(990,.2);
     M.sign.material=glow('#ffd25e',1.2);camShake=.04;panel(`<button type="button" class="cm-big cm-mystery" id="cmMystery">🎁 PRESS FOR MYSTERY PRIZE!</button>`);document.getElementById('cmMystery').onclick=mystery;};}
 function giveItem(){let owned=G('owned');if(!Array.isArray(owned)){try{owned=JSON.parse(localStorage.getItem('rickyHouseInventoryV1')||'[]');}catch(e){owned=null;}}if(!Array.isArray(owned))return {err:true};
   const left=MINI.filter(m=>!owned.includes(m[0]));if(!left.length)return {all:true};const m=left[Math.floor(Math.random()*left.length)];owned.push(m[0]);
