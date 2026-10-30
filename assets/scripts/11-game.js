@@ -513,3 +513,27 @@ new MutationObserver(addButtons).observe(document.body,{childList:true,subtree:t
 window.openWholeHouse3D=openHouse;
 window.RK3=Object.assign(window.RK3||{},{B,mat,fabric,gloss,wood,metalM,RB,BX,CY,SP,CO,add,rbox,eye,legs4,loadThree,shadeHex,canvasTex,rugTex,lights,makeItem,MODEL:(window.RK3&&window.RK3.MODEL)||{}});
 })();
+
+/* Fit game screens to the phone (Claude, Oct 29): when a new question appears, scroll so the prompt
+   and every choice are on screen together; if they still don't fit, shrink the 3D stage. */
+(function(){
+const CHOICES='.option,.bubble,.letter,.memory .tile,.match-btn,.show-cell,.st-card,.sel-tile,.sel-choice,[data-wheel-answer],[data-choice]';
+const PROMPTS='.st-order,.wheel-question,.show-spotlight,.prompt,.sel-scene,.sel-3d';
+const seen=new WeakSet();let timer=0;
+function headerH(){const t=document.querySelector('.top');if(!t)return 0;const cs=getComputedStyle(t);return /sticky|fixed/.test(cs.position)?t.getBoundingClientRect().height:0;}
+function fit(){
+  const app=document.getElementById('app');if(!app)return;const ch=[...app.querySelectorAll(CHOICES)].filter(e=>e.offsetParent&&!e.closest('.comic-theater'));if(!ch.length)return;
+  const pr=[...app.querySelectorAll(PROMPTS)].find(e=>e.offsetParent)||ch[0];if(seen.has(pr))return;seen.add(pr);
+  const hh=headerH()+6,avail=innerHeight-hh-6;
+  const span=()=>{const top=pr.getBoundingClientRect().top;const bot=Math.max(...ch.map(e=>e.getBoundingClientRect().bottom));return {top,bot,need:bot-top};};
+  let m=span();
+  if(m.need>avail){const st=app.querySelector('.st-stage');if(st){const h=st.getBoundingClientRect().height;const nh=Math.max(140,h-(m.need-avail));st.style.setProperty('--rk-stage-h',nh+'px');st.style.height=nh+'px';window.dispatchEvent(new Event('resize'));m=span();}}
+  const target=scrollY+m.top-hh;
+  if(m.top<hh||m.bot>innerHeight-4)window.scrollTo({top:Math.max(0,target),behavior:'auto'});
+}
+const app=document.getElementById('app');
+if(app)new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(fit,120);}).observe(app,{childList:true,subtree:true});
+/* after an answer, keep the "Next" button reachable without scrolling */
+document.addEventListener('click',()=>{setTimeout(()=>{const n=document.querySelector('#app #next,#app #spinAgain,#app #comicNext:not([hidden])');if(n&&n.offsetParent){const r=n.getBoundingClientRect();if(r.bottom>innerHeight)n.scrollIntoView({block:'end',behavior:'smooth'});}},350);},true);
+window.RikiFit=fit;
+})();
