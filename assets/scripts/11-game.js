@@ -262,12 +262,47 @@ function roomShell(g,id,W,D,H,opts={}){
   const wins=opts.windows||(W>5.5?[-W/4,W/4]:[0]);wins.forEach(x=>windowOn(g,x,H*.56,-D/2+.01,0,id));
   if(!opts.noSides&&W>=5.5)windowOn(g,W/2-.01,H*.56,0,-Math.PI/2,id);
 }
+function roomIdentity(g,id,W,D,H){
+  if(id==='bathroom'){
+    const tile=mat('#d8eef0',.82),white=mat('#fffaf6',.55),gold=metalM('#d8b46a');
+    for(let x=-W/2+.28;x<W/2;x+=.56)for(let y=.3;y<1.45;y+=.56)RB(g,.52,.52,.025,.025,tile,x,y,-D/2+.075);
+    RB(g,1.55,.12,.6,.05,white,-W/2+1.0,.5,-D/2+.42);RB(g,1.35,.7,.07,.04,white,-W/2+1.0,.92,-D/2+.11);
+    CY(g,.22,.22,.04,gold,-W/2+1.0,1.25,-D/2+.02,32);CY(g,.18,.18,.02,mat('#cde7ec',.2),-W/2+1.0,1.25,-D/2+.005,32);
+    CY(g,.025,.025,.55,gold,W/2-.65,1.45,-D/2+.16,12);CY(g,.18,.18,.035,gold,W/2-.65,1.72,-D/2+.16,24).rotation.x=Math.PI/2;
+  }else if(id==='kitchen'){
+    const mint=mat('#b9d9cf',.86),cream=mat('#fff3df',.7),gold=metalM('#c9a565');
+    RB(g,W-1,.72,.58,.05,mint,0,.38,-D/2+.36);RB(g,W-1,.09,.68,.035,cream,0,.78,-D/2+.39);
+    for(let x=-W/2+.8;x<W/2-.3;x+=.82){BX(g,.035,.58,.02,gold,x,.38,-D/2+.68);SP(g,.025,gold,x+.35,.4,-D/2+.71);}
+    for(let x=-W/2+.45;x<W/2;x+=.45)for(let y=1.02;y<1.92;y+=.45)RB(g,.41,.41,.018,.018,mat((Math.round(x*10)+Math.round(y*10))%2?'#f7dfcf':'#f6f0dc',.9),x,y,-D/2+.075);
+  }else if(id==='living'){
+    const stone=mat('#ead7c2',.9),dark=mat('#6c4c43',.95),woodM=wood('#b7855e');
+    RB(g,1.55,1.45,.24,.06,stone,0,.73,-D/2+.18);RB(g,.9,.68,.08,.025,dark,0,.46,-D/2+.34);RB(g,1.85,.13,.42,.035,woodM,0,1.42,-D/2+.26);
+    [-1.35,1.35].forEach(x=>{CY(g,.24,.3,.42,mat('#d7b18d',.9),x,.21,-D/2+.35,28);SP(g,.24,mat('#7bad78',.9),x,.62,-D/2+.35,1,1.25,1);});
+  }else if(id==='bedroom'){
+    const blush=mat('#efbfd1',.94),gold=metalM('#d3ad70');
+    RB(g,2.3,1.8,.08,.18,blush,0,1.03,-D/2+.12);for(let x=-.9;x<=.9;x+=.3)CY(g,.025,.025,1.55,gold,x,1.05,-D/2+.18,10);
+    [-1,1].forEach(s=>SP(g,.16,mat('#f7dbe7',.92),s*1.45,1.75,-D/2+.2,1,1.4,.45));
+  }else if(id==='playroom'){
+    const cols=['#eeb4c7','#add8d0','#e6d49c','#c8b8df'];
+    for(let i=0;i<4;i++){RB(g,.7,.72,.42,.06,mat(cols[i],.9),-1.1+i*.74,.4,-D/2+.28);RB(g,.55,.48,.04,.03,mat('#fff8ed',.8),-1.1+i*.74,.42,-D/2+.51);}
+    for(let i=0;i<7;i++){const a=i/7*Math.PI*2;SP(g,.13,mat(cols[i%4],.95),Math.cos(a)*.78,.035,Math.sin(a)*.78+.5,1.2,.18,1);}
+  }
+}
 function pctToLocal(p,W,D){const fx=(cl(+p.x||50,8,92)-8)/84,fz=(cl(+p.y||70,26,86)-26)/60;return [(fx-.5)*(W-1.3),-(D-1.3)/2+fz*(D-1.3)];}
 function localToPct(X,Z,W,D){return {x:8+((X/(W-1.3))+.5)*84,y:26+((Z+(D-1.3)/2)/(D-1.3))*60};}
 /* Rotation is shared with the 2D room: key 'rikiDreamRotationV1', { 'room:itemId': degrees } in 45-degree steps */
 const RK_ROT_KEY='rikiDreamRotationV1';
 function rkRot(){try{return JSON.parse(localStorage.getItem(RK_ROT_KEY)||'{}')||{};}catch(e){return {};}}
 function rkRotSave(r){try{localStorage.setItem(RK_ROT_KEY,JSON.stringify(r));}catch(e){}}
+function rkScale(room,id){let pos;try{pos=JSON.parse(localStorage.getItem('rickyDreamPositionsV2')||'{}')?.[room]?.[id];}catch(_){}if(!pos)pos=(G('dreamPosition')||{})[room]?.[id];const v=Number(pos&&pos.scale);return cl(Number.isFinite(v)&&v?v:1,.65,1.55);}
+function rkScaleSet(room,id,value){let all;try{all=JSON.parse(localStorage.getItem('rickyDreamPositionsV2')||'{}')||{};}catch(_){all={};}const live=G('dreamPosition')||{};all[room]??={};all[room][id]??=Object.assign({},live[room]?.[id]||{x:50,y:65});all[room][id].scale=cl(value,.65,1.55);live[room]??={};live[room][id]=Object.assign({},all[room][id]);try{localStorage.setItem('rickyDreamPositionsV2',JSON.stringify(all));}catch(_){}}
+function ownedCopies(id){return (G('owned')||[]).filter(x=>x===id).length;}
+function placedCopies(id,skipRoom){const decor=G('decor')||{};let n=0;Object.entries(decor).forEach(([room,placements])=>{if(room===skipRoom)return;Object.values(placements||{}).forEach(x=>{if(x===id)n++;});});return n;}
+function availableCopies(id,room){const here=Object.values((G('decor')||{})[room]||{}).includes(id)?1:0;return Math.max(0,ownedCopies(id)-placedCopies(id,room)-here);}
+function reconcileCopies(){const decor=G('decor')||{},left={};(G('owned')||[]).forEach(id=>left[id]=(left[id]||0)+1);let changed=false;const order=['bedroom','living','kitchen','bathroom','playroom','garden',...Object.keys(decor)];
+  [...new Set(order)].forEach(room=>{const p=decor[room]||{};Object.keys(p).sort((a,b)=>Number(a)-Number(b)).forEach(slot=>{const id=p[slot];if((left[id]||0)>0)left[id]--;else{delete p[slot];changed=true;}});decor[room]=p;});
+  if(changed){try{localStorage.setItem('rickyHouseDecorV1',JSON.stringify(decor));const save=G('saveHouse');save&&save();localStorage.setItem('rickyHouseDecorV1',JSON.stringify(decor));}catch(_){}}return changed;}
+window.RikiInventoryCopies={owned:ownedCopies,placed:placedCopies,available:availableCopies,reconcile:reconcileCopies};
 function fillItems(group,room,W,D,S){
   while(group.children.length)group.remove(group.children[0]);
   const owned=G('owned')||[],ITEMS=G('ITEMS')||[],decor=G('decor')||{},pos=G('dreamPosition')||{},SL=G('SLOTS')||[];
@@ -275,7 +310,7 @@ function fillItems(group,room,W,D,S){
   Object.entries(placements).forEach(([slot,id])=>{
     if(!owned.includes(id))return;const it=ITEMS.find(x=>x[0]===id);if(!it)return;
     const p=positions[id]||SL[Number(slot)]||{x:45,y:72};const [X,Z]=pctToLocal(p,W,D);
-    const g=makeItem(it);g.scale.setScalar(S);g.userData.id=id;
+    const g=makeItem(it);g.scale.setScalar(S*rkScale(room,id));g.userData.id=id;
     if(g.userData.onWall){g.position.set(X,1.55,-D/2+.06);}else{g.position.set(X,0,Z);if(room!=='garden')g.rotation.y=X<-(W/3)?.45:X>W/3?-.45:0;const rd=rkRot()[room+':'+id];if(rd!==undefined&&rd!==null&&rd!=='')g.rotation.y=-Number(rd)*Math.PI/180;}
     g.userData.base=g.position.y;g.userData.phase=rnd()*6;group.add(g);out.push(g);
   });
@@ -436,11 +471,12 @@ let lastPtr=null;['pointermove','pointerdown','pointerup'].forEach(t=>document.a
 function msg(t){const m=document.getElementById('dreamMessage');if(m)m.textContent=t;}
 function edBuild(room){
   storageClose(true);
+  reconcileCopies();
   ED.preview=null;ED.moveMode=false;
   const s=new THREE.Scene();ED.scene=s;ED.room=room;const [W,D,H]=ROOM_SIZE[room]||ROOM_SIZE.bedroom;ED.W=W;ED.D=D;ED.H=H;
   if(room==='garden'){s.background=null;}
   lights(s,Math.max(W,D),1024);
-  const shell=new THREE.Group();s.add(shell);roomShell(shell,room,W,D,H);
+  const shell=new THREE.Group();s.add(shell);roomShell(shell,room,W,D,H);roomIdentity(shell,room,W,D,H);
   if(room!=='garden'){const L=new THREE.PointLight(0xffe2b8,.35,9,2);L.position.set(0,H-.4,.6);s.add(L);}
   ED.group=new THREE.Group();s.add(ED.group);ED.items=fillItems(ED.group,room,W,D,1.35);if(window.RK3.hydrateStorage)ED.items.forEach(g=>window.RK3.hydrateStorage(g,room));
   const ring=new THREE.Mesh(new THREE.RingGeometry(.62,.72,48),new THREE.MeshBasicMaterial({color:0xe2457a,transparent:true,opacity:.85,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=.02;ring.visible=false;s.add(ring);ED.ring=ring;
@@ -477,7 +513,7 @@ function edSelect(id,quiet){
   if(!quiet&&g){const it=(G('ITEMS')||[]).find(t=>t[0]===id);const isSt=G('isStorage');const store=typeof isSt==='function'&&isSt(id);
     msg('Selected '+(it?it[2]:'furniture')+'. Drag it to move it'+(store?', or tap Open selected storage.':', or tap Remove to put it away.'));}
 }
-function place(id,X,Z){const p=localToPct(X,Z,ED.W,ED.D);ED.internal=true;try{ORIG_PLACE(id,p.x,p.y);}finally{ED.internal=false;}}
+function place(id,X,Z){const room=G('currentRoom')||ED.room||'bedroom',already=Object.values((G('decor')||{})[room]||{}).includes(id);if(!already&&availableCopies(id,room)<1){msg('That copy is already in another room. Buy another one in the shop to place it here.');try{const a=G('audio');a&&a('bad');}catch(_){}return false;}const p=localToPct(X,Z,ED.W,ED.D),scale=rkScale(room,id);ED.internal=true;try{ORIG_PLACE(id,p.x,p.y);rkScaleSet(room,id,scale);}finally{ED.internal=false;}return true;}
 function edPointers(cv){
   cv.addEventListener('pointerdown',e=>{if(ED.storage){storageDown(e);return;}const pt={x:e.clientX,y:e.clientY};let it=hitItem(pt);if(ED.preview){it=null;ED.ray.setFromCamera(ndc(pt),ED.cam);if(ED.ray.intersectObject(ED.preview.group,true).length)it=ED.preview.group;}ED.drag={sx:e.clientX,sy:e.clientY,lx:e.clientX,ly:e.clientY,item:it,moved:false,id:e.pointerId};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
   cv.addEventListener('pointermove',e=>{if(ED.storage){storageMove(e);return;}const d=ED.drag;if(!d||d.id!==e.pointerId)return;if(!d.moved&&Math.hypot(e.clientX-d.sx,e.clientY-d.sy)>8){d.moved=true;if(d.item){edSelect(d.item.userData.id,true);}}
@@ -519,7 +555,8 @@ if(typeof ORIG_PLACE==='function'){
   window.placeDream=function(id,x,y){
     if(!ED.internal&&ED.R&&ED.R.domElement.isConnected&&lastPtr){const r=ED.R.domElement.getBoundingClientRect();
       if(lastPtr.x>=r.left&&lastPtr.x<=r.right&&lastPtr.y>=r.top&&lastPtr.y<=r.bottom){const v=hitFloor(lastPtr);if(v){const p=localToPct(v.x,v.z,ED.W,ED.D);x=p.x;y=p.y;}}}
-    return ORIG_PLACE.call(this,id,x,y);
+    const room=G('currentRoom')||'bedroom',already=Object.values((G('decor')||{})[room]||{}).includes(id);if(!already&&availableCopies(id,room)<1){msg('That copy is already in another room. Buy another one in the shop to place it here.');return false;}
+    const scale=rkScale(room,id),out=ORIG_PLACE.call(this,id,x,y);rkScaleSet(room,id,scale);return out;
   };
 }
 const NICE={bedroom:'Princess bedroom',living:'Cozy living room',kitchen:'Sunny kitchen',garden:'Garden terrace',bathroom:'Cozy bathroom',playroom:'Playroom'};
@@ -538,10 +575,10 @@ if(typeof prevHtml==='function'&&typeof prevBind==='function'){
     for(const [x,y] of C){if(!taken.some(p=>Math.hypot((p.x||0)-x,(p.y||0)-y)<14))return {x,y};}return {x:30+Math.random()*40,y:55+Math.random()*25};}
   window.rkUpdateBar=function(){const bar=document.getElementById('rk3Bar');if(!bar)return;const pv=ED.preview;const id=pv?pv.id:ED.sel;const has=pv||(!!id&&ED.items.some(x=>x.userData.id===id));bar.hidden=!has;bar.classList.toggle('preview',!!pv);
     const isSt=G('isStorage');const show=(k,on)=>{const e=document.getElementById(k);if(e)e.hidden=!on;};const g=pv?pv.group:ED.items.find(x=>x.userData.id===id);const wall=!!(g&&g.userData.onWall);
-    show('rk3BarPlace',!!pv);show('rk3BarCancel',!!pv);show('rk3BarRotate',has&&!wall);show('rk3BarMove',has&&!pv);show('rk3BarOpen',has&&!pv&&typeof isSt==='function'&&isSt(id));show('rk3BarAway',has&&!pv);show('rk3BarDone',has&&!pv);
+    show('rk3BarPlace',!!pv);show('rk3BarCancel',!!pv);show('rk3BarRotate',has&&!wall);show('rk3BarSmaller',has);show('rk3BarBigger',has);show('rk3BarMove',has&&!pv);show('rk3BarOpen',has&&!pv&&typeof isSt==='function'&&isSt(id));show('rk3BarAway',has&&!pv);show('rk3BarDone',has&&!pv);
     const it=(G('ITEMS')||[]).find(t=>t[0]===id);const n=document.getElementById('rk3BarName');if(n)n.textContent=pv?'Drag it or tap the floor, then Place':ED.moveMode?'Tap the floor where it should go':(it?it[2]:'');if(ED.ring)ED.ring.visible=!!has&&!wall;};
   function rkPreview(id,room){
-    rkCancelPreview(true);const it=(G('ITEMS')||[]).find(t=>t[0]===id);if(!it||!ED.scene)return;const g=makeItem(it);g.scale.setScalar(1.35);g.userData.id=id;g.userData.ghost=1;
+    rkCancelPreview(true);const it=(G('ITEMS')||[]).find(t=>t[0]===id);if(!it||!ED.scene)return;if(availableCopies(id,room)<1){msg('Every copy is already being used. Buy another '+it[2]+' to place one here.');try{const a=G('audio');a&&a('bad');}catch(_){}return;}const g=makeItem(it);g.scale.setScalar(1.35*rkScale(room,id));g.userData.id=id;g.userData.ghost=1;
     g.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;o.material.opacity=.6;o.castShadow=false;}});
     const p=rkFreeSpot(room);const [X,Z]=pctToLocal(p,ED.W,ED.D);if(g.userData.onWall)g.position.set(X,1.55,-ED.D/2+.06);else g.position.set(X,0,Z);
     ED.scene.add(g);ED.preview={id,group:g,deg:0};ED.sel=null;rkUpdateBar();try{const a=G('audio');a&&a('tap');}catch(_){}
@@ -549,12 +586,14 @@ if(typeof prevHtml==='function'&&typeof prevBind==='function'){
   function rkCancelPreview(quiet){if(ED.preview){if(ED.scene)ED.scene.remove(ED.preview.group);ED.preview=null;}if(!quiet)rkUpdateBar();}
   function rkLayout(box){
     const panel=box.closest('.dream-panel');if(!panel)return;const room=G('currentRoom')||'bedroom';
-    box.insertAdjacentHTML('beforeend',`<button type="button" class="rk3-front" id="rk3Front" aria-label="Front view">⟲</button>`);box.insertAdjacentHTML('afterend',`<div class="rk3-bar" id="rk3Bar" hidden><span id="rk3BarName"></span><button type="button" id="rk3BarRotate">↻ Turn</button><button type="button" id="rk3BarMove">✥ Move</button><button type="button" id="rk3BarOpen" hidden>🗄️ Open</button><button type="button" id="rk3BarAway">🧺 Put away</button><button type="button" id="rk3BarDone">✓ Done</button><button type="button" id="rk3BarCancel" hidden>✕ Cancel</button><button type="button" id="rk3BarPlace" hidden>✓ Place here</button></div>`);
+    box.insertAdjacentHTML('beforeend',`<button type="button" class="rk3-front" id="rk3Front" aria-label="Front view">⟲</button>`);box.insertAdjacentHTML('afterend',`<div class="rk3-bar" id="rk3Bar" hidden><span id="rk3BarName"></span><button type="button" id="rk3BarSmaller" aria-label="Make selected item smaller">− Smaller</button><button type="button" id="rk3BarBigger" aria-label="Make selected item bigger">＋ Bigger</button><button type="button" id="rk3BarRotate">↻ Turn</button><button type="button" id="rk3BarMove">✥ Move</button><button type="button" id="rk3BarOpen" hidden>🗄️ Open</button><button type="button" id="rk3BarAway">🧺 Put away</button><button type="button" id="rk3BarDone">✓ Done</button><button type="button" id="rk3BarCancel" hidden>✕ Cancel</button><button type="button" id="rk3BarPlace" hidden>✓ Place here</button></div>`);
     const $=id=>document.getElementById(id);
     $('rk3Front').onclick=()=>{ED.azT=0;ED.elT=.5;ED.zoom=1;};
     $('rk3BarDone').onclick=()=>{ED.moveMode=false;edSelect(null,true);};
     $('rk3BarMove').onclick=()=>{ED.moveMode=true;rkUpdateBar();};
     $('rk3BarCancel').onclick=()=>rkCancelPreview();
+    const resize=delta=>{const pv=ED.preview,id=pv?pv.id:ED.sel,g=pv?pv.group:ED.items.find(x=>x.userData.id===id);if(!id||!g)return;const next=cl(rkScale(room,id)+delta,.65,1.55);rkScaleSet(room,id,next);g.scale.setScalar(1.35*next);g.userData.rikiScale=next;msg((G('ITEMS')||[]).find(x=>x[0]===id)?.[2]+' size: '+Math.round(next*100)+'%');try{const a=G('audio');a&&a('tap');}catch(_){}};
+    $('rk3BarSmaller').onclick=()=>resize(-.15);$('rk3BarBigger').onclick=()=>resize(.15);
     $('rk3BarPlace').onclick=()=>{const pv=ED.preview;if(!pv)return;const g=pv.group;const X=g.position.x,Z=g.userData.onWall?ED.D/2:g.position.z;const deg=pv.deg;rkCancelPreview(true);ED.sel=pv.id;
       if(deg){const r=rkRot();r[room+':'+pv.id]=deg;rkRotSave(r);}place(pv.id,X,Z);};
     $('rk3BarRotate').onclick=()=>{try{const a=G('audio');a&&a('tap');}catch(_){}
@@ -566,10 +605,10 @@ if(typeof prevHtml==='function'&&typeof prevBind==='function'){
     const inv=panel.querySelector('.dream-inventory');
     if(inv){const head=inv.previousElementSibling&&inv.previousElementSibling.tagName==='H3'?inv.previousElementSibling:null;const wrap=document.createElement('div');wrap.className='rk3-tray';
       wrap.innerHTML='<div class="rk3-tray-title">Tap something to put it in your room</div>';(document.getElementById('rk3Bar')||box).after(wrap);wrap.appendChild(inv);if(head)head.remove();
-      const placed=Object.values((G('decor')||{})[room]||{});inv.querySelectorAll('[data-dream-inventory]').forEach(b=>{if(placed.includes(b.dataset.dreamInventory))b.classList.add('rk3-in-room');});
+      const placed=Object.values((G('decor')||{})[room]||{});inv.querySelectorAll('[data-dream-inventory]').forEach(b=>{const id=b.dataset.dreamInventory,total=ownedCopies(id),free=availableCopies(id,room),here=placed.includes(id);if(here)b.classList.add('rk3-in-room');if(!here&&!free)b.classList.add('rk3-unavailable');b.insertAdjacentHTML('beforeend',`<span class="rk3-copy-count">${free?free+' available':here?'In this room':total+' in use'}</span>`);});
       if(!inv.querySelector('[data-dream-inventory]'))wrap.querySelector('.rk3-tray-title').textContent='Buy furniture in the shop, then it shows up here';
       inv.addEventListener('click',e=>{const b=e.target.closest('[data-dream-inventory]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();const id=b.dataset.dreamInventory;
-        if(placed.includes(id)){rkCancelPreview(true);edSelect(id);return;}rkPreview(id,room);},true);}
+        if(placed.includes(id)){rkCancelPreview(true);edSelect(id);return;}if(!availableCopies(id,room)){msg('That item is already in another room. Buy another copy to use it here.');try{const a=G('audio');a&&a('bad');}catch(_){}return;}rkPreview(id,room);},true);}
     /* fold the rest away */
     const kids=[...panel.children];const after=kids.slice(kids.indexOf(box.nextElementSibling)+1);
     const hide=['riki3d-actions','riki3d-legend','rk3-selection-tools','dream-toolbar'];after.forEach(el=>{if(hide.some(c=>el.classList.contains(c)))el.classList.add('rk3-hidden');});
