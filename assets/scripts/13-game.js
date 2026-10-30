@@ -367,6 +367,23 @@ function finishStudio(){
    <h2>${esc(def.done)}</h2><p style="margin:0;font-weight:800;color:#8a6577">You earned <b>${S.score}</b> stars and a <b>+5</b> coin bonus for your dollhouse!</p>
    <div class="st-row"><button class="primary" id="stAgain">Play again</button><button class="secondary" id="stHouse">🏠 Spend my coins</button></div></div>`;
   frameHTML(body,100);mountStage(document.getElementById('stStage'));camCfg=[camCfg[0],camCfg[1]*.92,camCfg[2]];burst();
+  if(S.id==='claw'){
+    const rewards=[['teddy','🧸 Teddy bear'],['flowers','💐 Flower bouquet'],['books','📚 Little book stack'],['tea','🫖 Tiny tea set'],['cupcake','🧁 Fridge treat'],['plant','🪴 Mini plant'],['picture','🖼️ Wall picture'],['light','💡 Small lamp'],['rug','🧶 Cozy rug']];
+    const extra=document.createElement('div');extra.className='st-claw-reward';
+    extra.innerHTML='<p style="font-weight:900">🪙 You earned a special Claw Coin! Feed it into the machine for a mystery dollhouse prize.</p><button type="button" class="primary" id="stClawCoin">🪙 Feed the Claw Coin</button><p id="stClawGift" aria-live="polite"></p>';
+    const buttons=document.querySelector('.st-end .st-row');if(buttons)buttons.before(extra);
+    const feed=document.getElementById('stClawCoin');
+    if(feed)feed.onclick=()=>{
+      feed.disabled=true;feed.textContent='✨ Mystery prize coming out…';
+      const owned=G('owned');const save=G('saveHouse');
+      const choices=rewards.filter(([id])=>Array.isArray(owned)&&!owned.includes(id));
+      const reward=rand(choices.length?choices:rewards);
+      if(Array.isArray(owned)&&!owned.includes(reward[0])){owned.push(reward[0]);if(typeof save==='function')save();}
+      const gift=document.getElementById('stClawGift');
+      if(gift)gift.innerHTML=`🎁 Surprise! <b>${esc(reward[1])}</b> is now in your dollhouse inventory!`;
+      feed.textContent='🎁 Prize collected!';
+    };
+  }
   const ag=document.getElementById('stAgain');if(ag)ag.onclick=()=>startStudio(def===GAMES[S.id]?S.id:S.id);
   const hs=document.getElementById('stHouse');if(hs)hs.onclick=()=>{try{const hh=G('houseHome');hh&&hh();}catch(_){}};
 }
