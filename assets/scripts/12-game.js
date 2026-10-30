@@ -872,3 +872,30 @@ const oldShop=G('shopHtml'),oldBind=G('bindShop');window.__clayCatalogShop=funct
 const oldArt=G('furnitureArt');window.__clayCatalogArt=function(it){const html=oldArt.apply(this,arguments),m=it&&META[it[0]];if(!m||/rk3-thumb/.test(html))return html;return `<span class="rk3-art" data-rk3-id="${it[0]}"><span class="catalog-placeholder" aria-hidden="true">${categoryIcon(m.category)}</span></span>`;};SET('furnitureArt=window.__clayCatalogArt;');
 window.RikiCatalog={meta:META,state,rooms:ROOMS,categories,results,buy,ownedCount,usedCount,isListed:normal,all:()=>items.map(it=>({id:it[0],name:it[2],price:it[3],placementRoom:it[4],...META[it[0]],model:!!K.MODEL[it[0]]}))};
 })();
+
+/* Use each rendered doll's own face pixels for speech instead of painting a
+   second mouth over the illustration.  This layer runs before the character
+   renderer and upgrades dolls whenever a game adds them to the page. */
+(()=>{
+ const NS='http://www.w3.org/2000/svg';let nativeMouthId=0;
+ function upgrade(svg){
+  if(!svg||svg.dataset.nativeMouth==='1')return;
+  svg.dataset.nativeMouth='1';
+  svg.querySelectorAll('.pd-speech-mouth').forEach(n=>n.remove());
+  const visible=[...svg.children].filter(n=>n.localName!=='defs');
+  if(!visible.length)return;
+  const id='pd-native-face-'+(++nativeMouthId),clip=id+'-clip';
+  const defs=document.createElementNS(NS,'defs'),cp=document.createElementNS(NS,'clipPath'),oval=document.createElementNS(NS,'ellipse');
+  cp.id=clip;oval.setAttribute('cx','60');oval.setAttribute('cy','84.5');oval.setAttribute('rx','8.2');oval.setAttribute('ry','5.4');cp.append(oval);defs.append(cp);svg.prepend(defs);
+  const art=document.createElementNS(NS,'g');art.id=id;art.classList.add('pd-native-face-art');
+  visible[0].before(art);visible.forEach(n=>art.append(n));
+  const windowGroup=document.createElementNS(NS,'g'),motion=document.createElementNS(NS,'g'),use=document.createElementNS(NS,'use');
+  windowGroup.classList.add('pd-native-mouth-window');windowGroup.setAttribute('clip-path',`url(#${clip})`);
+  motion.classList.add('pd-native-mouth-motion');use.setAttribute('href',`#${id}`);use.setAttributeNS('http://www.w3.org/1999/xlink','href',`#${id}`);
+  motion.append(use);windowGroup.append(motion);svg.append(windowGroup);
+ }
+ function scan(root){if(root?.matches?.('svg.pd-doll'))upgrade(root);root?.querySelectorAll?.('svg.pd-doll').forEach(upgrade);}
+ const watch=new MutationObserver(records=>records.forEach(r=>r.addedNodes.forEach(scan)));
+ function start(){scan(document);watch.observe(document.documentElement,{childList:true,subtree:true});}
+ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',start,{once:true}):start();
+})();
