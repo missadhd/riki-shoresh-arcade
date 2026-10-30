@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "source": "assets/images/dolls/riki-talk-closed.webp",
+  "canvas": [
+    600,
+    800
+  ],
+  "layers": {
+    "base": "base.webp",
+    "eyeLeft": "eye-left.webp",
+    "eyeRight": "eye-right.webp",
+    "blink": "eyes-blink.webp",
+    "mouthClosed": "mouth-closed.webp",
+    "mouthSmall": "mouth-small.webp",
+    "mouthWide": "mouth-wide.webp",
+    "mouthO": "mouth-o.webp"
+  },
+  "note": "Every layer uses the same 600x800 canvas and pixel alignment."
+}
