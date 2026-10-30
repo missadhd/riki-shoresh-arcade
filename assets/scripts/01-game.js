@@ -511,6 +511,38 @@ function rikiClayHub(){
  holder.querySelectorAll('[data-riki-clay]').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.rikiClay;if(id==='sort')selSortStart();else if(id==='detective')rikiSceneStart();else if(id==='say')socialStart('say');else if(id==='team')rikiTeamStart();else {selMode='reset';selCalm()}});
 }
 function selHub(){game='sel';session=null;selMode='';rikiClayHub()}
+
+/* Context-aware story stages. The setting and expressions respond to each situation. */
+function rikiSocialScene(story, mood){
+ const t=String(story||'').toLowerCase();
+ const park=/tag|park|playground|outside|playdate|game|join/.test(t);
+ const lunch=/lunch|food|spill|cafeteria|dinner|drink|tray/.test(t);
+ const classroom=/class|teacher|test|school|group|project|poster|pencil|work/.test(t);
+ const phone=/message|text|reply|phone/.test(t);
+ const place=park?'park':lunch?'lunch':classroom?'classroom':phone?'phone':'hallway';
+ const upset=/spill|knock|hurt|upset|left out|laugh|interrupt|cancel|ignored|quiet after/.test(t)||mood==='sad';
+ const eye=(x,y)=>'<ellipse cx="'+x+'" cy="'+y+'" rx="4" ry="5" fill="#553755"/>';
+ const person=(x,color,sad)=>'<g transform="translate('+x+' 0)" class="riki-scene-person"><ellipse cx="0" cy="218" rx="37" ry="9" fill="#6a658355"/><path d="M-29 135Q0 117 29 135L34 202Q0 215-34 202Z" fill="'+color+'" stroke="#fff9" stroke-width="4"/><path d="M-15 199L-19 222M15 199L19 222" stroke="#705e87" stroke-width="11" stroke-linecap="round"/><circle cx="0" cy="95" r="39" fill="#f5c8a9" stroke="#fff4" stroke-width="4"/><path d="M-37 87Q-33 38 0 40Q40 37 38 87Q15 63 0 66Q-18 61-37 87" fill="#704b42"/>'+eye(-14,97)+eye(14,97)+'<path d="'+(sad?'M-13 124Q0 111 13 124':'M-13 116Q0 132 13 116')+'" fill="none" stroke="#914e64" stroke-width="4" stroke-linecap="round"/><circle cx="-29" cy="111" r="8" fill="#ec9e9e" opacity=".45"/><circle cx="29" cy="111" r="8" fill="#ec9e9e" opacity=".45"/></g>';
+ let bg='';
+ if(place==='park')bg='<rect width="400" height="250" fill="#b5e8fa"/><circle cx="343" cy="43" r="26" fill="#ffe5a3"/><path d="M0 174Q130 148 250 171T400 169V250H0" fill="#a2dd9e"/><path d="M38 164V95" stroke="#9b7151" stroke-width="15"/><circle cx="38" cy="77" r="43" fill="#70c78b"/><path d="M300 164V93" stroke="#a97854" stroke-width="12"/><circle cx="300" cy="75" r="39" fill="#72c990"/><path d="M0 228Q160 180 400 222" fill="none" stroke="#f7e2b7" stroke-width="26"/>';
+ else if(place==='lunch')bg='<rect width="400" height="250" fill="#ffe8c5"/><rect y="0" width="400" height="90" fill="#f5d7b9"/><rect x="24" y="25" width="125" height="62" rx="8" fill="#b2e6fb" stroke="#fff" stroke-width="9"/><rect x="0" y="178" width="400" height="72" fill="#cda5dc"/><rect x="45" y="174" width="310" height="18" rx="9" fill="#aa78b7"/><ellipse cx="200" cy="183" rx="88" ry="13" fill="#fff3e2"/><path d="M171 179L188 161 207 178" fill="#f6b35e"/><path d="M216 179L236 157 247 178" fill="#7ccf93"/><path d="M253 174Q264 164 278 177" stroke="#f29c65" stroke-width="7" fill="none"/>';
+ else if(place==='classroom')bg='<rect width="400" height="250" fill="#e7dcff"/><rect x="62" y="15" width="280" height="102" rx="10" fill="#9ed7b9" stroke="#a57fbd" stroke-width="9"/><path d="M98 60H210M98 82H257" stroke="#fff" stroke-width="8" stroke-linecap="round"/><rect y="186" width="400" height="64" fill="#e8bd8d"/>';
+ else if(place==='phone')bg='<rect width="400" height="250" fill="#c8e7f9"/><rect x="170" y="8" width="80" height="106" rx="13" fill="#8065ac" stroke="#fff" stroke-width="5"/><rect x="181" y="22" width="58" height="72" rx="6" fill="#fff"/><path d="M192 44H224M192 63H213" stroke="#7ac3b6" stroke-width="7" stroke-linecap="round"/><rect y="185" width="400" height="65" fill="#e3c2e9"/>';
+ else bg='<rect width="400" height="250" fill="#ffead6"/><rect x="35" y="25" width="80" height="115" rx="7" fill="#b5e4f0" stroke="#fff" stroke-width="7"/><rect x="276" y="20" width="90" height="135" rx="9" fill="#caa6e5"/><rect y="186" width="400" height="64" fill="#e7c8a8"/>';
+ return '<div class="riki-story-scene" aria-label="'+place+' scene showing two children'+(upset?', one looking upset':'')+'"><svg viewBox="0 0 400 250" role="img" aria-label="'+place+' social skills illustration" xmlns="http://www.w3.org/2000/svg"><defs><filter id="rikiSceneShadow"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-opacity=".16"/></filter></defs>'+bg+'<g filter="url(#rikiSceneShadow)">'+person(125,'#9c82d9',upset)+person(280,'#ff9bb5',false)+'</g></svg><div class="riki-scene-label">'+(place==='park'?'At the park':place==='lunch'?'At lunch':place==='classroom'?'At school':place==='phone'?'Messaging a friend':'With friends')+'</div></div>';
+}
+(function(){const st=document.createElement('style');st.id='rikiSocialFit';st.textContent=`
+ #app .sel-scene,#app .riki-clay-stage,#app .riki-clay-hub{min-width:0;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}
+ #app .sel-scene *,#app .riki-clay-stage *,#app .riki-clay-hub *{box-sizing:border-box;min-width:0}
+ #app .sel-choice,#app .riki-clay-object,#app .sel-card{white-space:normal;overflow-wrap:anywhere;max-width:100%;height:auto;text-align:center}
+ #app .riki-clay-objects{display:flex;flex-wrap:wrap;align-items:stretch;gap:12px}
+ #app .riki-clay-object{flex:1 1 135px;min-width:min(100%,135px);max-width:100%}
+ #app .riki-story-scene{position:relative;max-width:540px;width:100%;margin:12px auto 20px;border:6px solid #fff;border-radius:24px;overflow:hidden;box-shadow:0 9px 22px #58427733;background:#f9e8ff}
+ #app .riki-story-scene svg{display:block;width:100%;height:auto;aspect-ratio:8/5}
+ #app .riki-scene-label{position:absolute;top:8px;left:8px;padding:5px 11px;border-radius:30px;background:#fffdf5dd;color:#654679;font-weight:700;font-size:13px}
+ @media(max-width:500px){#app .riki-clay-stage,#app .sel-scene{padding:12px 10px}#app .riki-clay-objects{gap:9px}#app .riki-clay-object{padding:11px;flex-basis:125px}#app .riki-story-scene{border-width:3px;border-radius:16px}#app .riki-clay-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+ `;document.head.appendChild(st)})();
+
 const RIKI_SCENE=[
  ['Your friend walks away while you are talking.',['⏰','She keeps checking the clock.'],['🎒','She picks up her backpack.'],['😟','She looks worried.'],'Maybe she has to get somewhere.','Could we finish talking later?'],
  ['Two classmates whisper nearby.',['🎁','They are hiding a gift bag.'],['👀','You cannot hear their words.'],['😊','One of them is smiling.'],'You do not know what they are saying.','What are you two planning?'],
