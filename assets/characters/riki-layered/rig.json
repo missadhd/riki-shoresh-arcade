@@ -38,7 +38,8 @@
     "legLeft": "leg-left.webp",
     "legRight": "leg-right.webp",
     "hipCover": "hip-cover.webp",
-    "neckShoulderCover": "neck-shoulder-cover.webp"
+    "neckShoulderCover": "neck-shoulder-cover.webp",
+    "rightArmUnderlay": "right-arm-underlay.webp"
   },
   "anchors": {
     "hat": [
@@ -47,11 +48,11 @@
     ],
     "earLeft": [
       323,
-      585
+      583
     ],
     "earRight": [
       801,
-      585
+      583
     ],
     "shoulderLeft": [
       422,
@@ -105,7 +106,7 @@
   "wearables": {
     "dress": "outfit-pink-dress-fitted-v3.webp",
     "shoes": "shoes-pink.webp",
-    "earrings": "accessory-earrings-fitted-v2.webp",
+    "earrings": "accessory-earrings-fitted-v3.webp",
     "hairClips": "accessory-hair-clips.webp",
     "mintDress": "outfit-mint-dress-fitted-v2.webp"
   },
@@ -134,12 +135,13 @@
       "note": "Whole-rig movement prevents seams."
     },
     "wave": {
-      "durationMs": 650,
+      "durationMs": 950,
       "parts": [
-        "wholeRig"
+        "arm-right",
+        "hand-right"
       ],
-      "name": "hello",
-      "note": "Whole-rig greeting prevents source-layer seams."
+      "underlay": "rightArmUnderlay",
+      "note": "Restored background remains behind the raised arm."
     }
   }
 }
