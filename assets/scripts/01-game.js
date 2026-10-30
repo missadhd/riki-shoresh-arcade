@@ -1,3 +1,4 @@
+/* Hebrew editor and SEL mastery claim. */
 /* SEL custom-question builder work claim. */
 /* SEL editorial revision claim. */
 /* SEL content expansion work claim. */
