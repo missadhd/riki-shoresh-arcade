@@ -5,6 +5,7 @@ Add a row when you open your draft PR and remove it in the same PR when you fini
 
 | Who | Branch | Files | Status |
 |---|---|---|
+| ChatGPT | `chatgpt/voice-and-back-navigation` | `assets/scripts/13-game.js` | Draft |
 
 ## Map of the code
 
