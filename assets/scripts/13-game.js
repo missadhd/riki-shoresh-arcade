@@ -476,11 +476,40 @@ function ashk(t){return String(t).replace(/[\u0591-\u05C7]/g,'').split(/\s+/).ma
 function say(text,btn){if(!canSpeak)return;const sOn=G('soundOn');if(sOn===false&&!btn)return;try{if(btn)speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(ashk(text));u.lang='he-IL';if(heVoice||findVoice())u.voice=heVoice;u.rate=.8;speechSynthesis.speak(u);
   if(btn){btn.classList.add('on');u.onend=()=>btn.classList.remove('on');}if(!heVoice&&speechSynthesis.getVoices().length&&btn&&!btn.dataset.warned){btn.dataset.warned=1;btn.title='This device may not have a Hebrew voice installed';}}catch(e){}}
 const sayBtn=t=>`<button type="button" class="rk-say" data-say="${esc(t)}" aria-label="Hear it">🔊</button>`;
-function addSpeakers(root){if(!canSpeak)return;(root||document).querySelectorAll('.prompt .hebrew,.st-order .st-he,.rk-prog-he').forEach(el=>{if(el.dataset.sayAdded)return;el.dataset.sayAdded=1;const t=el.textContent.trim();if(!/[֐-׿]/.test(t))return;el.insertAdjacentHTML('afterend',sayBtn(t));if(!el.classList.contains('rk-prog-he'))setTimeout(()=>{if(el.isConnected)say(t);},350);});}
+/* Speak once per question, not when feedback re-renders the same prompt. */
+let rkLastSpeechQuestion='',rkLastSpeechPhase='';
+function rkQuestionSignature(text){
+ const sess=G('session'),game=G('game');
+ return [game,sess&&sess.at,sess&&sess.order&&sess.order[sess.at],text].join('|');
+}
+function addSpeakers(root){if(!canSpeak)return;(root||document).querySelectorAll('.prompt .hebrew,.st-order .st-he,.rk-prog-he').forEach(el=>{
+ if(el.dataset.sayAdded)return;el.dataset.sayAdded=1;
+ const t=el.textContent.trim();if(!/[֐-׿]/.test(t))return;
+ el.insertAdjacentHTML('afterend',sayBtn(t));
+ if(el.classList.contains('rk-prog-he'))return;
+ const app=document.getElementById('app');
+ const answered=!!(app&&app.querySelector('.feedback.good,.feedback.bad,.option.correct,.option.wrong,.match-btn.solved,.sel-feedback'));
+ const signature=rkQuestionSignature(t);
+ if(answered||signature===rkLastSpeechQuestion)return;
+ rkLastSpeechQuestion=signature;
+ setTimeout(()=>{if(el.isConnected&&!document.querySelector('.feedback.good,.feedback.bad,.option.correct,.option.wrong'))say(t);},350);
+});}
 /* phones only allow speech after the first tap: unlock it silently on the first touch */
 let unlocked=false;document.addEventListener('pointerdown',()=>{if(unlocked||!canSpeak)return;unlocked=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}},true);
 document.addEventListener('click',e=>{const b=e.target.closest('.rk-say');if(!b)return;e.preventDefault();e.stopPropagation();say(b.dataset.say,b);},true);
 
+/* Android/browser Back should return to the arcade menu while playing.
+   Do not trap visitors on the home page or replace browser history. */
+(function(){
+ let armed=false,inside=false;
+ const home=()=>{const a=document.getElementById('app');return !!(a&&a.querySelector('.hub-grid'));};
+ const arm=()=>{if(home()){inside=false;return;}if(armed)return;try{history.pushState({rikiArcade:true},'','#arcade');armed=true;inside=true;}catch(_){}};
+ document.addEventListener('click',()=>setTimeout(arm,0),true);
+ window.addEventListener('popstate',()=>{if(!armed)return;armed=false;if(!home()){
+  try{const h=window.RikiHub;if(typeof h==='function')h();else{const m=G('menu');if(typeof m==='function')m();}}catch(_){}
+  inside=false;
+ }});
+})();
 /* ---- quiz celebrations ---- */
 function burstAt(el,n=26){if(!el||matchMedia('(prefers-reduced-motion: reduce)').matches)return;const r=el.getBoundingClientRect();const cols=['#ff71ad','#ffd45b','#5bd8bf','#8fc6e8','#c8a2ff'];
   for(let i=0;i<n;i++){const d=document.createElement('i');d.className='rk-spark';d.style.left=(r.left+r.width/2)+'px';d.style.top=(r.top+r.height/2)+'px';d.style.background=cols[i%5];const a=Math.random()*Math.PI*2,rr=60+Math.random()*120;d.style.setProperty('--dx',Math.cos(a)*rr+'px');d.style.setProperty('--dy',Math.sin(a)*rr+'px');document.body.appendChild(d);setTimeout(()=>d.remove(),1000);}}
