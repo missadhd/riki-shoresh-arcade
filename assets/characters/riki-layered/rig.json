@@ -6,41 +6,28 @@
   ],
   "master": "master.png",
   "zOrder": [
-    "hair-back",
-    "legs-shoes",
-    "torso",
-    "arm-left",
-    "arm-right",
-    "outfit",
-    "head-base",
-    "eye-left",
-    "eye-right",
+    "bracelet-back",
+    "neutral-base",
+    "eyes",
+    "blink",
     "mouth",
-    "hand-left",
-    "hand-right",
-    "accessories"
+    "outfit",
+    "headband",
+    "earrings",
+    "hair-clips",
+    "shoes",
+    "bracelet-front",
+    "wave-pose"
   ],
   "parts": {
-    "hair-back": "hair-back.webp",
-    "torso": "torso.webp",
-    "arm-left": "arm-left.webp",
-    "arm-right": "arm-right-clean-v2.webp",
-    "hand-left": "hand-left.webp",
-    "hand-right": "hand-right-clean-v2.webp",
-    "headBase": "head-base.webp",
+    "neutralBase": "neutral-base-seamless.png",
     "eyeLeft": "eye-left.webp",
     "eyeRight": "eye-right.webp",
     "blink": "eyes-blink.webp",
-    "mouthClosed": "mouth-closed.webp",
-    "mouthSmall": "mouth-small.webp",
-    "mouthWide": "mouth-wide.webp",
-    "mouthO": "mouth-o.webp",
-    "legLeft": "leg-left.webp",
-    "legRight": "leg-right.webp",
-    "hipCover": "hip-cover.webp",
-    "neckShoulderCover": "neck-shoulder-cover.webp",
-    "rightArmUnderlay": "right-arm-underlay-blended-v2.webp",
-    "hairSeamCover": "hair-seam-cover.webp"
+    "mouthClosed": "mouth-closed-tight.png",
+    "mouthSmall": "mouth-small-fitted.png",
+    "mouthWide": "mouth-wide-fitted.png",
+    "mouthO": "mouth-o-fitted.png"
   },
   "anchors": {
     "hat": [
@@ -117,16 +104,17 @@
     "earrings": "accessory-earrings-drop-v7.png",
     "hairClips": "accessory-hair-clips.webp",
     "mintDress": "outfit-mint-dress-fitted-v2.webp",
-    "headbandOn": "head-base-headband-feathered.png",
-    "headbandOff": "head-base-no-headband.png",
+    "headbandOn": "accessory-headband-pink-clean.png",
+    "headbandOff": null,
     "shoes": {
       "white": "base leg layers",
       "pink": "accessory-shoes-pink.png",
       "mint": "accessory-shoes-mint.png"
     },
     "bracelet": {
-      "neutral": "accessory-bracelet-neutral.png",
-      "wave": "accessory-bracelet-wave.png"
+      "neutralBack": "accessory-bracelet-neutral-back.png",
+      "neutralFront": "accessory-bracelet-neutral-front.png",
+      "wave": "accessory-bracelet-wave-fitted.png"
     }
   },
   "garmentZones": {
@@ -163,5 +151,10 @@
     "basics": "wave-pose-basics-v1.webp",
     "pink": "wave-pose-pink-v1.webp",
     "mint": "wave-pose-mint-v1.webp"
+  },
+  "rendering": {
+    "neutralPose": "Flattened seamless base prevents rectangular hair, neck, shoulder, and wrist slice boundaries.",
+    "facialFeatures": "Eyes, blink, and four tightly masked mouth states remain independent.",
+    "accessories": "Headband, earrings, shoes, and two-sided bracelet remain togglable overlays."
   }
 }
