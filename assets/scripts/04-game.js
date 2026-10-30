@@ -44,3 +44,11 @@ decorateHtml=dreamHtml;bindDecor=dreamBind;
 const originalBindShop=bindShop;
 bindShop=function(){originalBindShop();document.querySelectorAll('[data-buy]').forEach(b=>{if(PET_IDS.includes(b.dataset.buy))b.textContent=b.disabled?'Adopted / Save up':'🐾 Adopt pet'})};
 
+
+/* Pet corner: independent cosmetic metadata; never alters the existing pet ownership save. */
+const RK_PET_NAMES_KEY='rikiPetNamesV1';
+function rkPetNames(){try{const v=JSON.parse(localStorage.getItem(RK_PET_NAMES_KEY)||'{}');return v&&typeof v==='object'&&!Array.isArray(v)?v:{}}catch{return {}}}
+const rkPetShopHtml=shopHtml;
+shopHtml=function(){const html=rkPetShopHtml.apply(this,arguments);const pets=PET_IDS.filter(id=>ownedItem(id));if(!pets.length)return html;const names=rkPetNames();const cards=pets.map(id=>{const it=roomObject(id);const name=names[id]||it[2];return '<div class="shop-item" style="padding:14px"><div style="font-size:44px">'+it[1]+'</div><strong>'+esc(name)+'</strong><p><button type="button" data-rk-pet="'+id+'">💗 Pet '+esc(name)+'</button></p><button type="button" data-rk-name="'+id+'">✏️ Name pet</button></div>'}).join('');return html.replace('</section>','<div class="panel" style="margin-top:20px"><h3>🐾 My Pet Corner</h3><p>Give your adopted pets names and show them some love!</p><div class="shop-grid">'+cards+'</div><p id="rkPetReaction" role="status" aria-live="polite"></p></div></section>')};
+const rkPetBindShop=bindShop;
+bindShop=function(){rkPetBindShop.apply(this,arguments);document.querySelectorAll('[data-rk-pet]').forEach(b=>b.onclick=()=>{const id=b.dataset.rkPet;if(!PET_IDS.includes(id)||!ownedItem(id))return;const name=rkPetNames()[id]||roomObject(id)[2];const reaction=document.getElementById('rkPetReaction');if(reaction)reaction.textContent='💕 '+name+' is so happy! '+(['Purr purr!','Happy wiggles!','What a sweet cuddle!'][Math.floor(Math.random()*3)]);try{audio('good')}catch{}});document.querySelectorAll('[data-rk-name]').forEach(b=>b.onclick=()=>{const id=b.dataset.rkName;if(!PET_IDS.includes(id)||!ownedItem(id))return;const names=rkPetNames();const proposed=prompt('What should your pet be called?',names[id]||'');if(proposed===null)return;const name=proposed.trim().slice(0,24);if(!name)return;names[id]=name;try{localStorage.setItem(RK_PET_NAMES_KEY,JSON.stringify(names))}catch{}houseRender()})};
