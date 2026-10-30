@@ -2,8 +2,8 @@
   "version": 1,
   "source": "assets/images/dolls/riki-talk-closed.webp",
   "canvas": [
-    600,
-    800
+    1200,
+    1600
   ],
   "layers": {
     "base": "base.webp",
@@ -15,5 +15,5 @@
     "mouthWide": "mouth-wide.webp",
     "mouthO": "mouth-o.webp"
   },
-  "note": "Every layer uses the same 600x800 canvas and pixel alignment."
+  "note": "Every layer uses the same 1200x1600 high-resolution canvas and pixel alignment."
 }
