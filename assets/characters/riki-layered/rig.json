@@ -47,12 +47,12 @@
       176
     ],
     "earLeft": [
-      323,
-      583
+      331,
+      582
     ],
     "earRight": [
-      801,
-      583
+      793,
+      582
     ],
     "shoulderLeft": [
       422,
@@ -106,7 +106,7 @@
   "wearables": {
     "dress": "outfit-pink-dress-fitted-v3.webp",
     "shoes": "shoes-pink.webp",
-    "earrings": "accessory-earrings-fitted-v3.webp",
+    "earrings": "accessory-earrings-tucked-v4.webp",
     "hairClips": "accessory-hair-clips.webp",
     "mintDress": "outfit-mint-dress-fitted-v2.webp"
   },
