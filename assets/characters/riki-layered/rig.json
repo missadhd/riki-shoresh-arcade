@@ -44,11 +44,11 @@
     ],
     "earLeft": [
       319,
-      578
+      587
     ],
     "earRight": [
-      797,
-      578
+      805,
+      587
     ],
     "shoulderLeft": [
       422,
@@ -85,12 +85,30 @@
     "footRight": [
       598,
       1370
+    ],
+    "hairClip": [
+      848,
+      411
+    ],
+    "wristRight": [
+      786,
+      1004
+    ],
+    "shoeLeft": [
+      462,
+      1292
+    ],
+    "shoeRight": [
+      608,
+      1292
     ]
   },
   "wearables": {
     "dress": "outfit-pink-dress.webp",
     "top": "outfit-mint-top.webp",
     "shoes": "shoes-pink.webp",
-    "accessories": "accessories-sunshine.webp"
+    "earrings": "accessory-earrings.webp",
+    "hairClips": "accessory-hair-clips.webp",
+    "bracelet": "accessory-bracelet.webp"
   }
 }
