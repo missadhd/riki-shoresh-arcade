@@ -82,7 +82,7 @@ function drawPlan(){const p=plans[planStep%plans.length];shell('🛤️ Plan B A
 const SL_CSS=`
 .sl-scene{position:relative;display:grid;grid-template-columns:1fr 1fr;align-items:end;gap:6px;padding:14px 10px 8px;border-radius:24px;background:linear-gradient(#e9f6ff,#fff1f6 70%,#f6e3d4 70%);border:3px solid #fff;box-shadow:0 12px 26px -14px #4a233866;min-height:230px;overflow:hidden}
 .sl-actor{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px}
-.sl-actor svg{width:min(118px,30vw);height:auto;filter:drop-shadow(0 6px 4px #4a233833);transition:transform .3s}
+.sl-actor svg{width:min(104px,27vw);height:auto;filter:drop-shadow(0 6px 4px #4a233833);transition:transform .3s}
 .sl-actor .sl-name{font-size:12px;font-weight:900;color:#8a6577;background:#ffffffcc;border-radius:999px;padding:1px 10px}
 .sl-bubble{position:relative;min-height:46px;max-width:100%;background:#fff;border:2px solid #4a2338;border-radius:16px;padding:7px 10px;font-weight:800;font-size:14px;line-height:1.25;color:#4a2338;opacity:0;transform:scale(.8);transition:.25s}
 .sl-bubble.on{opacity:1;transform:none}
@@ -129,7 +129,8 @@ if(!document.getElementById('slCss')){const st=document.createElement('style');s
 
 /* faces: hair/dress colors + expression */
 const SL_PEOPLE={riki:{name:'Riki',hair:'#5b3a5e',skin:'#ffd8bd',dress:'#f58fb6'},friend:{name:'Maya',hair:'#2f2a33',skin:'#e8b48f',dress:'#7cc4f2'},friend2:{name:'Noa',hair:'#c9783f',skin:'#ffe0c8',dress:'#8ed6c4'}};
-function slFace(who,expr){const p=SL_PEOPLE[who]||SL_PEOPLE.friend;
+const SL_LOOKS={friend:{skin:2,hair:1,style:1,color:1,out:1,acc:3},friend2:{skin:1,hair:3,style:4,color:2,out:3,acc:4},mom:{skin:1,hair:0,style:2,color:1,out:0,acc:0},teacher:{skin:2,hair:1,style:3,color:3,out:0,acc:6}};
+function slFace(who,expr){if(window.RikiArt){try{const L=who==='riki'?window.RikiArt.look('riki'):(SL_LOOKS[who]||SL_LOOKS.friend);return window.RikiArt.doll(L,'stand',expr||'neutral',true);}catch(e){}}const p=SL_PEOPLE[who]||SL_PEOPLE.friend;
   const eyes={happy:'<path d="M70 92 q7-8 14 0 M106 92 q7-8 14 0" stroke="#3a2430" stroke-width="5" fill="none" stroke-linecap="round"/>',
     excited:'<path d="M77 82 l3 8 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1z M113 82 l3 8 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1z" fill="#ffc21a"/>',
     sad:'<circle cx="77" cy="92" r="6" fill="#3a2430"/><circle cx="113" cy="92" r="6" fill="#3a2430"/><path d="M66 84 l18 -6 M124 84 l-18 -6" stroke="#3a2430" stroke-width="4" stroke-linecap="round"/><path d="M118 100 q4 10 0 14 q-4-4 0-14z" fill="#7cc4f2"/>',
