@@ -36,11 +36,11 @@
     ],
     "earLeft": [
       331,
-      576
+      584
     ],
     "earRight": [
       793,
-      576
+      584
     ],
     "shoulderLeft": [
       422,
@@ -101,7 +101,7 @@
   },
   "wearables": {
     "dress": "outfit-pink-dress-fitted-v3.webp",
-    "earrings": "accessory-earrings-drop-v7.png",
+    "earrings": "accessory-earrings-drop-v8.png",
     "hairClips": "accessory-hair-clips.webp",
     "mintDress": "outfit-mint-dress-fitted-v2.webp",
     "headbandOn": "accessory-headband-pink-clean.png",
@@ -128,11 +128,15 @@
   },
   "animations": {
     "walk": {
-      "durationMs": 1400,
+      "durationMs": 1600,
       "parts": [
-        "wholeRig"
+        "walk-body",
+        "walk-hip-overlay",
+        "left-leg",
+        "right-leg"
       ],
-      "note": "Whole-rig stepping prevents source-layer seams."
+      "steps": 4,
+      "note": "Alternating legs and body rise-and-fall; no whole-stage side glide."
     },
     "jump": {
       "durationMs": 850,
@@ -156,5 +160,24 @@
     "neutralPose": "Flattened seamless base prevents rectangular hair, neck, shoulder, and wrist slice boundaries.",
     "facialFeatures": "Eyes, blink, and four tightly masked mouth states remain independent.",
     "accessories": "Headband, earrings, shoes, and two-sided bracelet remain togglable overlays."
+  },
+  "walkRig": {
+    "body": "walk-body.png",
+    "hipOverlay": "walk-hip-overlay.png",
+    "leftLeg": "walk-leg-left.png",
+    "rightLeg": "walk-leg-right.png",
+    "shoeLayers": {
+      "pink": [
+        "walk-shoe-left-pink.png",
+        "walk-shoe-right-pink.png"
+      ],
+      "mint": [
+        "walk-shoe-left-mint.png",
+        "walk-shoe-right-mint.png"
+      ]
+    },
+    "durationMs": 1600,
+    "steps": 4,
+    "note": "Opposing hip rotations and foot lifts create four real steps; feathered hip overlay hides the joint throughout the cycle."
   }
 }
