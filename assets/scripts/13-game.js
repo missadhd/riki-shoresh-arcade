@@ -549,13 +549,18 @@ function hub(){
    <button type="button" class="hub-progress" id="hubProgress">📊 Progress for grown-ups</button></section>`;
   const $=id=>document.getElementById(id);const tap=()=>{try{const a=G('audio');a&&a('tap');}catch(_){}};
   $('hubGames').onclick=()=>{tap();const m=G('menu');m&&m();window.scrollTo(0,0);};
-  $('hubSocial').onclick=()=>{tap();const s=G('selHub');s&&s();window.scrollTo(0,0);};
+  $('hubSocial').onclick=()=>{tap();const s=G('selHub');s&&s();addOlderSocial();window.scrollTo(0,0);};
   $('hubHouse').onclick=()=>{tap();const h=G('houseHome');h&&h();window.scrollTo(0,0);};
   $('hubShop').onclick=()=>{tap();const h=G('houseHome');h&&h();SET("housePage='shop';");const r=G('houseRender');r&&r();window.scrollTo(0,0);};
   $('hubProgress').onclick=()=>{tap();window.RikiProgress&&window.RikiProgress.show();};
   $('hubToday').onclick=()=>{tap();window.RikiStudio&&window.RikiStudio.start(pick);};
   window.scrollTo(0,0);
 }
+/* Two Social Skills sets exist: the newer one opens from the tile; keep the original six games one tap away */
+let oldSel=null;try{const hb=[...document.querySelectorAll('.top .stats button')].find(x=>/Social Skills/.test(x.textContent));if(hb&&typeof hb.onclick==='function')oldSel=hb.onclick;}catch(_){}
+function addOlderSocial(){if(!oldSel||oldSel===G('selHub'))return;const app=document.getElementById('app');if(!app||app.querySelector('#hubOldSel'))return;
+  app.insertAdjacentHTML('beforeend','<section class="panel"><button type="button" class="sel-card hub-oldsel" id="hubOldSel"><span class="sel-emoji">🦋</span><strong>More Social Skills games</strong><p>Plan B Power, Pause &amp; Choose, Friendship Studio, Feelings Detective, Problem-Solving Lab, Calm-Down Lab</p></button></section>');
+  document.getElementById('hubOldSel').onclick=()=>{try{oldSel();}catch(e){}window.scrollTo(0,0);};}
 window.RikiHub=hub;
 /* Games list: just the games (plus the word-set picker), with a way back Home */
 const prevMenu=G('menu');
