@@ -4,7 +4,6 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
-| ChatGPT | `chatgpt/natural-doll-mouth` | `assets/styles/16-styles.css`, `index.html` | Replace the appearing overlay with one continuous natural doll mouth |
 
 ## Map of the code
 
