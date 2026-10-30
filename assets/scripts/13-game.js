@@ -1,3 +1,4 @@
+/* Claw reward reliability claim. */
 
 /* Claw game improvements claimed by ChatGPT. */
 /* Riki Studio Games: the make-something Shoresh games rebuilt in 3D.
