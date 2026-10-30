@@ -5,6 +5,7 @@ Add a row when you open your draft PR and remove it in the same PR when you fini
 
 | Who | Branch | Files | Status |
 |---|---|---|
+| ChatGPT | chatgpt/clay-catalog-cleanup | assets/scripts/12-game.js; assets/styles/16-styles.css; index.html; COORDINATION.md — full catalog audit, models and browsing |
 
 ## Map of the code
 
