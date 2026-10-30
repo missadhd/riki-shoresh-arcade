@@ -1,3 +1,4 @@
+/* SEL content expansion work claim. */
 /* Age-appropriate SEL scenario expansion claim. */
 /* Dollhouse shop guidance and sorting claim. */
 /* Room and boutique expansion claim. */
