@@ -524,7 +524,7 @@ function rikiSceneDraw(){
  let html='<section class="panel riki-clay-stage"><button class="secondary" id="rikiSceneBack">← Social Skills</button><p>Case '+(a.at+1)+' of '+RIKI_SCENE.length+'</p><h2>🔎 Social Detective</h2><p>'+selSafe(q[0])+'</p><p>Explore the objects in the scene. What clues can you find?</p><div class="riki-clay-objects">';
  for(let i=1;i<=3;i++)html+='<button class="riki-clay-object" data-riki-object="'+i+'" '+(a.opened.includes(i)?'disabled':'')+'><span style="font-size:34px">'+q[i][0]+'</span><p>'+(a.opened.includes(i)?selSafe(q[i][1]):'Tap to inspect')+'</p></button>';
  html+='</div><p><strong>Clues found: '+a.opened.length+' / 3</strong></p>';
- if(a.opened.length===3)html+='<div class="sel-feedback"><h3>What could be happening?</h3><p>'+selSafe(q[4])+'</p><p><strong>Try saying:</strong> '+selSafe(q[5])+'</p><button class="primary" id="rikiSceneNext">Next mystery →</button></div>';
+ if(a.opened.length===3)html+='<div class="sel-feedback"><h3>Put the clues together</h3><p>'+selSafe(q[4])+'</p><p><strong>Try saying:</strong> '+selSafe(q[5])+'</p><button class="primary" id="rikiSceneNext">Next mystery →</button></div>';
  html+='</section>';app.innerHTML=html;$('#rikiSceneBack').onclick=selHub;
  document.querySelectorAll('[data-riki-object]').forEach(btn=>btn.onclick=()=>{a.opened.push(Number(btn.dataset.rikiObject));rikiSceneDraw()});
  if($('#rikiSceneNext'))$('#rikiSceneNext').onclick=()=>{a.at++;a.opened=[];rikiSceneDraw()}
