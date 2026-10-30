@@ -22,7 +22,6 @@
   ],
   "parts": {
     "hair-back": "hair-back.webp",
-    "legs-shoes": "legs-shoes.webp",
     "torso": "torso.webp",
     "arm-left": "arm-left.webp",
     "arm-right": "arm-right.webp",
@@ -35,7 +34,9 @@
     "mouthClosed": "mouth-closed.webp",
     "mouthSmall": "mouth-small.webp",
     "mouthWide": "mouth-wide.webp",
-    "mouthO": "mouth-o.webp"
+    "mouthO": "mouth-o.webp",
+    "legLeft": "leg-left.webp",
+    "legRight": "leg-right.webp"
   },
   "anchors": {
     "hat": [
@@ -104,11 +105,49 @@
     ]
   },
   "wearables": {
-    "dress": "outfit-pink-dress.webp",
-    "top": "outfit-mint-top.webp",
+    "dress": "outfit-pink-dress-fitted-v2.webp",
     "shoes": "shoes-pink.webp",
     "earrings": "accessory-earrings.webp",
     "hairClips": "accessory-hair-clips.webp",
-    "bracelet": "accessory-bracelet.webp"
+    "bracelet": "accessory-bracelet.webp",
+    "mintDress": "outfit-mint-dress-fitted-v2.webp"
+  },
+  "garmentZones": {
+    "upperBody": [
+      300,
+      700,
+      790,
+      1155
+    ],
+    "note": "Rendered on the master pose; transparent garment pixels only."
+  },
+  "animations": {
+    "walk": {
+      "durationMs": 1400,
+      "parts": [
+        "legLeft",
+        "legRight",
+        "arm-left",
+        "arm-right"
+      ]
+    },
+    "jump": {
+      "durationMs": 850,
+      "parts": [
+        "wholeRig",
+        "arm-left",
+        "arm-right",
+        "legLeft",
+        "legRight"
+      ]
+    },
+    "wave": {
+      "durationMs": 650,
+      "parts": [
+        "arm-right",
+        "hand-right",
+        "bracelet"
+      ]
+    }
   }
 }
