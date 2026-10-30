@@ -306,8 +306,6 @@ async function choose(b){
   const {W}=words();
   if(S.id==='claw'){
     busy=true;b.classList.add('good');
-    try{const cor=G('correct');cor&&cor(3);}catch(_){}
-    S.score+=3;if(window.__stSession)window.__stSession.score=S.score;
     await applyPiece(step,variants[i]);
     const reveal=document.getElementById('stHint');
     if(reveal){reveal.hidden=false;reveal.innerHTML=`🎁 <b>${esc(variants[i].name)}</b> — <b lang="he" class="st-he">${esc(W[id][0])}</b> means <b>${esc(W[id][1])}</b>. ${esc(W[id][2]||'')}`;}
