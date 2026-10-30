@@ -808,7 +808,7 @@ let zQU=null;
 const ARC_PRIZES=['🧸','🦄','🐼','🐰','🐱','🐶','🦊','🐨','🐸','🐧','🦋','🐥','🐹','🐬','🌈','🍓','🧁','💎'];
 const aClean=s=>String(s).replace(/^(Say|Ask),?\s*(?=“)/,'').replace(/^“([^“”]*)”$/,'$1');
 function arcBank(unit){const B=[];const add=(u,q,a,w)=>{if(a&&w&&w.length)B.push({u,q,a:aClean(a),w:w.map(aClean)});};
- const setU={no:'no',pause:'wait',friendship:'friends',solve:'workit'};
+ const setU={no:'no',pause:'wait',friendship:'friends',solve:'workit',calmq:'calm',talkq:'talk'};
  Object.entries(setU).forEach(([k,u])=>{const s=SL_SETS[k];if(!s)return;s.items.forEach(it=>{const r=it.opts.find(o=>o[1]);const nm=(SL_PEOPLE[it.who||s.who]||{}).name||'Someone';if(r)add(u,`${nm} says, “${it.say}”`,r[0],it.opts.filter(o=>!o[1]).map(o=>o[0]));});});
  (typeof scenes!=='undefined'?scenes:[]).forEach(s=>add({'Big Feelings':'calm','Plan B':'workit','Friendship':'friends'}[s.topic]||'talk',s.say.replace(/^Your friend says, /,'Your friend says: '),s.good,s.bad));
  CHECK.forEach(([u,q,o])=>add(u,q,o[0],o.slice(1)));
@@ -971,7 +971,7 @@ function drawSizeSort(){zCur='sizesort';const deck=zShuf(ZZ).slice(0,10);let i=0
 /* Feelings Match: memory flip game, doll faces to feeling words */
 const FM_FEEL=[['happy','Happy'],['sad','Sad'],['upset','Mad'],['surprised','Surprised'],['nervous','Worried'],['excited','Excited']];
 function drawFeelMatch(){zCur='feelmatch';const cards=zShuf(FM_FEEL.flatMap(([e,w],k)=>[{k,face:e},{k,word:w}]));let open=[],found=0,tries=0,lock=false;window.RikiFM=cards;
- const t=zShell('🃏 Feelings Match',`<div class="ag-top"><span>🃏 Pairs <b id="fmF">0</b>/6</span><span>Tries <b id="fmT">0</b></span></div><div class="fm-grid">${cards.map((c,i)=>`<button type="button" class="fm-card" data-i="${i}"><span class="fm-back">💗</span><span class="fm-front">${c.face?`<span class="fm-emo">${({happy:'😊',sad:'😢',upset:'😠',surprised:'😮',nervous:'😟',excited:'🤩'})[c.face]}</span>`:`<b>${c.word}</b>`}</span></button>`).join('')}</div><p class="sl-note">Match each face to its feeling word!</p>`);
+ const t=zShell('🃏 Feelings Match',`<div class="ag-top"><span>🃏 Pairs <b id="fmF">0</b>/6</span><span>Tries <b id="fmT">0</b></span></div><div class="fm-grid">${cards.map((c,i)=>`<button type="button" class="fm-card" data-i="${i}"><span class="fm-back">💗</span><span class="fm-front">${c.face?`<span class="fm-emo">${(typeof FM_EMO!=='undefined'&&FM_EMO[c.face])||'🙂'}</span>`:`<b>${c.word}</b>`}</span></button>`).join('')}</div><p class="sl-note">Match each face to its feeling word!</p>`);
  document.querySelectorAll('.fm-card').forEach(b=>b.onclick=()=>{if(lock||b.classList.contains('up'))return;b.classList.add('up');audio('tap');const c=cards[+b.dataset.i];if(c.word)arcSpeak(c.word);open.push(b);
   if(open.length===2){tries++;$id('fmT').textContent=tries;const [a,d]=open.map(x=>cards[+x.dataset.i]);if(a.k===d.k&&!!a.face!==!!d.face){found++;$id('fmF').textContent=found;open.forEach(x=>x.classList.add('match'));audio('good');slGain(1);arcSpeak(`I feel ${FM_FEEL[a.k][1].toLowerCase()}!`);open=[];if(found===6)setTimeout(()=>zDone(t,`🃏 All 6 feelings matched in ${tries} tries!`,drawFeelMatch,tries<=10?4:2),700);}
    else{lock=true;zMiss();setTimeout(()=>{open.forEach(x=>x.classList.remove('up'));open=[];lock=false;},900);}}});}
@@ -1231,6 +1231,122 @@ const G6CSS=`.g6-cast{display:flex;align-items:flex-end;gap:8px;margin-bottom:8p
 .dc-light{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:#58c98a;box-shadow:0 0 12px #58c98a}.dc-light.red{background:#ff4d6d;box-shadow:0 0 24px #ff4d6d;animation:zGlow .5s 3}.dc-light.fake{background:#ffb547;box-shadow:0 0 14px #ffb547}
 .dc-pad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}.dc-pad button{border:0;border-radius:18px;padding:10px 0;background:linear-gradient(#fff,#ffeef6);display:flex;flex-direction:column;align-items:center;font-weight:900;color:#4a2338;box-shadow:0 5px 0 #f0c1d6;cursor:pointer}.dc-pad b{font-size:30px}.dc-pad button:active{transform:translateY(3px)}`;
 if(!document.getElementById('g6Css')){const st=document.createElement('style');st.id='g6Css';st.textContent=G6CSS;document.head.appendChild(st);}
+
+/* ---------- More variety (Claude, Oct 30): bigger question banks so games don't repeat ---------- */
+const S3=(say,mood,good,bad1,bad2,ok,who)=>({say,mood,opts:[[good,1],[bad1,0],[bad2,0]],ok,...(who?{who}:{})});
+SL_SETS.calmq={title:'Calm',who:'friend',lead:'Pick a calm tool.',items:[
+ S3('I’m SO mad my tower fell!','upset','Take 3 slow breaths','Kick the blocks','Scream at everyone','Feel better? Let’s rebuild!'),
+ S3('My heart is racing before the test.','nervous','Breathe in for 4, out for 4','Hide in the bathroom','Rip up the test','You’ve got this!'),
+ S3('I feel like crying, my friend left.','sad','Talk to a grown-up I trust','Keep it all inside forever','Break something','It helps to share feelings.'),
+ S3('My hands are in tight fists!','upset','Squeeze and let go, slowly','Punch the wall','Yell at my sister','Nice, your hands relaxed.'),
+ S3('I’m so frustrated with this puzzle.','upset','Take a short break, then try again','Throw the pieces','Say “I’m dumb”','A break helped!'),
+ S3('Everyone is too loud. I feel overwhelmed.','nervous','Ask for a quiet spot','Cover ears and scream','Run out of the room','The quiet corner helps.'),
+ S3('My brother won’t stop bugging me!','upset','Walk away and get space','Hit him','Scream “I HATE YOU”','Getting space was smart.'),
+ S3('I lost and I feel hot and mad.','upset','Count to 10 slowly','Flip the board','Call them a cheater','Good job cooling down.'),
+ S3('I’m worried about the sleepover.','nervous','Tell Mom what I’m worried about','Pretend I’m sick','Cry all night','Talking about it helps.'),
+ S3('My face feels hot. I’m getting angry.','upset','Notice it and get a drink of water','Say mean things fast','Slam the door','You noticed your body clue!')]};
+SL_SETS.talkq={title:'Talk',who:'friend2',lead:'Friendly talking.',items:[
+ S3('I got a new puppy!','excited','“Cool! What’s its name?”','“I don’t care.”','“My dog is better.”','His name is Biscuit!'),
+ S3('Hi! I’m new here.','nervous','“Hi! I’m Riki. Want to sit with me?”','Walk away','Stare at her','Thank you, Riki!'),
+ S3('Guess what I did this weekend?','happy','“What did you do?”','“Boring.”','Start talking about yourself','I went camping!'),
+ S3('I don’t like when you interrupt me.','sad','“Sorry, I’ll wait for my turn.”','“Whatever.”','Keep interrupting','Thanks for listening.'),
+ S3('Can you help me with my backpack zipper?','neutral','“Sure, let me help!”','“Do it yourself.”','Laugh at her','Thank you!'),
+ S3('I made you a card!','excited','“Thank you! It’s beautiful!”','“I don’t want it.”','Throw it away','You’re welcome!'),
+ S3('What’s your favorite animal?','happy','“Cats! What’s yours?”','Ignore the question','“Why do you care?”','Mine is dolphins!'),
+ S3('I’m talking to Maya right now.','neutral','Wait for a pause, then say “Excuse me”','Shout over them','Pull her arm','Okay, what did you want?'),
+ S3('I fell and hurt my knee.','sad','“Oh no! Are you okay?”','“You’re fine.”','Laugh','Thanks for asking.'),
+ S3('Do you want to hear a joke?','excited','“Yes! Tell me!”','“Your jokes are dumb.”','Walk away while she talks','Why did the cookie go to the doctor? It felt crummy!')]};
+SL_SETS.no.items.push(
+ S3('No dessert tonight. You had a big snack.','neutral','Say “Okay. Maybe tomorrow?”','Stomp to your room.','Say “You’re so mean!”','Thanks for being so grown-up about it.'),
+ S3('You can’t go to Noa’s house today.','neutral','Say “Okay. Can we plan another day?”','Slam the door.','Call Noa and go anyway.','Great idea. Let’s pick a day together.'),
+ S3('No, you can’t have a turn on my tablet.','neutral','Say “Okay. Can we play something else?”','Grab the tablet.','Cry until she gives it.','Let’s play cards instead!','friend2'),
+ S3('Not now, I’m on the phone.','neutral','Wait quietly, then ask after.','Keep saying “Mom! Mom! Mom!”','Pull on her arm.','Thank you for waiting. What did you need?'),
+ S3('No, you can’t sit next to me today.','neutral','Say “Okay,” and find another seat.','Push into the seat.','Say “Then you’re not my friend.”','Thanks. Maybe tomorrow!','friend'),
+ S3('We can’t go to the park. It’s too cold.','neutral','Say “Okay. Can we play a game inside?”','Whine about it all day.','Put on your shoes and go.','Great Plan B! Board game time.'),
+ S3('No more cookies. You already had two.','neutral','Say “Okay,” and put the jar back.','Sneak one more.','Say “That’s so unfair!”','Thank you for listening.'),
+ S3('You can’t pick the movie this time. It’s your brother’s turn.','neutral','Say “Okay. Can I pick next time?”','Grab the remote.','Say “His movies are boring!”','Yes, next time is yours.'),
+ S3('No, you can’t be the line leader today.','neutral','Say “Okay,” and go to my spot.','Cry in line.','Cut in front.','Thanks for being flexible!','teacher'),
+ S3('No, we’re not buying that cereal.','neutral','Say “Okay. Can we try it another time?”','Put it in the cart anyway.','Yell in the store.','Maybe for your birthday!'));
+SL_SETS.pause.items.push(
+ S3('Your little brother keeps poking you!','upset','Say “Please stop,” and move away.','Poke him back harder.','Scream “STOP IT!”','You handled that so calmly.'),
+ S3('Your drawing got a big scribble on it.','sad','Take a breath and start a new one.','Rip it up and throw it.','Blame someone else.','Your new drawing looks great!'),
+ S3('Someone cut in front of you in line.','upset','Say “Excuse me, the line starts back there.”','Push them out.','Cut in front of someone else.','They moved back. Nice job using words!'),
+ S3('Your game froze and you lost your level.','upset','Take a break and try again later.','Throw the controller.','Yell at the TV.','Taking a break was smart.'),
+ S3('Your friend is taking SO long on her turn.','think','Count to 10 and wait.','Grab the dice.','Say “Hurry UP!”','Thanks for waiting. Your turn!'),
+ S3('The teacher called on someone else.','sad','Keep my hand up and wait.','Shout the answer.','Put my head down and quit.','Great waiting! I’ll call on you next.'),
+ S3('You spilled your juice on your homework.','surprised','Say “Oops,” and clean it up.','Cry and give up.','Hide the homework.','Accidents happen. You fixed it!'),
+ S3('Someone said your shoes look funny.','sad','Say “I like them,” and walk away.','Say something mean back.','Kick their shoes.','Good for you. You stayed calm.'),
+ S3('You really want to blurt out the answer!','excited','Raise my hand and wait.','Shout it out.','Whisper it to everyone.','Thanks for raising your hand!'),
+ S3('Your tower keeps falling down.','upset','Breathe and try a wider base.','Knock it all over.','Say “I’m the worst at this.”','Wow, the wider base worked!'));
+SL_SETS.friendship.items.push(
+ S3('I don’t have anyone to play with at recess.','sad','Say “Want to play with me?”','Ignore her.','Laugh at her.','Yes! Thank you!','friend2'),
+ S3('I dropped all my books!','surprised','Help pick them up.','Walk past.','Laugh and point.','Thank you so much!','friend'),
+ S3('I’m sad, my grandma is sick.','sad','Say “I’m sorry. Want to talk?”','Say “That’s not my problem.”','Change the subject.','Thanks for caring.','friend'),
+ S3('Can I have a turn with the jump rope?','neutral','Say “Sure, after this jump!”','Say “No, it’s mine forever.”','Run away with it.','Yay, thanks!','friend2'),
+ S3('I won the spelling bee!','excited','Say “Congrats! You worked hard!”','Say “That’s easy.”','Roll your eyes.','Thank you!','friend'),
+ S3('You bumped my tray and my lunch fell.','upset','Say “I’m sorry! Let me help.”','Say “Not my fault.”','Laugh.','Thanks for helping.','friend2'),
+ S3('I don’t like that game. Can we play something else?','neutral','Say “Sure. What do you want to play?”','Say “No, MY game only.”','Quit and walk off.','Let’s play tag!','friend'),
+ S3('Can you keep my secret about my birthday surprise?','happy','Say “Yes, I won’t tell!”','Tell everyone right away.','Say “Only if you give me candy.”','You’re a good friend.','friend2'),
+ S3('Your new haircut is so cute!','happy','Say “Thank you!”','Say “Yours is ugly.”','Ignore her.','You’re welcome!','friend'),
+ S3('I made a mistake in our project.','nervous','Say “That’s okay. Let’s fix it together.”','Say “You ruined everything!”','Tell the teacher she’s bad.','Thanks for being nice about it.','friend2'));
+SL_SETS.solve.items.push(
+ S3('We both want to be the doctor.','think','Take turns being the doctor.','Fight over the toy stethoscope.','Quit the game.','Taking turns is fair!'),
+ S3('There’s one cookie left and two of us.','think','Split it in half.','Grab it fast.','Lick it so she won’t want it.','Half each! Yum.'),
+ S3('We want to watch different shows.','think','Pick one now, the other next.','Hide the remote.','Yell until she gives up.','Great plan!','friend2'),
+ S3('The ball went over the fence.','surprised','Ask a grown-up for help.','Climb the fence.','Give up and cry.','A grown-up got it back!'),
+ S3('Our tower keeps falling over.','think','Try a bigger base together.','Blame her.','Knock it down on purpose.','Teamwork works!','friend'),
+ S3('I forgot my pencil for the test.','nervous','Ask to borrow one politely.','Take someone’s pencil.','Don’t take the test.','Here you go!','friend'),
+ S3('We both want the front seat.','think','Take turns: you now, me on the way home.','Push her.','Sit on her lap.','Fair deal!','friend2'),
+ S3('Our group can’t agree on a name.','think','Vote on it.','Pick yours and refuse to listen.','Leave the group.','Voting worked!','friend'),
+ S3('The puzzle is missing a piece.','sad','Look for it together.','Throw the puzzle.','Say it’s her fault.','Found it under the couch!','friend2'),
+ S3('It’s raining on our picnic day.','sad','Have a picnic inside on a blanket.','Cancel the whole day.','Sit in the rain.','Indoor picnic is so cozy!','friend'));
+ACC.push(
+ {who:'friend',ev:'Maya stepped on my foot!',face:'surprised',says:'Oh! Sorry!',truth:0,think:'I didn’t see her foot there!',ok:'Say, “Ouch! It’s okay.”',bad:['Step on her foot back.','Yell, “Watch it!”']},
+ {who:'friend2',ev:'Noa didn’t invite me to sit with her.',face:'neutral',says:'There’s only one seat left…',truth:0,think:'The table is full. I’d sit with her if there was room!',ok:'Ask, “Can we sit together tomorrow?”',bad:['Tell everyone she’s mean.','Push someone off the bench.']},
+ {who:'friend',ev:'Maya took the last pink marker.',face:'happy',says:'I love pink!',truth:0,think:'I didn’t know she wanted it too.',ok:'Ask, “Can I use it after you?”',bad:['Grab it.','Break her marker.']},
+ {who:'friend2',ev:'Noa’s ball rolled into my game.',face:'nervous',says:'Oops, sorry!',truth:0,think:'It bounced the wrong way!',ok:'Roll it back to her.',bad:['Kick it far away.','Keep it.']},
+ {who:'friend',ev:'Maya splashed me at the pool.',face:'excited',says:'Wheee!',truth:0,think:'I jumped in. I didn’t mean to splash her.',ok:'Laugh and say, “Hey, splashy!”',bad:['Push her under the water.','Cry and leave the pool.']},
+ {who:'friend2',ev:'Noa walked away while I was talking.',face:'think',says:'Oh no, my mom is calling me!',truth:0,think:'My mom waved at me. I had to go!',ok:'Finish the story later.',bad:['Say, “You’re so rude!”','Never talk to her again.']},
+ {who:'friend',ev:'Maya’s backpack hit me in the hallway.',face:'surprised',says:'Whoa, sorry!',truth:0,think:'My backpack is so big, I didn’t feel it.',ok:'Say, “It’s okay.”',bad:['Hit her backpack.','Trip her.']},
+ {who:'friend2',ev:'Noa laughed when I fell.',face:'happy',says:'Haha, that was a funny fall! Are you okay?',truth:0,think:'It looked like a cartoon! I hope she’s okay.',ok:'Laugh too, or say “That hurt a little.”',bad:['Push her down.','Run away crying.']},
+ {who:'friend',ev:'A kid knocked my hat off and laughed, “Ha ha!”',face:'think',says:'Ha ha! Your hat!',truth:1,think:'This is funny. I’ll do it again.',ok:'Say, “Stop. Give it back,” and tell a grown-up.',bad:['Knock his hat off.','Chase and hit him.']},
+ {who:'friend2',ev:'A kid keeps taking my eraser after I said stop.',face:'think',says:'Hehe, catch me!',truth:1,think:'She gets mad. That’s funny.',ok:'Tell the teacher calmly.',bad:['Take her stuff.','Yell and throw things.']},
+ {who:'friend',ev:'Maya didn’t answer my question.',face:'think',says:'Hmm, 12 plus 9…',truth:0,think:'I was concentrating on my math.',ok:'Ask again a little later.',bad:['Say, “Fine, ignore me!”','Poke her.']},
+ {who:'friend2',ev:'Noa got the bigger piece of cake.',face:'happy',says:'Yum, cake!',truth:0,think:'I just took the one in front of me.',ok:'Enjoy my cake. It’s not a big deal.',bad:['Grab hers.','Say, “You always get more!”']});
+TN.push(
+ {friendly:'Can I play with you guys?',bossy:'I’m playing. Move over.',whiny:'Why won’t anyone let me plaaay?'},
+ {friendly:'Excuse me, can I get by?',rude:'MOVE!',bossy:'Get out of my way.'},
+ {friendly:'I don’t understand. Can you help me?',whiny:'This is too haaard!',rude:'This is so stupid.'},
+ {friendly:'Thank you for the present!',sarcastic:'Oh. Socks. Great.',rude:'I wanted something else.'},
+ {friendly:'Can you please stop? I don’t like that.',bossy:'STOP IT RIGHT NOW!',whiny:'Stooop, you’re so annoying!'},
+ {friendly:'Your turn! You can go first.',sarcastic:'Sure, go ahead. Like always.',bossy:'Fine. Go. Hurry up.'},
+ {friendly:'Can we take turns with the swing?',bossy:'It’s my swing now.',whiny:'You never let me swiiing!'},
+ {friendly:'That’s a cool drawing!',sarcastic:'Wow. A stick person. Amazing.',rude:'Mine is way better.'});
+CPS.push(
+ {who:'mom',ask:'Time to turn off the music and do homework.',calm:[['“Can I finish this one song first?”',1],['Turn it up louder.',0],['“Homework is pointless!”',0]],worry:[['Homework won’t get done before bedtime.',1],['She hates my music.',0],['She wants me to be bored.',0]],fix:[['Finish the song, then homework with music off.',1,1],['Skip homework.',1,0],['No music for a week.',0,1]]},
+ {who:'friend',ask:'I want to play dolls, not tag!',calm:[['“I want to play tag. Let’s figure it out.”',1],['“Dolls are for babies.”',0],['Walk away.',0]],worry:[['She’s tired of running.',1],['She doesn’t like me.',0],['She wants to win.',0]],fix:[['Play dolls first, then a short game of tag.',1,1],['Only tag.',1,0],['Nobody plays.',0,0]]},
+ {who:'teacher',ask:'Please put away the art supplies. It’s reading time.',calm:[['“Can I finish coloring this flower?”',1],['Keep coloring and ignore her.',0],['Throw the crayons.',0]],worry:[['Reading time will be too short.',1],['She doesn’t like my art.',0],['She wants me to feel sad.',0]],fix:[['Finish the flower at free time after reading.',1,1],['Color all day.',1,0],['Never color again.',0,1]]},
+ {who:'mom',ask:'Put on your coat. It’s cold!',calm:[['“Can I wear my hoodie instead?”',1],['“NO! I’m not cold!”',0],['Hide the coat.',0]],worry:[['I could get sick in the cold.',1],['She likes being bossy.',0],['She wants me to look silly.',0]],fix:[['Wear the hoodie and bring the coat in my bag.',1,1],['Go outside with no coat.',1,0],['Stay home all day.',0,1]]},
+ {who:'friend2',ask:'You always get to be the leader!',calm:[['“You’re right. Let’s take turns.”',1],['“Because I’m the best.”',0],['“Then don’t play.”',0]],worry:[['She wants a chance to lead too.',1],['She wants to ruin the game.',0],['She’s jealous.',0]],fix:[['She leads this round, I lead the next.',1,1],['I lead forever.',1,0],['No leader, no game.',0,0]]});
+FS.push(['My best friend is moving away.','sad',[4,5]],['I lost my favorite toy.','sad',[3,4]],['Someone cut in front of me in line.','annoyed',[2,3]],['I have to read out loud in class.','worried',[2,4]],['My brother broke my Lego castle!','mad',[4,5]],['The wifi stopped working.','annoyed',[1,3]],['I’m going to the dentist.','worried',[2,4]],['Someone called me a mean name.','mad',[3,5]],['My pet goldfish died.','sad',[4,5]],['I got a bad grade on my test.','sad',[2,4]]);
+ZZ.push(['You lost your eraser.',0,'I’ll borrow one or use my pencil’s eraser.'],['Your shoelace is untied.',0,'I’ll stop and tie it.'],['Your friend picked a different game.',0,'I’ll try her game, then mine.'],['It’s raining at recess.',0,'Indoor games can be fun too.'],['You got a little paint on your shirt.',0,'It will wash out.'],['Your crayon broke.',0,'Two small crayons still work!'],
+ ['You can’t find your homework.',1,'I’ll ask Mom to help me look.'],['You feel sick at school.',1,'I’ll tell my teacher so I can go to the nurse.'],['A kid keeps teasing you every day.',1,'I’ll tell a grown-up I trust.'],['You don’t understand the math lesson.',1,'I’ll ask my teacher to explain again.'],['You broke a plate by accident.',1,'I’ll tell Mom and help clean up safely.'],['Your bike tire is flat.',1,'I’ll ask Dad to help fix it.'],
+ ['Someone is stuck in the pool and can’t swim.',2,'Yell for a lifeguard right now!'],['You see a stranger trying to get you into a car.',2,'Run away and tell a grown-up right now!'],['Your friend fell off the monkey bars and won’t get up.',2,'Get a teacher right away!'],['There’s a fire alarm going off.',2,'Follow the grown-ups outside right away!']);
+CJ_ASK.push(['Can I have soda with dinner?','Not tonight, water with dinner.'],['Can I have a puppy?','Not right now, sweetie.'],['Can I have a phone?','Not yet. Maybe when you’re older.'],['Can we have pizza tonight?','Not tonight, I already made dinner.'],['Can I paint my nails?','Not today, it’s a school night.'],['Can I play outside in the rain?','No, it’s thundering.'],['Can I watch one more episode?','No, it’s time to get ready for bed.'],['Can I have a friend sleep over tonight?','Not tonight, maybe on the weekend.'],['Can I eat my snack in my bed?','No, snacks stay in the kitchen.'],['Can I skip practice today?','No, your team is counting on you.']);
+ZV_EV.push(['Your little brother scribbled on your homework!','My homework! Grrr!'],['You lost the game on the very last turn!','No way! That’s not fair!'],['Your friend told your secret!','I can’t believe she did that!'],['Your ice cream fell on the ground.','Noooo! My ice cream!'],['You have to clean your room before you can play.','Ugh, but I want to play now!'],['Someone took your seat on the bus.','Hey! That was my seat!'],['Your puzzle is missing the last piece.','The LAST piece? Argh!'],['The movie you wanted is sold out.','But I waited all week!']);
+HM_JOBS.push(['plate','🍽️','sink','🚰','Put your plate in the sink'],['pj','👚','drawer','🗄️','Put your pajamas in the drawer'],['towel','🧺','hook','🪝','Hang up your towel'],['crayon','🖍️','box','📦','Put the crayons in the box'],['leash','🦮','dog','🐶','Get the leash for the dog'],['plant','💧','plant','🪴','Water the plant']);
+ZR.push({name:'Pack for School',goal:'🏫 The bus comes soon!',steps:['📓 Put homework in the folder','📁 Put the folder in the backpack','🍎 Pack your snack','🥤 Fill your water bottle','🎒 Zip the backpack','🚪 Put it by the door']},
+ {name:'Make a Sandwich',goal:'🍽️ Lunch time!',steps:['🧼 Wash your hands','🍞 Get two slices of bread','🥜 Spread the filling','🥪 Put the bread together','🔪 Cut it in half','😋 Eat it!']},
+ {name:'Plant a Flower',goal:'🌷 Spring is here!',steps:['🪴 Get a pot','🟫 Fill it with soil','🕳️ Dig a little hole','🌱 Put the seed in','🤲 Cover it with soil','💧 Water it']});
+ZM.push(['🍊','oranges'],['🍉','watermelon'],['🥑','avocado'],['🍐','pears'],['🌽','corn'],['🥨','pretzels'],['🍯','honey'],['🥯','bagels'],['🫐','blueberries'],['🥦','broccoli']);
+/* Feelings Match: draw 6 of a bigger pool each game */
+const FM_ALL=[['happy','Happy','😊'],['sad','Sad','😢'],['upset','Mad','😠'],['surprised','Surprised','😮'],['nervous','Worried','😟'],['excited','Excited','🤩'],['think','Confused','😕'],['proud','Proud','😌'],['shy','Shy','🙈'],['silly','Silly','🤪'],['tired','Tired','😴'],['scared','Scared','😱'],['loved','Loved','🥰'],['bored','Bored','😑']];
+const fmPrior=drawFeelMatch;drawFeelMatch=function(){const pick=zShuf(FM_ALL).slice(0,6);FM_FEEL.length=0;pick.forEach(p=>FM_FEEL.push([p[0],p[1]]));FM_EMO=Object.fromEntries(pick.map(p=>[p[0],p[2]]));fmPrior();};
+var FM_EMO={happy:'😊',sad:'😢',upset:'😠',surprised:'😮',nervous:'😟',excited:'🤩'};
+/* Big Day: pick 3 of 6 moments each time */
+const BIG_POOL=[['🚌','Morning on the bus','accident','racer'],['🏫','Recess time','friends','whack'],['🍽️','Dinner at home','no','balloon'],['📚','Library time','wait','claw'],['🎨','Art class','calm','catch'],['🛁','Bedtime routine','no','hoop'],['⚽','Soccer practice','friends','racer'],['🛒','Grocery store','no','whack']];
+const bigPrior=drawBigDay;drawBigDay=function(){const p=zShuf(BIG_POOL).slice(0,3);BIG_DAY.length=0;p.forEach(x=>BIG_DAY.push(x));bigPrior();};
+ZRUN.feelmatch=drawFeelMatch;ZRUN.bigday=drawBigDay;
 
 window.RikiSocial={state:()=>({boardPick,good:boardPick!==null?scenes[boardPick].good:null,pieces:talks[dialogueStep%talks.length].pieces,sortAnswer:sortCases[sortIndex%sortCases.length][1],sortIndex,planStep,zone:zSave,zCur})};
 selHub=newHub;
