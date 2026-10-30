@@ -320,7 +320,7 @@ function socialDraw(){
  const a=socialPlay,detect=a.kind==='detective',bank=detect?SOCIAL_DETECTIVE:SOCIAL_SAY;
  if(a.at>=a.picks.length){if(!a.paid){award(8+a.score*2);a.paid=true}app.innerHTML='<section class="panel riki-clay-stage"><h2>🏆 Adventure complete!</h2><p>You earned '+(8+a.score*2)+' coins!</p><button class="primary" id="socialAgain">Play again</button><button class="secondary" id="socialBack">Social Skills</button></section>';$('#socialAgain').onclick=()=>socialStart(a.kind);$('#socialBack').onclick=selHub;return}
  const q=bank[a.picks[a.at]],done=a.stage===2,safe=selSafe;
- let html='<section class="panel riki-clay-stage"><button class="secondary" id="socialBack">← Social Skills</button><p>Scene '+(a.at+1)+' of '+a.picks.length+'</p><div style="max-width:250px;margin:auto">'+rikiClayArt(detect?'detective':'say')+'</div><h2>'+safe(q[0])+'</h2>';
+ let html='<section class="panel riki-clay-stage"><button class="secondary" id="socialBack">← Social Skills</button><p>Scene '+(a.at+1)+' of '+a.picks.length+'</p><div style="max-width:250px;margin:auto">'+rikiClayArt(detect?'detective':'say')+'</div><h2>'+safe(q[0])+'</h2>'+rikiSocialScene(q[0]);
  if(detect){
   html+='<p>🔎 Investigate three clues, then test your theory.</p><div class="riki-clay-objects">';
   ['What do you know for sure?','What might you be assuming?','What else could be true?'].forEach((c,i)=>{html+='<button class="riki-clay-object" data-social-clue="'+i+'" '+(a.selected.includes(i)?'disabled':'')+'>'+['🔎','💭','💡'][i]+'<p>'+c+'</p>'+(a.selected.includes(i)?'✓':'')+'</button>'});
@@ -396,14 +396,14 @@ function selHandsDraw(){
  const q=bank[a.picks[a.at]],safe=selSafe,kind=a.kind;
  let html='<section class="panel"><button class="secondary" id="handsBack">← Social Skills</button><p class="sel-progress">Challenge '+(a.at+1)+' of '+a.picks.length+'</p><div class="sel-scene">';
  if(kind==='mystery'){
-  html+='<div class="sel-illustration">🕵️‍♀️🔎</div><h2>Friendship Mystery</h2><p>'+safe(q[0])+'</p><p>Open both clue cards before making a guess.</p>';
+  html+='<div class="sel-illustration">🕵️‍♀️🔎</div><h2>Friendship Mystery</h2>'+rikiSocialScene(q[0])+'<p>'+safe(q[0])+'</p><p>Open both clue cards before making a guess.</p>';
   [1,2].forEach(i=>{html+='<button class="sel-card" data-hands-clue="'+i+'" '+(a.tools.includes(i)?'disabled':'')+'>'+(a.tools.includes(i)?safe(q[i]):'🔒 Tap to reveal clue '+i)+'</button>'});
   if(a.tools.length===2)html+='<p>What is a possible explanation?</p>'+['There may be more to the story.','They are definitely being mean.','I should immediately end the friendship.'].map((t,i)=>'<button class="sel-choice" data-hands-answer="'+i+'" '+(a.phase?'disabled':'')+'>'+safe(t)+'</button>').join('');
  }else if(kind==='team'){
-  html+='<div class="sel-illustration">🧑‍🤝‍🧑📋</div><h2>Teamwork Challenge</h2><p>'+safe(q[0])+'</p><h3>'+safe(q[1])+'</h3>';
+  html+='<div class="sel-illustration">🧑‍🤝‍🧑📋</div><h2>Teamwork Challenge</h2>'+rikiSocialScene(q[0])+'<p>'+safe(q[0])+'</p><h3>'+safe(q[1])+'</h3>';
   q[2].forEach((t,i)=>{html+='<button class="sel-choice" data-hands-answer="'+i+'" '+(a.phase?'disabled':'')+'>'+safe(t)+'</button>'});
  }else{
-  html+='<div class="sel-illustration">'+q[0]+'</div><h2>Emotion Lab</h2><p>'+safe(q[1])+'</p><p>Try a tool, then choose a next step.</p>';
+  html+='<div class="sel-illustration">'+q[0]+'</div><h2>Emotion Lab</h2>'+rikiSocialScene(q[1],'sad')+'<p>'+safe(q[1])+'</p><p>Try a tool, then choose a next step.</p>';
   ['🌬️ Take three slow breaths','🖐️ Ground your feet','💬 Name the feeling'].forEach((t,i)=>{html+='<button class="secondary" data-hands-tool="'+i+'" '+(a.tools.includes(i)?'disabled':'')+'>'+t+(a.tools.includes(i)?' ✓':'')+'</button>'});
   if(a.tools.length)q[2].forEach((t,i)=>{html+='<button class="sel-choice" data-hands-answer="'+i+'" '+(a.phase?'disabled':'')+'>'+safe(t)+'</button>'});
  }
@@ -544,6 +544,8 @@ function rikiSocialScene(story, mood){
  `;document.head.appendChild(st)})();
 
 const RIKI_SCENE=[
+ ['You are playing tag at the park, but your friend is standing alone.',['🌳','Everyone is running on the grass.'],['👟','Your friend is still by the bench.'],['😕','They look unsure about joining.'],'They may want an invitation or may need a break.','Would you like to play tag with us?'],
+ ['Someone bumps your lunch tray and your food spills.',['🍱','The lunch is on the floor.'],['😢','You look upset and disappointed.'],['😧','The other child looks surprised.'],'It may have been an accident, even though losing lunch feels upsetting.','My lunch spilled. Can you help me clean up?'],
  ['Your friend walks away while you are talking.',['⏰','She keeps checking the clock.'],['🎒','She picks up her backpack.'],['😟','She looks worried.'],'Maybe she has to get somewhere.','Could we finish talking later?'],
  ['Two classmates whisper nearby.',['🎁','They are hiding a gift bag.'],['👀','You cannot hear their words.'],['😊','One of them is smiling.'],'You do not know what they are saying.','What are you two planning?'],
  ['A teammate is quiet after a project.',['📄','Her drawing was not included.'],['🗳️','Others voted without asking.'],['😔','She looks disappointed.'],'She might feel left out.','Would you like to show us your idea?'],
@@ -553,7 +555,7 @@ let rikiScene=null;
 function rikiSceneStart(){game='sel';session=null;rikiScene={at:0,opened:[],done:false,paid:false};rikiSceneDraw()}
 function rikiSceneDraw(){
  const a=rikiScene,q=RIKI_SCENE[a.at];if(!q){if(!a.paid){a.paid=true;award(18)}app.innerHTML='<section class="panel riki-clay-stage"><h2>🏆 Mystery solved!</h2><p>Look for clues before deciding what someone means. You earned 18 coins!</p><button class="primary" id="rikiSceneAgain">Play again</button><button class="secondary" id="rikiSceneBack">Social Skills</button></section>';$('#rikiSceneAgain').onclick=rikiSceneStart;$('#rikiSceneBack').onclick=selHub;return}
- let html='<section class="panel riki-clay-stage"><button class="secondary" id="rikiSceneBack">← Social Skills</button><p>Case '+(a.at+1)+' of '+RIKI_SCENE.length+'</p><h2>🔎 Social Detective</h2><p>'+selSafe(q[0])+'</p><p>Explore the objects in the scene. What clues can you find?</p><div class="riki-clay-objects">';
+ let html='<section class="panel riki-clay-stage"><button class="secondary" id="rikiSceneBack">← Social Skills</button><p>Case '+(a.at+1)+' of '+RIKI_SCENE.length+'</p><h2>🔎 Social Detective</h2>'+rikiSocialScene(q[0])+'<p>'+selSafe(q[0])+'</p><p>Explore the objects in the scene. What clues can you find?</p><div class="riki-clay-objects">';
  for(let i=1;i<=3;i++)html+='<button class="riki-clay-object" data-riki-object="'+i+'" '+(a.opened.includes(i)?'disabled':'')+'><span style="font-size:34px">'+q[i][0]+'</span><p>'+(a.opened.includes(i)?selSafe(q[i][1]):'Tap to inspect')+'</p></button>';
  html+='</div><p><strong>Clues found: '+a.opened.length+' / 3</strong></p>';
  if(a.opened.length===3)html+='<div class="sel-feedback"><h3>Put the clues together</h3><p>'+selSafe(q[4])+'</p><p><strong>Try saying:</strong> '+selSafe(q[5])+'</p><button class="primary" id="rikiSceneNext">Next mystery →</button></div>';
