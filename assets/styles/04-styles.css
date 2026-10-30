@@ -1,0 +1,15 @@
+
+/* Illustrated, tactile play pieces */
+.drag-object .item-art{display:block;width:100%;height:100px;font-size:0;filter:drop-shadow(0 7px 5px #6e4a8b35)}
+.drag-object .item-art svg{width:100%;height:100%;overflow:visible}
+.drag-object{background:linear-gradient(155deg,#fff,#fff1f9);border-color:#e7b5dc;transition:transform .12s,box-shadow .12s}
+.drag-object:hover{transform:translateY(-3px);box-shadow:0 9px 0 #e6d7ef}
+.illustrated-scene{width:100%;max-width:300px;margin:auto;position:relative;min-height:240px;display:flex;align-items:center;justify-content:center;border-radius:25px;background:radial-gradient(circle at 50% 28%,#fff 0,#ffe5f4 62%,#e6d4ff 100%);box-shadow:inset 0 -10px 0 #cdb4e844;overflow:hidden}
+.illustrated-scene svg{width:100%;height:250px;display:block}
+.illustrated-scene .placed-items{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;align-items:end;gap:0;pointer-events:none}
+.illustrated-scene .placed-items .art-piece{width:70px;height:76px;margin:0 -9px;filter:drop-shadow(0 5px 3px #75517b44)}
+.illustrated-scene .placed-items .art-piece svg{height:100%;width:100%}
+.floating-object{white-space:normal;max-width:140px;min-width:90px;text-align:center;font-size:13px}
+.floating-object svg{width:90px;height:90px;display:block;margin:auto}
+.drop-target{border-color:#db8bc7;background:linear-gradient(#ffffffd9,#ffeefa);box-shadow:inset 0 0 0 4px #fff9}
+@media(max-width:600px){.illustrated-scene{min-height:205px}.illustrated-scene svg{height:205px}.drag-object .item-art{height:83px}}

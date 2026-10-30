@@ -1,0 +1,10 @@
+
+.dream-room.dream3d{height:clamp(390px,61vw,680px);padding:0!important;background:#c5d6ef!important;border:12px solid #c9a27d;border-bottom:22px solid #a87b58;border-radius:24px;position:relative;touch-action:none;overflow:hidden;box-shadow:0 26px 40px #483d6555,inset 0 0 0 5px #f8e7c5!important}
+#riki3d{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#riki3d:active{cursor:grabbing}
+.riki3d-hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;z-index:4;flex-wrap:wrap}
+.riki3d-hud span{background:#fffdf4ee;border:2px solid #ffffff;padding:7px 12px;border-radius:18px;color:#53364c;font-weight:850;box-shadow:0 4px 12px #46354b30;font-size:13px}
+.riki3d-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 14px}
+.riki3d-actions button{background:linear-gradient(#fff,#eee1ff);border:2px solid #c5a7e9;color:#563a71;padding:9px 14px;border-radius:16px;font-weight:800}
+.riki3d-legend{font-size:14px;color:#6c5377;padding:4px 10px}
+.dream-inventory-item.active{outline:4px solid #ee9bcb}
