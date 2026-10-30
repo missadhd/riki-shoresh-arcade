@@ -136,12 +136,13 @@
     },
     "wave": {
       "durationMs": 950,
-      "parts": [
-        "arm-right",
-        "hand-right"
-      ],
-      "underlay": "rightArmUnderlay",
-      "note": "Restored background remains behind the raised arm."
+      "type": "fullPose",
+      "note": "Complete one-piece pose keeps hair, shoulder, wrist, and hand continuous."
     }
+  },
+  "wavePoses": {
+    "basics": "wave-pose-basics-v1.webp",
+    "pink": "wave-pose-pink-v1.webp",
+    "mint": "wave-pose-mint-v1.webp"
   }
 }
