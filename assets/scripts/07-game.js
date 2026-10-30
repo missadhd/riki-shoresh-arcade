@@ -249,14 +249,252 @@ const SL_SETS={
 };
 const slSetStep={pause:0,friendship:0,solve:0};
 function drawSet(key){
-  const set=SL_SETS[key];slWho={A:'riki',B:set.who};const it=set.items[slSetStep[key]%set.items.length];const step=slSetStep[key];const opts=[...it.opts].sort(()=>Math.random()-.5);
-  slShell(set.title,`${slMeterHTML()}${slSceneHTML('riki',set.who)}<div class="sl-choices" id="slCh" hidden>${opts.map((o,i)=>`<button class="sl-choice c${i}" data-i="${i}">${o[0]}</button>`).join('')}</div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Next →</button>`);
+  const set=SL_SETS[key];const it=set.items[slSetStep[key]%set.items.length];const who=it.who||set.who;slWho={A:'riki',B:who};const step=slSetStep[key];const opts=[...it.opts].sort(()=>Math.random()-.5);
+  slShell(set.title,`${slMeterHTML()}${slSceneHTML('riki',who)}<div class="sl-choices" id="slCh" hidden>${opts.map((o,i)=>`<button class="sl-choice c${i}" data-i="${i}">${o[0]}</button>`).join('')}</div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Next →</button>`);
   (async()=>{await slWait(250);await slSay('B',it.say,it.mood);if(slSetStep[key]!==step)return;const ch=$id('slCh');if(ch){ch.hidden=false;if(window.RikiFit)RikiFit();}})();
   document.querySelectorAll('#slCh .sl-choice').forEach(b=>b.onclick=async()=>{const o=opts[+b.dataset.i];document.querySelectorAll('#slCh .sl-choice').forEach(x=>x.disabled=true);slHush('B');
     await slSay('A',o[0].replace(/^Say /,'').replace(/^“|”$/g,''),o[1]?'happy':'upset');if(slSetStep[key]!==step)return;
     if(o[1]){const n0=$id('slNote');if(n0)n0.hidden=true;slExpr('B','excited','bounce');slFx(['💖','✨','⭐'],9);audio('good');await slSay('B',it.ok,'excited');slGain(1);const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();slSetStep[key]++;drawSet(key);};nx.scrollIntoView({block:'nearest',behavior:'smooth'});}}
-    else{slExpr('B','sad','shake');slFx(['💧'],4);audio('tap');await slSay('B','Hmm… that doesn’t feel good.','sad');const n=$id('slNote');if(n){n.hidden=false;n.textContent='💜 '+set.lead+' Try another choice.';}document.querySelectorAll('#slCh .sl-choice').forEach(x=>{if(x!==b)x.disabled=false;});slHush('A');slExpr('A','think');}});
+    else{slExpr('B','sad','shake');slFx(['💧'],4);audio('tap');await slSay('B',set.wrong||'Hmm… that doesn’t feel good.','sad');const n=$id('slNote');if(n){n.hidden=false;n.textContent='💜 '+set.lead+' Try another choice.';}document.querySelectorAll('#slCh .sl-choice').forEach(x=>{if(x!==b)x.disabled=false;});slHush('A');slExpr('A','think');}});
 }
-window.RikiSocial={state:()=>({boardPick,good:boardPick!==null?scenes[boardPick].good:null,pieces:talks[dialogueStep%talks.length].pieces,sortAnswer:sortCases[sortIndex%sortCases.length][1],sortIndex,planStep})};
+/* ---------- Skill Zones (Claude, Oct 30): games grouped by skill ---------- */
+SL_PEOPLE.mom={name:'Mom',hair:'#7a4b2a',skin:'#f6cfae',dress:'#b38be0'};
+SL_PEOPLE.teacher={name:'Ms. Dana',hair:'#3b2b20',skin:'#d9a27c',dress:'#ffb35c'};
+SL_SETS.no={title:'🙅 Hearing No',who:'mom',lead:'Take the no calmly, then ask for something that could work.',wrong:'Hmm. The answer is still no.',items:[
+ {say:'No candy now. It’s almost dinner.',mood:'neutral',opts:[['Say “Okay. Can I have some after dinner?”',1],['Whine “Pleeease!” over and over.',0],['Sneak some when Mom isn’t looking.',0]],ok:'Thanks for taking no so well. Yes, one after dinner!'},
+ {say:'Screen time is done for today.',mood:'neutral',opts:[['Say “Okay,” and pick something else to do.',1],['Yell “That’s not fair!” and slam the door.',0],['Keep playing and pretend you didn’t hear.',0]],ok:'You handled that like a pro! Want to play a game with me?'},
+ {who:'teacher',say:'We can’t go outside. It’s raining.',mood:'neutral',opts:[['Say “I’m disappointed. What can we do inside?”',1],['Refuse to do anything all day.',0],['Run outside anyway.',0]],ok:'You stayed flexible! Indoor dance party recess!'},
+ {say:'We’re not buying that toy today.',mood:'neutral',opts:[['Say “Okay. Can I put it on my wish list?”',1],['Throw yourself on the floor.',0],['Hide it in the cart.',0]],ok:'Great idea! Let’s take a picture for your wish list.'},
+ {who:'friend',say:'No, I don’t want to play that game.',mood:'neutral',opts:[['Say “Okay. What do you want to play?”',1],['Say “Then I’m not your friend!”',0],['Make her play anyway.',0]],ok:'Let’s play tag! Thanks for asking me.'},
+ {who:'teacher',say:'You can’t be first in line today.',mood:'neutral',opts:[['Say “Okay,” and walk to my spot.',1],['Push to the front.',0],['Stomp and cry.',0]],ok:'Thanks for being flexible! You can be line leader tomorrow.'},
+ {say:'Time to turn off the TV and get in the bath.',mood:'neutral',opts:[['Say “Okay. Can I watch the end tomorrow?”',1],['Scream “NO!”',0],['Run and hide.',0]],ok:'Deal! Thanks for listening the first time.'}]};
+slSetStep.no=0;
+const zShuf=a=>[...a].sort(()=>Math.random()-.5);
+const zList=w=>w.length<2?w.join(''):w.slice(0,-1).join(', ')+' and '+w[w.length-1];
+const ZK='rikiSkillZonesV1';
+let zSave=(()=>{const d={stars:{},zone:'ef',lvl:{}};try{return Object.assign(d,JSON.parse(localStorage.getItem(ZK)||'{}'));}catch(e){return d;}})();
+const zPut=()=>{try{localStorage.setItem(ZK,JSON.stringify(zSave));}catch(e){}};
+const zLvl=(id,d)=>zSave.lvl[id]||d;
+let zCur='',zTok=0,zInts=[];
+const zEvery=(fn,ms)=>{const h=setInterval(fn,ms);zInts.push(h);return h;};
+function zStop(){zInts.forEach(clearInterval);zInts=[];slStop();}
+const zLive=t=>t===zTok&&!!$id('zRoot');
+const zShell=(title,body)=>{zStop();zTok++;slShell(title,`<div id="zRoot">${body}</div>`);const back=$id('selBackNew');if(back){const o=back.onclick;back.onclick=()=>{zStop();o&&o();};}return zTok;};
+const zPriorGain=slGain;slGain=function(n=1){zPriorGain(n);if(zCur){zSave.stars[zCur]=(zSave.stars[zCur]||0)+n;zPut();}};
+const zNote=txt=>{const n=$id('slNote');if(n){n.hidden=false;n.textContent=txt;}};
+function zDone(t,msg,again,coins=2){if(!zLive(t))return;if(coins){try{award(coins);}catch(e){}}const d=document.createElement('div');d.className='z-end';d.innerHTML=`<b>${msg}</b>${coins?`<span>+${coins} 🪙</span>`:''}<button class="sl-big" id="zAgain">Play again ↻</button>`;$id('zRoot').appendChild(d);$id('zAgain').onclick=()=>{audio('tap');(again||ZRUN[zCur])();};d.scrollIntoView({block:'nearest',behavior:'smooth'});}
+
+/* Brain Boss 1: Memory Shopper (working memory) */
+const ZM=[['🥛','milk'],['🍎','apples'],['🥚','eggs'],['🍞','bread'],['🧀','cheese'],['🍌','bananas'],['🥕','carrots'],['🍪','cookies'],['🧃','juice'],['🍓','strawberries'],['🧈','butter'],['🍇','grapes'],['🍝','pasta'],['🥒','pickles']];
+function drawMem(){zCur='mem';slWho={A:'riki',B:'mom'};const L=zLvl('mem',2);const pool=zShuf(ZM);const want=pool.slice(0,L);const shelf=zShuf(pool.slice(0,Math.min(12,L+6)));let got=[],miss=0,asks=0;
+ const t=zShell(`🛒 Memory Shopper · ${L} things`,`${slSceneHTML('riki','mom')}<div class="zm-list" id="zmList"></div><div class="zm-cart">🛒 <span id="zmGot"></span><b id="zmN">0/${L}</b></div><div class="zm-shelf" id="zmShelf" hidden>${shelf.map((s,i)=>`<button class="zm-item" data-i="${i}">${s[0]}<small>${s[1]}</small></button>`).join('')}</div><button class="secondary z-ask" id="zmAsk" hidden>🔁 Can you say it again, Mom?</button><p class="sl-note" id="slNote" hidden></p>`);
+ const showList=on=>{$id('zmList').innerHTML=want.map(w=>`<span class="zm-tag">${on?w[0]:'❓'}<small>${on?w[1]:'…'}</small></span>`).join('');};
+ const tell=async()=>{showList(true);$id('zmShelf').hidden=true;$id('zmAsk').hidden=true;await slSay('B',`Riki, can you get ${zList(want.map(w=>w[1]))}, please?`,'happy');if(!zLive(t))return;await slWait(500+L*450);if(!zLive(t))return;showList(false);slHush('B');await slSay('A','Okay! I’ll say it in my head.','think');if(!zLive(t))return;$id('zmShelf').hidden=false;$id('zmAsk').hidden=false;if(window.RikiFit)RikiFit();};
+ tell();
+ $id('zmAsk').onclick=async()=>{asks++;slHush('B');await slSay('A','Can you say it again, please?','think');if(zLive(t))tell();};
+ document.querySelectorAll('.zm-item').forEach(b=>b.onclick=async()=>{if(b.disabled)return;const s=shelf[+b.dataset.i];
+  if(want.includes(s)){got.push(s);b.disabled=true;b.classList.add('ok');audio('good');$id('zmGot').textContent=got.map(g=>g[0]).join(' ');$id('zmN').textContent=`${got.length}/${L}`;
+   if(got.length===L){$id('zmAsk').hidden=true;document.querySelectorAll('.zm-item').forEach(x=>x.disabled=true);showList(true);slExpr('B','excited','bounce');slFx(['🛒','✨','⭐'],10);slGain(1);const perfect=!miss&&asks<2;
+    if(perfect&&L<7){zSave.lvl.mem=L+1;zPut();}
+    await slSay('B',perfect?'You remembered everything! Thank you!':'You got it all! Thank you!','excited');zDone(t,perfect&&L<7?`🧠 Perfect! Next list has ${L+1} things.`:'🛒 All found! No mistakes = longer list next time.');}}
+  else{miss++;b.classList.add('no');audio('tap');slExpr('B','think','shake');zNote(`Mom didn’t ask for ${s[1]}. Tip: say the list in your head.`);setTimeout(()=>b.classList.remove('no'),500);if(miss===3&&L>2){zSave.lvl.mem=L-1;zPut();}}});
+}
+
+/* Brain Boss 2: Morning Rush (planning, sequencing, time) */
+const ZR=[{name:'Ready for School',goal:'🚌 The bus is coming!',steps:['😴 Wake up','👗 Get dressed','🥣 Eat breakfast','🪥 Brush teeth','👟 Shoes and coat on','🚌 Get on the bus']},
+ {name:'Bake Cookies',goal:'👵 Grandma comes soon!',steps:['🧼 Wash hands','🥣 Mix the dough','🍪 Shape the cookies','🔥 Bake in the oven','❄️ Let them cool','😋 Eat them!']},
+ {name:'Homework Time',goal:'📺 The show starts soon!',steps:['🧹 Clear the table','📒 Take out homework','👀 Read the directions','✏️ Do the work','✅ Check your answers','🎒 Put it in your backpack']},
+ {name:'Bedtime',goal:'🌙 Lights out soon!',steps:['🛁 Take a bath','👚 Put on pajamas','🪥 Brush teeth','📖 Read a story','🛏️ Get in bed','💡 Lights out']},
+ {name:'Art Project',goal:'🖼️ Show-and-tell soon!',steps:['🦺 Put on a smock','🎨 Get out the paints','🖌️ Paint your picture','⏳ Let it dry','🧽 Clean up the paints','🖼️ Hang it up']}];
+let zRushI=0;
+function drawRush(){zCur='rush';const idx=zRushI;const r=ZR[idx%ZR.length];const cards=zShuf(r.steps);const T=45;let at=0,time=T,mist=0,over=false;
+ const t=zShell(`⏰ ${r.name}`,`<div class="zr-goal"><span>${r.goal}</span><b id="zrClock">${T}s</b></div><div class="z-bar"><i id="zrBar"></i></div><ol class="zr-done" id="zrDone"></ol><div class="zr-cards">${cards.map((c,i)=>`<button class="zr-card" data-i="${i}">${c}</button>`).join('')}</div><p class="sl-note" id="slNote">Tap the steps in order. What comes first?</p>`);
+ const finish=ok=>{if(over)return;over=true;clearInterval(tick);document.querySelectorAll('.zr-card').forEach(b=>b.disabled=true);
+  if(ok){zRushI++;slGain(1);audio('good');try{celebrate();}catch(e){}zDone(t,mist?`✅ Made it in time! (${mist} oops)`:'⚡ Perfect plan, right on time!',null);}
+  else{zNote('⏳ Time ran out. That’s okay. Plans get faster with practice!');zDone(t,'Try again and beat the clock!',drawRush,0);}};
+ const tick=zEvery(()=>{if(!zLive(t)){clearInterval(tick);return;}time-=.25;const b=$id('zrBar');b.style.width=Math.max(0,time/T*100)+'%';b.style.background=time<10?'#e2457a':time<20?'#ffb84d':'#58c98a';$id('zrClock').textContent=Math.ceil(Math.max(0,time))+'s';if(time<=0)finish(false);},250);
+ document.querySelectorAll('.zr-card').forEach(b=>b.onclick=()=>{if(over||b.disabled)return;const c=cards[+b.dataset.i];
+  if(c===r.steps[at]){at++;audio('good');b.disabled=true;b.classList.add('ok');const li=document.createElement('li');li.textContent=c;$id('zrDone').appendChild(li);zNote(at<r.steps.length?'Nice! What’s next?':'');if(at===r.steps.length)finish(true);}
+  else{mist++;time=Math.max(0,time-3);audio('tap');b.classList.remove('no');void b.offsetWidth;b.classList.add('no');zNote('Hmm, what has to happen before that? (−3s)');}});
+}
+
+/* Brain Boss 3: Switch It! (flexible thinking) */
+const ZW_SH=[['★','stars'],['●','circles'],['▲','triangles'],['■','squares']],ZW_CO=[['#ff5fa2','pink'],['#3fa9f5','blue'],['#2fbf71','green'],['#ffb400','yellow']];
+function drawSwitch(){zCur='switch';const ROUNDS=8;let round=0,cleared=0,mist=0,rule=null,time=0,locked=false;
+ const t=zShell('🔀 Switch It!',`<div class="zw-rule" id="zwRule">Get ready…</div><div class="z-bar"><i id="zwBar"></i></div><div class="zw-grid" id="zwGrid"></div><div class="sl-score"><span id="zwRound">Round 1/${ROUNDS}</span><span id="zwScore">⭐ 0</span></div><p class="sl-note" id="slNote">The rule keeps changing. Listen for the switch!</p>`);
+ const next=async()=>{if(!zLive(t))return;if(round>=ROUNDS){clearInterval(tick);const good=cleared>=6;if(good){slGain(1);try{celebrate();}catch(e){}}zDone(t,good?`🔀 ${cleared}/${ROUNDS} rounds! Super flexible brain!`:`${cleared}/${ROUNDS} rounds. Get 6 to earn a star!`,null,good?2:0);return;}
+  round++;const prev=rule;const type=!prev?(Math.random()<.5?'c':'s'):(Math.random()<.7?(prev.type==='c'?'s':'c'):prev.type);const list=type==='c'?ZW_CO:ZW_SH;let val;do{val=Math.floor(Math.random()*4);}while(prev&&prev.type===type&&prev.val===val);rule={type,val};
+  const toks=[];const n=2+Math.floor(Math.random()*3);for(let i=0;i<9;i++){let s,c;if(i<n){if(type==='c'){c=val;s=Math.floor(Math.random()*4);}else{s=val;c=Math.floor(Math.random()*4);}}else{do{s=Math.floor(Math.random()*4);c=Math.floor(Math.random()*4);}while(type==='c'?c===val:s===val);}toks.push({s,c,hit:false});}
+  const order=zShuf(toks);const name=list[val][1];const switched=prev&&prev.type!==type;
+  const ru=$id('zwRule');ru.innerHTML=`${switched?'<em>🔀 SWITCH!</em> ':''}Tap all the <b style="color:${type==='c'?ZW_CO[val][0]:'#4a2338'}">${name.toUpperCase()}</b>`;ru.classList.remove('pop');void ru.offsetWidth;ru.classList.add('pop');slSpeak(`${switched?'Switch! ':''}Tap the ${name}!`);
+  $id('zwRound').textContent=`Round ${round}/${ROUNDS}`;
+  $id('zwGrid').innerHTML=order.map((k,i)=>`<button class="zw-tok" data-i="${i}" style="color:${ZW_CO[k.c][0]}">${ZW_SH[k.s][0]}</button>`).join('');time=7;locked=false;
+  document.querySelectorAll('.zw-tok').forEach(b=>b.onclick=()=>{if(locked||b.disabled)return;const k=order[+b.dataset.i];const ok=type==='c'?k.c===val:k.s===val;
+   if(ok){k.hit=true;b.disabled=true;b.classList.add('ok');audio('tap');if(order.filter(x=>(type==='c'?x.c===val:x.s===val)&&!x.hit).length===0){locked=true;cleared+=mist===0?1:0;if(mist===0)audio('good');$id('zwScore').textContent='⭐ '+cleared;mist=0;slTimers.push(setTimeout(next,450));}}
+   else{mist++;b.classList.remove('no');void b.offsetWidth;b.classList.add('no');zNote(`Oops! The rule is ${name} now.`);}});};
+ const tick=zEvery(()=>{if(!zLive(t)){clearInterval(tick);return;}if(locked||!rule)return;time-=.1;const b=$id('zwBar');b.style.width=Math.max(0,time/7*100)+'%';if(time<=0){locked=true;mist=0;zNote('⏰ Too slow that time. Next rule!');next();}},100);
+ slTimers.push(setTimeout(next,700));
+}
+
+/* Brain Boss 4: Riki Says (stopping yourself) */
+const ZS=[['🐸','frog'],['🐱','cat'],['🐶','dog'],['🐰','bunny']];
+function drawSays(){zCur='says';const N=10;let i=0,pts=0,cur=null,timer=null;
+ const t=zShell('🙋 Riki Says',`<div class="zs-top"><span class="zs-face" id="zsFace">${slFace('riki','happy')}</span><div class="zs-cmd" id="zsCmd">Only tap when you hear <b>“Riki says”</b>!</div></div><div class="z-bar"><i id="zsBar"></i></div><div class="zs-pad">${ZS.map((a,k)=>`<button class="zs-btn" data-k="${k}">${a[0]}</button>`).join('')}</div><div class="sl-score"><span id="zsN">0/${N}</span><span id="zsPts">⭐ 0</span></div><p class="sl-note" id="slNote">If she doesn’t say “Riki says”… freeze! 🧊</p>`);
+ const face=e=>{const f=$id('zsFace');if(f)f.innerHTML=slFace('riki',e);};
+ const end=(msg,good)=>{const c=$id('zsCmd');c.innerHTML=msg;c.classList.remove('pop');void c.offsetWidth;c.classList.add('pop');face(good?'excited':'surprised');if(good)audio('good');else audio('tap');if(good)pts++;$id('zsPts').textContent='⭐ '+pts;cur=null;slTimers.push(setTimeout(go,1100));};
+ const go=()=>{if(!zLive(t))return;if(i>=N){const ok=pts>=8;if(ok){slGain(1);try{celebrate();}catch(e){}}zDone(t,ok?`🙋 ${pts}/${N}! Amazing self-control!`:`${pts}/${N}. Get 8 to earn a star!`,null,ok?2:0);return;}
+  i++;$id('zsN').textContent=`${i}/${N}`;const k=Math.floor(Math.random()*4);const says=Math.random()<.62;const win=Math.max(1800,3200-i*130);cur={k,says,start:Date.now(),win};face('happy');
+  const txt=`${says?'Riki says: ':''}tap the ${ZS[k][1]}!`;const c=$id('zsCmd');c.innerHTML=`${says?'<b>Riki says:</b> ':''}Tap the ${ZS[k][0]} ${ZS[k][1]}!`;c.classList.remove('pop');void c.offsetWidth;c.classList.add('pop');slSpeak(txt);
+  const me=cur;slTimers.push(setTimeout(()=>{if(cur!==me||!zLive(t))return;end(me.says?'⏰ Too slow! Riki <b>did</b> say.':'🧊 Nice freeze! Riki didn’t say!',!me.says);},win));};
+ const tick=zEvery(()=>{if(!zLive(t)){clearInterval(tick);return;}const b=$id('zsBar');if(!cur){b.style.width='0%';return;}b.style.width=Math.max(0,100-(Date.now()-cur.start)/cur.win*100)+'%';},80);
+ document.querySelectorAll('.zs-btn').forEach(b=>b.onclick=()=>{if(!cur)return;const k=+b.dataset.k;b.classList.remove('hit');void b.offsetWidth;b.classList.add('hit');
+  if(!cur.says)end('😮 Oops! Riki didn’t say!',false);else if(k===cur.k)end(`✅ Yes! ${ZS[k][0]}`,true);else end(`Oops, that’s the ${ZS[k][1]}.`,false);});
+ slTimers.push(setTimeout(go,1200));
+}
+
+/* Feelings Coach 1: Cool the Volcano (calm-down tools) */
+const ZV_EV=[['Your block tower fell down!','Grrr! My tower!'],['Your brother grabbed your toy!','Hey! That’s MINE!'],['Your drawing got ripped!','No! I worked so hard!'],['The game froze and you lost your level!','Ugh! This is so unfair!'],['You have to stop playing for bath time.','But I’m not done!'],['Your friend laughed at your idea.','That makes me so mad!']];
+const ZV_TOOLS=[['🎈','Balloon breaths','breath'],['🔢','Count to 5','count'],['🧸','Squeeze teddy','squeeze'],['🗣️','Tell a friend','tell'],['😡','Yell','yell'],['🦶','Kick something','kick']];
+function drawVolcano(){zCur='volcano';slWho={A:'riki',B:'friend'};const evs=zShuf(ZV_EV).slice(0,3);let ev=-1,heat=1,busy=false;
+ const t=zShell('🌋 Cool the Volcano',`<div class="zv-meter"><span>😌</span><div class="zv-track"><i id="zvHeat"></i></div><span>🌋</span></div>${slSceneHTML('riki','friend')}<div class="zv-event" id="zvEvent"></div><div class="zv-tools" id="zvTools" hidden>${ZV_TOOLS.map((x,k)=>`<button class="zv-tool ${k>3?'bad':''}" data-k="${k}"><b>${x[0]}</b>${x[1]}</button>`).join('')}</div><div class="zv-act" id="zvAct"></div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Next surprise →</button>`);
+ const show=()=>{const h=$id('zvHeat');if(!h)return;h.style.width=Math.max(4,heat*10)+'%';h.style.background=heat>=7?'#e2457a':heat>=4?'#ffb84d':'#58c98a';slExpr('A',heat>=7?'upset':heat>=4?'nervous':'happy',heat>=7?'shake':'');if(heat>=7)slFx(['💢','🔥'],4);};
+ const cool=async(n,line)=>{heat=Math.max(0,heat-n);show();audio('good');slFx(['💙','❄️','🫧'],6);if(line){await slSay('A',line,'happy');}if(!zLive(t))return;busy=false;$id('zvAct').innerHTML='';
+  if(heat<=3){$id('zvTools').hidden=true;slHush('B');slExpr('A','happy','bounce');slGain(1);await slSay('A','Phew. I feel calm now. I can fix it.','happy');if(!zLive(t))return;if(ev>=evs.length-1){try{celebrate();}catch(e){}zDone(t,'🌋➡️😌 You cooled the volcano 3 times!');}else{const nx=$id('slNext');nx.hidden=false;nx.onclick=()=>{nx.hidden=true;nextEv();};}}
+  else zNote(`Still hot (${heat}/10). Try another calm tool!`);};
+ const nextEv=async()=>{ev++;$id('slNote').hidden=true;const e=evs[ev];heat=Math.min(10,Math.max(heat,2)+5+Math.floor(Math.random()*2));$id('zvEvent').textContent='💥 '+e[0];audio('tap');show();await slSay('A',e[1],'upset');if(!zLive(t))return;await slSay('B','Uh oh, your volcano is getting hot! Pick a calm tool.','nervous');if(!zLive(t))return;$id('zvTools').hidden=false;if(window.RikiFit)RikiFit();};
+ const act=$id('zvAct');
+ document.querySelectorAll('.zv-tool').forEach(b=>b.onclick=async()=>{if(busy||heat<=3)return;const kind=ZV_TOOLS[+b.dataset.k][2];busy=true;slHush('B');$id('slNote').hidden=true;
+  if(kind==='yell'||kind==='kick'){heat=Math.min(10,heat+2);show();audio('tap');await slSay('A',kind==='yell'?'AAAAHHH!':'*KICK*','upset');if(!zLive(t))return;slExpr('B','sad','shake');await slSay('B','Whoa… that was scary. Now you feel even hotter.','sad');zNote('💜 Big actions make the volcano hotter. Try a calm tool.');busy=false;return;}
+  if(kind==='tell'){await slSay('A','Maya, I feel really frustrated. Can you help me?','nervous');if(!zLive(t))return;slExpr('B','happy','bounce');await slSay('B','Of course! Thanks for telling me. Let’s fix it together.','happy');if(zLive(t))cool(3);return;}
+  if(kind==='breath'){let done=0,start=0;act.innerHTML=`<button class="zv-balloon" id="zvBal">🎈</button><p class="zv-hint" id="zvHint">Press and HOLD to breathe in… (0/2)</p>`;const bal=$id('zvBal'),hint=$id('zvHint');
+   const down=e=>{e.preventDefault();start=Date.now();bal.classList.remove('out');bal.classList.add('in');hint.textContent='Breathe in… 1… 2… 3…';};
+   const up=()=>{if(!start)return;const held=Date.now()-start;start=0;bal.classList.remove('in');bal.classList.add('out');if(held<1800){hint.textContent='A little longer! Hold while you breathe in.';return;}done++;hint.textContent=`And breathe out… (${done}/2)`;if(done>=2){bal.disabled=true;slTimers.push(setTimeout(()=>cool(4,'Ahhh. Balloon breaths help.'),900));}};
+   bal.addEventListener('pointerdown',down);bal.addEventListener('pointerup',up);bal.addEventListener('pointerleave',up);bal.addEventListener('pointercancel',up);return;}
+  if(kind==='count'){let nxt=1;const pos=zShuf([[8,10],[60,8],[30,45],[75,52],[12,62],[48,20],[85,25]]).slice(0,5);act.innerHTML=`<div class="zv-bubbles">${pos.map((p,k)=>`<button class="zv-bub" data-n="${k+1}" style="left:${p[0]}%;top:${p[1]}%">${k+1}</button>`).join('')}</div><p class="zv-hint">Pop the bubbles from 1 to 5, slowly.</p>`;
+   act.querySelectorAll('.zv-bub').forEach(x=>x.onclick=()=>{if(+x.dataset.n!==nxt){x.classList.remove('no');void x.offsetWidth;x.classList.add('no');return;}slSpeak(String(nxt));x.classList.add('pop');nxt++;if(nxt>5)slTimers.push(setTimeout(()=>cool(3,'One, two, three, four, five. Better.'),500));});return;}
+  if(kind==='squeeze'){let start=0,raf=0;act.innerHTML=`<button class="zv-teddy" id="zvTed">🧸</button><div class="z-bar"><i id="zvSq"></i></div><p class="zv-hint">HOLD to squeeze teddy tight…</p>`;const ted=$id('zvTed');
+   const loop=()=>{if(!start||!zLive(t))return;const p=Math.min(1,(Date.now()-start)/2200);const bar=$id('zvSq');if(bar)bar.style.width=p*100+'%';if(p>=1){start=0;ted.classList.remove('sq');ted.disabled=true;cool(3,'Squeeze… and let go. Ahh.');return;}raf=requestAnimationFrame(loop);};
+   ted.addEventListener('pointerdown',e=>{e.preventDefault();start=Date.now();ted.classList.add('sq');loop();});const rel=()=>{if(!start)return;start=0;cancelAnimationFrame(raf);ted.classList.remove('sq');const bar=$id('zvSq');if(bar)bar.style.width='0%';};ted.addEventListener('pointerup',rel);ted.addEventListener('pointerleave',rel);ted.addEventListener('pointercancel',rel);return;}
+ });
+ show();slTimers.push(setTimeout(nextEv,400));
+}
+
+/* Feelings Coach 2: Size of the Problem */
+const ZZ=[['Your pencil broke.',0,'No big deal. I’ll grab another pencil.'],['You lost a board game.',0,'Oh well. Good game! Maybe next time.'],['Your ice cream fell on the ground.',0,'Aw, that’s sad. Maybe I can get a snack later.'],['You spilled a little water.',0,'Oops! I’ll wipe it up.'],['Your friend took the swing you wanted.',0,'I’ll wait for a turn or play something else.'],
+ ['You forgot your lunch at home.',1,'I’ll tell my teacher and ask for help.'],['Your friend is mad at you.',1,'I’ll talk to her and maybe ask a grown-up to help.'],['You lost your library book.',1,'I’ll tell Mom and we can look for it together.'],['Your homework is really confusing.',1,'I’ll ask my teacher to explain it.'],
+ ['You smell smoke in the house.',2,'I need to tell a grown-up RIGHT NOW!'],['A kid got badly hurt on the playground.',2,'I’ll get a teacher right away!'],['You got lost in a big store.',2,'I’ll stay put and ask a worker for help right away.']];
+const ZZ_BIN=[['🐜','Small','Fix it myself'],['🐶','Medium','Need some help'],['🐘','Big','Grown-up NOW']];
+const ZZ_BIG=['AAAH! This is the WORST day EVER!','I’m going to scream and cry all day!'],ZZ_SMALL=['Eh, whatever. I’ll just ignore it.','I don’t care. I’ll keep playing.'];
+let zSizeI=0,zSizeDeck=null;
+function drawSize(){zCur='size';slWho={A:'riki',B:'friend'};if(!zSizeDeck||zSizeI%ZZ.length===0)zSizeDeck=zShuf(ZZ);const it=zSizeDeck[zSizeI%ZZ.length];const step=zSizeI;let stage=1;
+ const t=zShell('🐘 Size of the Problem',`${slSceneHTML('riki','friend')}<button class="sl-card" id="slCard">🗂️ ${it[0]}</button><div class="sl-bins zz-bins" id="zzBins">${ZZ_BIN.map((b,k)=>`<button class="sl-bin" data-size="${k}"><b>${b[0]}</b>${b[1]}<small>${b[2]}</small></button>`).join('')}</div><div class="sl-choices" id="slCh" hidden></div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Next problem →</button>`);
+ (async()=>{await slWait(200);await slSay('B',`Uh oh! ${it[0].replace(/^You /,'You ')} How big is that problem?`,'surprised');})();
+ const judge=async()=>{stage=2;$id('zzBins').hidden=true;$id('slCard').hidden=true;$id('slNote').hidden=true;const sz=it[1];const match=Math.random()<.45;let line,ans;
+  if(match){line=it[2];ans=1;}else if(sz===0||(sz===1&&Math.random()<.5)){line=ZZ_BIG[Math.floor(Math.random()*2)];ans=0;}else{line=ZZ_SMALL[Math.floor(Math.random()*2)];ans=2;}
+  slHush('B');await slSay('A',line,ans===0?'upset':ans===2?'neutral':'think');if(!zLive(t))return;await slSay('B','Was Riki’s reaction the right size?','think');if(!zLive(t))return;
+  const ch=$id('slCh');ch.hidden=false;ch.innerHTML=[['🔥 Too big',0],['👌 Just right',1],['🧊 Too small',2]].map(([l,v],k)=>`<button class="sl-choice c${k}" data-v="${v}">${l}</button>`).join('');if(window.RikiFit)RikiFit();
+  ch.querySelectorAll('[data-v]').forEach(b=>b.onclick=async()=>{if(+b.dataset.v===ans){ch.querySelectorAll('button').forEach(x=>x.disabled=true);audio('good');slFx(['⭐','✨'],8);slGain(1);slHush('B');
+    if(ans!==1){await slSay('A','Oops, let me try that again. '+it[2],'happy');}else{slExpr('A','excited','bounce');await slSay('B','Yes! Problem size matches reaction size.','excited');}
+    if(!zLive(t))return;const nx=$id('slNext');nx.hidden=false;nx.onclick=()=>{slStop();zSizeI++;drawSize();};nx.scrollIntoView({block:'nearest',behavior:'smooth'});}
+   else{b.disabled=true;audio('tap');zNote(ans===0?'Hmm. Was that a big reaction for a '+ZZ_BIN[sz][1].toLowerCase()+' problem?':ans===2?'Hmm. Is ignoring it enough for a '+ZZ_BIN[sz][1].toLowerCase()+' problem?':'Listen again. Did the reaction fit the problem?');}});};
+ const pick=async k=>{if(stage!==1||zSizeI!==step)return;k=+k;if(k===it[1]){audio('good');slExpr('B','happy','bounce');document.querySelectorAll('[data-size]').forEach(b=>b.disabled=true);zNote(`${ZZ_BIN[k][0]} Yes, that’s a ${ZZ_BIN[k][1].toLowerCase()} problem. ${ZZ_BIN[k][2]}.`);await slWait(900);if(zLive(t))judge();}
+  else{audio('tap');slExpr('B','think','shake');zNote(k>it[1]?'Hmm, is it really that big? Can Riki fix it with less help?':'Hmm, could this be bigger? Does Riki need more help?');}};
+ document.querySelectorAll('[data-size]').forEach(b=>b.onclick=()=>pick(b.dataset.size));dragTiles('#slCard',pick);
+}
+
+/* Flexible Me: Listen & Do (following directions) */
+const ZL=[['🧥','hang up your coat','hook'],['🎒','put your backpack in your cubby','cubby'],['🗑️','throw away your trash','trash'],['📚','put the book on the shelf','shelf'],['🖍️','get the crayons','crayons'],['🧸','put the toys in the bin','toy bin'],['🟦','sit on the rug','rug'],['🚰','get a drink of water','water'],['🚪','line up at the door','door']];
+function drawListen(){zCur='listen';slWho={A:'riki',B:'teacher'};const L=zLvl('listen',1);const steps=zShuf(ZL).slice(0,L);const room=zShuf(ZL);let at=0,miss=0,asks=0;
+ const t=zShell(`👂 Listen & Do · ${L} step${L>1?'s':''}`,`${slSceneHTML('riki','teacher')}<div class="zl-track" id="zlTrack">${steps.map(()=>'<span>○</span>').join('')}</div><div class="zl-room" id="zlRoom" hidden>${room.map((r,i)=>`<button class="zl-spot" data-i="${i}">${r[0]}<small>${r[2]}</small></button>`).join('')}</div><button class="secondary z-ask" id="zlAsk" hidden>🔁 Can you say that again, please?</button><p class="sl-note" id="slNote" hidden></p>`);
+ const words=L===1?`Riki, please ${steps[0][1]}.`:'Riki, '+steps.map((s,i)=>(i===0?'first ':i===L-1?'and then ':'then ')+s[1]).join(', ')+'.';
+ const tell=async()=>{$id('zlRoom').hidden=true;$id('zlAsk').hidden=true;slHush('A');await slSay('B',words,'happy');if(!zLive(t))return;await slWait(400);slHush('B');await slSay('A','Okay, Ms. Dana!','happy');if(!zLive(t))return;slHush('A');$id('zlRoom').hidden=false;$id('zlAsk').hidden=false;if(window.RikiFit)RikiFit();};
+ tell();
+ $id('zlAsk').onclick=async()=>{asks++;await slSay('A','Can you say that again, please?','think');if(zLive(t))tell();};
+ document.querySelectorAll('.zl-spot').forEach(b=>b.onclick=async()=>{if($id('zlRoom').hidden)return;const r=room[+b.dataset.i];
+  if(r===steps[at]){$id('zlTrack').children[at].textContent='✓';$id('zlTrack').children[at].classList.add('ok');at++;audio('good');b.classList.remove('ok');void b.offsetWidth;b.classList.add('ok');slExpr('B','happy','bounce');
+   if(at===L){$id('zlAsk').hidden=true;$id('zlRoom').hidden=true;slFx(['⭐','✨','👏'],10);slGain(1);const perfect=!miss&&asks<2;if(perfect&&L<4){zSave.lvl.listen=L+1;zPut();}await slSay('B',L>1?'You did every step, in order! Thank you for listening.':'Thank you for listening the first time!','excited');zDone(t,perfect&&L<4?`👂 Great listening! Next time: ${L+1} steps.`:'👂 You did it!');}}
+  else{miss++;audio('tap');b.classList.remove('no');void b.offsetWidth;b.classList.add('no');slExpr('B','think');zNote('Hmm, that’s not what Ms. Dana said'+(at?' next':'')+'. You can ask her to say it again.');if(miss===3&&L>1){zSave.lvl.listen=L-1;zPut();}}});
+}
+
+/* Flexible Me: Good Sport (winning and losing) */
+const ZG=[['✊','rock'],['✋','paper'],['✌️','scissors']];
+function drawSport(){zCur='sport';slWho={A:'riki',B:'friend2'};let me=0,her=0,busy=false;
+ const t=zShell('🏆 Good Sport',`${slSceneHTML('riki','friend2')}<div class="zg-score"><span>Riki <b id="zgMe">0</b></span><small>First to 2</small><span>Noa <b id="zgHer">0</b></span></div><div class="zg-hands" id="zgHands">${ZG.map((h,i)=>`<button class="zg-hand" data-i="${i}">${h[0]}<small>${h[1]}</small></button>`).join('')}</div><div class="sl-choices" id="slCh" hidden></div><p class="sl-note" id="slNote" hidden></p>`);
+ slTimers.push(setTimeout(()=>slSay('B','Rock, paper, scissors? First to 2 wins!','excited'),250));
+ const react=async won=>{$id('zgHands').hidden=true;if(won){slExpr('A','excited','bounce');slExpr('B','sad');await slSay('B','Aww. You won.','sad');}else{slExpr('B','excited','bounce');slExpr('A','sad','shake');await slSay('B','Yay! I won!','excited');}if(!zLive(t))return;
+  const opts=zShuf(won?[['“Good game! You were really good too.”',1],['Dance and say “Ha ha, you lose!”',0],['“That was too easy.”',0]]:[['“Good game! Want a rematch?”',1],['“You cheated!”',0],['“I’m never playing with you again.”',0]]);
+  const ch=$id('slCh');ch.hidden=false;ch.innerHTML=`<p class="zg-ask">${won?'You won! What do you say?':'You lost. What do you say?'}</p>`+opts.map((o,k)=>`<button class="sl-choice c${k}" data-k="${k}">${o[0]}</button>`).join('');if(window.RikiFit)RikiFit();
+  ch.querySelectorAll('[data-k]').forEach(b=>b.onclick=async()=>{const o=opts[+b.dataset.k];ch.querySelectorAll('[data-k]').forEach(x=>x.disabled=true);slHush('B');await slSay('A',o[0].replace(/^Dance and say /,'').replace(/[“”]/g,''),o[1]?'happy':'upset');if(!zLive(t))return;
+   if(o[1]){slExpr('B','excited','bounce');slFx(['🏆','💖','✨'],10);audio('good');slGain(1);await slSay('B','You’re so fun to play with!','excited');zDone(t,won?'🏆 Kind winner!':'🏆 Great sport! Losing is hard, and you stayed kind.');}
+   else{slExpr('B','sad','shake');audio('tap');await slSay('B','That’s not fun… I don’t want to play anymore.','sad');zNote(won?'💜 Winning feels great. Be kind so friends want to play again.':'💜 Losing feels bad. It’s okay to feel it. What could you say to stay friends?');ch.querySelectorAll('[data-k]').forEach(x=>{if(x!==b)x.disabled=false;});}});};
+ document.querySelectorAll('.zg-hand').forEach(b=>b.onclick=async()=>{if(busy||me>=2||her>=2)return;busy=true;slHush('A');slHush('B');const i=+b.dataset.i;const r=Math.random();const j=r<.45?(i+1)%3:r<.62?i:(i+2)%3;
+  b.classList.add('ok');await Promise.all([slSay('A',ZG[i][0]+' '+ZG[i][1]+'!','think'),slSay('B',ZG[j][0]+' '+ZG[j][1]+'!','think')]);b.classList.remove('ok');if(!zLive(t))return;
+  if(i===j){zNote('Tie! Go again.');busy=false;return;}const win=(i-j+3)%3===1;if(win){me++;slExpr('A','happy','bounce');}else{her++;slExpr('B','happy','bounce');}$id('zgMe').textContent=me;$id('zgHer').textContent=her;audio('tap');$id('slNote').hidden=true;
+  if(me>=2||her>=2)react(me>=2);else busy=false;});
+}
+
+/* Hub with skill zones */
+const ZONES=[
+ {id:'ef',emoji:'🧠',name:'Brain Boss',skill:'Memory, planning, switching gears, stopping yourself',color:'#7c6cf2',games:[['mem','🛒','Memory Shopper'],['rush','⏰','Beat the Clock'],['switch','🔀','Switch It!'],['says','🙋','Riki Says'],['comic','🎬','Story Order']]},
+ {id:'er',emoji:'🌡️',name:'Feelings Coach',skill:'Notice the feeling, size the problem, cool down',color:'#f06a8a',games:[['volcano','🌋','Cool the Volcano'],['size','🐘','Size of the Problem'],['sort','🕵️','Feelings Detective'],['pause','⏸️','Pause & Choose'],['calm','🫧','Calm Corner']]},
+ {id:'flex',emoji:'🌈',name:'Flexible Me',skill:'Hearing no, following directions, losing, Plan B',color:'#22a77e',games:[['no','🙅','Hearing No'],['listen','👂','Listen & Do'],['sport','🏆','Good Sport'],['plan','🛤️','Plan B'],['solve','🧩','Problem Solver']]},
+ {id:'talk',emoji:'💬',name:'Friends & Talking',skill:'Conversations, joining in, kindness',color:'#e8902a',games:[['board','🎤','Talk Show'],['talk','💬','Build the Chat'],['friendship','💖','Friendship Studio']]}];
+const ZRUN={mem:drawMem,rush:drawRush,switch:drawSwitch,says:drawSays,comic:()=>drawComic(),volcano:drawVolcano,size:drawSize,sort:()=>drawSort(),pause:()=>drawSet('pause'),calm:()=>{selMode='reset';selCalm();},no:()=>drawSet('no'),listen:drawListen,sport:drawSport,plan:()=>drawPlan(),solve:()=>drawSet('solve'),board:()=>drawBoard(),talk:()=>drawTalk(),friendship:()=>drawSet('friendship')};
+newHub=function(){zStop();zCur='';game='sel';const z=ZONES.find(x=>x.id===zSave.zone)||ZONES[0];
+ app.innerHTML=`<section class="sel-hero z-hero"><h1>🎭 Riki’s Skill City</h1><button class="secondary" id="backHebrewNew">🎮 Hebrew Games</button></section><section class="panel z-panel" style="--zc:${z.color}"><div class="z-tabs">${ZONES.map(x=>`<button class="z-tab ${x.id===z.id?'on':''}" data-zone="${x.id}" style="--zc:${x.color}"><span>${x.emoji}</span>${x.name}</button>`).join('')}</div><p class="z-skill">${z.emoji} ${z.skill}</p><div class="sel-grid">${z.games.map(([id,e,n])=>`<button class="sel-card z-card" data-zg="${id}"><span class="sel-emoji">${e}</span><strong>${n}</strong><span class="z-st">${zSave.stars[id]?'⭐ '+zSave.stars[id]:'New!'}</span></button>`).join('')}</div></section>`;
+ $id('backHebrewNew').onclick=menu;
+ document.querySelectorAll('[data-zone]').forEach(b=>b.onclick=()=>{audio('tap');zSave.zone=b.dataset.zone;zPut();newHub();});
+ document.querySelectorAll('[data-zg]').forEach(b=>b.onclick=()=>{audio('tap');zCur=b.dataset.zg;ZRUN[b.dataset.zg]();});};
+const ZCSS=`.z-hero{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.z-hero h1{margin:0;font-size:24px}
+.z-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.z-tab{border:0;border-radius:16px;padding:8px 2px;background:#fff;color:#4a2338;font-weight:900;font-size:11px;line-height:1.1;box-shadow:0 4px 0 #0001,0 0 0 2px color-mix(in srgb,var(--zc) 35%,#fff);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.z-tab span{font-size:24px}.z-tab.on{background:var(--zc);color:#fff;box-shadow:0 4px 0 color-mix(in srgb,var(--zc) 70%,#000)}
+.z-skill{margin:10px 0;padding:8px 12px;border-radius:14px;background:color-mix(in srgb,var(--zc) 14%,#fff);color:color-mix(in srgb,var(--zc) 60%,#000);font-weight:900;font-size:14px}
+.z-card{position:relative;border-top:5px solid var(--zc)!important}.z-st{display:inline-block;margin-top:4px;font-size:12px;font-weight:900;color:color-mix(in srgb,var(--zc) 70%,#000)}
+.z-end{margin-top:12px;padding:12px;border-radius:18px;background:#fff7d6;text-align:center;display:grid;gap:6px;font-size:16px;color:#4a2338;animation:zPop .4s}
+.z-ask{width:100%;margin-top:8px}.z-ask[hidden]{display:none}
+.z-bar{height:10px;border-radius:999px;background:#f3e6ee;overflow:hidden;margin:6px 0}.z-bar i{display:block;height:100%;width:100%;background:#58c98a;border-radius:999px;transition:width .2s linear}
+@keyframes zPop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes zShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.no{animation:zShake .35s}
+.zm-list{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:8px;min-height:58px}
+.zm-tag,.zm-item,.zl-spot{display:flex;flex-direction:column;align-items:center;font-size:30px;line-height:1.1}
+.zm-tag{background:#fff;border-radius:14px;padding:6px 10px;box-shadow:0 0 0 2px #f3d6dc;animation:zPop .35s}
+.zm-tag small,.zm-item small,.zl-spot small{font-size:11px;font-weight:900;color:#6a4558}
+.zm-cart{margin-top:8px;padding:8px 12px;border-radius:14px;background:#eaf6ff;font-size:22px;display:flex;align-items:center;gap:6px}.zm-cart b{margin-left:auto;font-size:15px;color:#2b5a85}
+.zm-shelf,.zl-room{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}.zm-shelf[hidden],.zl-room[hidden]{display:none}
+.zm-item,.zl-spot{border:0;border-radius:14px;padding:6px 2px;background:#fff;box-shadow:0 4px 0 #f3d6dc,0 0 0 2px #f3d6dc;cursor:pointer}
+.zm-item.ok{background:#d9f7e6;opacity:.55}.zl-spot.ok{animation:zPop .4s;background:#d9f7e6}
+.zl-room{grid-template-columns:repeat(3,minmax(0,1fr))}
+.zl-track{display:flex;justify-content:center;gap:8px;margin-top:8px;font-size:20px;font-weight:900;color:#c9a9b8}.zl-track .ok{color:#2fbf71}
+.zr-goal{display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:17px;color:#4a2338}.zr-goal b{font-size:22px}
+.zr-done{margin:6px 0;padding-left:26px;min-height:20px;font-weight:900;color:#2f7a52;font-size:14px}.zr-done li{animation:zPop .3s}
+.zr-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.zr-card{border:0;border-radius:16px;padding:12px 8px;background:#fff;font-weight:900;font-size:15px;color:#2a1d2a;box-shadow:0 4px 0 #e6d0dc,0 0 0 2px #e6d0dc;cursor:pointer}.zr-card.ok{visibility:hidden}
+.zw-rule{text-align:center;font-size:22px;font-weight:900;color:#4a2338;padding:8px;border-radius:16px;background:#f4efff}.zw-rule em{color:#e2457a;font-style:normal}.pop{animation:zPop .35s}
+.zw-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+.zw-tok{border:0;border-radius:18px;aspect-ratio:1.25;background:#fff;font-size:44px;line-height:1;box-shadow:0 4px 0 #e6d0dc,0 0 0 2px #e6d0dc;cursor:pointer}.zw-tok.ok{background:#d9f7e6;transform:scale(.9);opacity:.5}
+.zs-top{display:flex;align-items:center;gap:8px}.zs-face svg{width:84px;height:92px}
+.zs-cmd{flex:1;font-size:21px;font-weight:900;color:#4a2338;background:#fff;border-radius:18px;padding:12px;box-shadow:0 0 0 2px #f3d6dc}.zs-cmd b{color:#e2457a}
+.zs-pad{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:8px}
+.zs-btn{border:0;border-radius:22px;padding:16px 0;font-size:54px;background:linear-gradient(#fff,#ffeef4);box-shadow:0 6px 0 #e9c4d3;cursor:pointer}.zs-btn.hit{animation:zPop .3s}
+.zv-meter{display:flex;align-items:center;gap:6px;font-size:22px}.zv-track{flex:1;height:18px;border-radius:999px;background:linear-gradient(90deg,#dff6e8,#fff1d6,#ffd9e2);overflow:hidden;box-shadow:inset 0 0 0 2px #0001}.zv-track i{display:block;height:100%;border-radius:999px;transition:width .6s,background .6s}
+.zv-event{text-align:center;font-weight:900;color:#a2264f;margin-top:6px;min-height:20px}
+.zv-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}.zv-tools[hidden]{display:none}
+.zv-tool{border:0;border-radius:14px;padding:6px 2px;background:#e9f7ff;font-weight:900;font-size:12px;color:#234;display:flex;flex-direction:column;align-items:center;box-shadow:0 4px 0 #cde3f0;cursor:pointer}.zv-tool b{font-size:26px}.zv-tool.bad{background:#fff0f0;box-shadow:0 4px 0 #f3d0d0}
+.zv-act{text-align:center}.zv-hint{font-weight:900;color:#4a2338;margin:6px 0}
+.zv-balloon,.zv-teddy{border:0;background:none;font-size:70px;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;transition:transform 2.5s ease-out}
+.zv-balloon.in{transform:scale(1.7)}.zv-balloon.out{transform:scale(1);transition-duration:2.5s}.zv-teddy{transition:transform .3s}.zv-teddy.sq{transform:scale(.75,.6)}
+.zv-bubbles{position:relative;height:150px;margin-top:6px;border-radius:18px;background:#eef8ff}
+.zv-bub{position:absolute;width:52px;height:52px;border-radius:50%;border:0;background:radial-gradient(circle at 30% 30%,#fff,#9fd8ff);font-weight:900;font-size:22px;color:#235;box-shadow:0 3px 0 #7fb7da;cursor:pointer;transition:transform .25s,opacity .25s}.zv-bub.pop{transform:scale(1.5);opacity:0;pointer-events:none}
+.zz-bins{grid-template-columns:repeat(3,minmax(0,1fr))}.zz-bins small{font-size:10px;opacity:.8}.zz-bins[hidden],.sl-card[hidden]{display:none}
+.zg-score{display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:16px;color:#4a2338;margin-top:8px}.zg-score b{font-size:24px;color:#e2457a}
+.zg-hands{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}.zg-hands[hidden]{display:none}
+.zg-hand{border:0;border-radius:20px;padding:10px 0;font-size:44px;background:#fff;display:flex;flex-direction:column;align-items:center;box-shadow:0 5px 0 #e6d0dc,0 0 0 2px #e6d0dc;cursor:pointer}.zg-hand small{font-size:12px;font-weight:900;color:#6a4558}.zg-hand.ok{background:#fff3c4}
+.zg-ask{margin:0;font-weight:900;color:#4a2338;text-align:center}
+@media (prefers-reduced-motion:reduce){.zv-balloon,.zv-teddy,.zm-tag,.pop,.no,.z-end{animation:none!important;transition:none!important}}`;
+if(!document.getElementById('zoneCss')){const st=document.createElement('style');st.id='zoneCss';st.textContent=ZCSS;document.head.appendChild(st);}
+
+window.RikiSocial={state:()=>({boardPick,good:boardPick!==null?scenes[boardPick].good:null,pieces:talks[dialogueStep%talks.length].pieces,sortAnswer:sortCases[sortIndex%sortCases.length][1],sortIndex,planStep,zone:zSave,zCur})};
 selHub=newHub;
 })();
