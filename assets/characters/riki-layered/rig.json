@@ -94,8 +94,8 @@
       411
     ],
     "wristRight": [
-      786,
-      1004
+      760,
+      976
     ],
     "shoeLeft": [
       462,
@@ -112,8 +112,8 @@
     "earrings": "accessory-earrings.webp",
     "hairClips": "accessory-hair-clips.webp",
     "mintDress": "outfit-mint-dress-fitted-v2.webp",
-    "braceletBack": "accessory-bangle-fitted-v2-back.webp",
-    "braceletFront": "accessory-bangle-fitted-v2-front.webp"
+    "braceletBack": "accessory-bangle-forearm-v3-back.webp",
+    "braceletFront": "accessory-bangle-forearm-v3-front.webp"
   },
   "garmentZones": {
     "upperBody": [
