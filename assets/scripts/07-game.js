@@ -76,5 +76,158 @@ function playComic(c){
 function drawComic(){const c=comics[comicStep%comics.length],opts=[...c.panels].reverse();shell('🎬 Comic Story Director',`${stage(c.title)}<h2 class="sel-title">Make a 3-panel comic</h2><p style="text-align:center">Tap the story panels in the order they should happen.</p><div class="sel-comic">${comicOrder.map((v,i)=>`<button class="sel-tile" data-comic-undo="${i}"><strong>Panel ${i+1}</strong><p>${v}</p></button>`).join('')}${Array.from({length:3-comicOrder.length},(_,i)=>`<div class="sel-bin">Panel ${comicOrder.length+i+1}<small>Choose a scene</small></div>`).join('')}</div><h3>Story pieces</h3><div class="sel-tiles">${opts.filter(x=>!comicOrder.includes(x)).map((v,i)=>`<button class="sel-tile" data-comic-pick="${i}">${v}</button>`).join('')}</div><p class="sel-status" id="comicFeedback"></p><button class="sel-big-btn" id="comicCheck">Play my comic ▶</button>`);document.querySelectorAll('[data-comic-pick]').forEach(b=>b.onclick=()=>{comicOrder.push(opts.filter(x=>!comicOrder.includes(x))[Number(b.dataset.comicPick)]);drawComic()});document.querySelectorAll('[data-comic-undo]').forEach(b=>b.onclick=()=>{comicOrder.splice(Number(b.dataset.comicUndo),1);drawComic()});$id('comicCheck').onclick=()=>{if(JSON.stringify(comicOrder)===JSON.stringify(c.panels)){audio('good');playComic(c)}else{$id('comicFeedback').textContent='Try arranging what happened first, what you thought next, and what you said last.';audio('tap')}}}
 const plans=[{scene:'You planned to play outside, but it starts raining.',choices:[['Ask to make an indoor fort','fort'],['Ask to bake something','bake'],['Insist it must stop raining','stuck']]},{scene:'Your favorite seat is taken today.',choices:[['Pick a different cozy spot','seat'],['Ask if you can trade next time','trade'],['Shout at the person sitting there','stuck']]},{scene:'Your friend wants a different game.',choices:[['Take turns choosing games','turn'],['Invent a game together','invent'],['Refuse to play anything','stuck']]}];
 function drawPlan(){const p=plans[planStep%plans.length];shell('🛤️ Plan B Adventure',`${stage(p.scene)}<h2 class="sel-title">Choose your own Plan B</h2><p style="text-align:center">There can be more than one good solution. Pick what works for you.</p><div class="sel-tiles">${p.choices.map((c,i)=>`<button class="sel-tile" data-plan="${i}">${['🌈','✨','🌧️'][i]} ${c[0]}</button>`).join('')}</div>${planChoice!==null?`<div class="sel-stage"><h3>${p.choices[planChoice][1]==='stuck'?'💜 It is hard when plans change.':'🌟 That could work!'}</h3><p>${p.choices[planChoice][1]==='stuck'?'You can be upset and still find a choice that helps. Want to try a different path?':'You made a new plan without pretending you liked the surprise.'}</p><button class="sel-big-btn" id="planNext">${p.choices[planChoice][1]==='stuck'?'Try another idea':'Next surprise →'}</button></div>`:''}`);document.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>{planChoice=Number(b.dataset.plan);audio('tap');drawPlan()});if(planChoice!==null){const doneStep=planStep,good=p.choices[planChoice][1]!=='stuck',next=$id('planNext');next.onclick=()=>{if(planStep!==doneStep)return;if(good)planStep++;planChoice=null;drawPlan()};if(good)setTimeout(()=>{if(planStep===doneStep&&game==='sel'&&next.isConnected)next.click()},1600)}}
+/* ===== Live Social Skills (Claude, Oct 29) =====
+   Riki and a friend act every scene out: speech bubbles type and are read aloud, faces change,
+   and the friend reacts to what Riki chooses. A friendship meter fills as she plays. */
+const SL_CSS=`
+.sl-scene{position:relative;display:grid;grid-template-columns:1fr 1fr;align-items:end;gap:6px;padding:14px 10px 8px;border-radius:24px;background:linear-gradient(#e9f6ff,#fff1f6 70%,#f6e3d4 70%);border:3px solid #fff;box-shadow:0 12px 26px -14px #4a233866;min-height:230px;overflow:hidden}
+.sl-actor{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px}
+.sl-actor svg{width:min(118px,30vw);height:auto;filter:drop-shadow(0 6px 4px #4a233833);transition:transform .3s}
+.sl-actor .sl-name{font-size:12px;font-weight:900;color:#8a6577;background:#ffffffcc;border-radius:999px;padding:1px 10px}
+.sl-bubble{position:relative;min-height:46px;max-width:100%;background:#fff;border:2px solid #4a2338;border-radius:16px;padding:7px 10px;font-weight:800;font-size:14px;line-height:1.25;color:#4a2338;opacity:0;transform:scale(.8);transition:.25s}
+.sl-bubble.on{opacity:1;transform:none}
+.sl-bubble::after{content:"";position:absolute;bottom:-9px;left:50%;border:8px solid transparent;border-top-color:#4a2338;border-bottom:0;transform:translateX(-50%)}
+.sl-actor.talk svg{animation:slTalk .32s ease-in-out infinite alternate}
+.sl-actor.bounce svg{animation:slBounce .55s cubic-bezier(.3,1.6,.5,1) 2}
+.sl-actor.shake svg{animation:slShake .45s ease-in-out 2}
+@keyframes slTalk{to{transform:scale(1.04,.97) translateY(2px)}}
+@keyframes slBounce{40%{transform:translateY(-18px) scale(1.05)}}
+@keyframes slShake{25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+.sl-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.sl-fx span{position:absolute;font-size:26px;animation:slFloat 1.6s ease-out forwards}
+@keyframes slFloat{from{transform:translateY(0) scale(.6);opacity:1}to{transform:translateY(-150px) scale(1.2);opacity:0}}
+.sl-meter{display:flex;align-items:center;gap:8px;font-weight:900;color:#4a2338;font-size:13px;margin:8px 2px}
+.sl-meter .bar{flex:1;height:12px;border-radius:999px;background:#ffe3ea;overflow:hidden}
+.sl-meter .bar i{display:block;height:100%;background:linear-gradient(90deg,#ff8fb2,#e2457a);border-radius:999px;transition:width .6s}
+.sl-choices{display:grid;gap:10px;margin-top:10px}
+.sl-choice{text-align:left;border:0;border-radius:18px;padding:13px 14px;font-weight:900;font-size:15px;color:#2a1d2a;cursor:pointer;box-shadow:0 5px 0 #0002}
+.sl-choice.c0{background:#bfe4ff}.sl-choice.c1{background:#ffe1a8}.sl-choice.c2{background:#c9f0e2}.sl-choice.c3{background:#e6d8ff}
+.sl-choice:disabled{opacity:.45}
+.sl-choice:active{transform:translateY(3px)}
+.sl-note{margin:8px 0 0;background:#fff7d6;border-radius:14px;padding:9px 12px;font-weight:800;color:#5a3a20;font-size:14px}
+.sl-big{width:100%;margin-top:10px;border:0;border-radius:20px;padding:15px;font-family:"Baloo 2","Trebuchet MS",system-ui,sans-serif;font-weight:800;font-size:21px;color:#fff;background:linear-gradient(135deg,#e2457a,#ff7aa8);box-shadow:0 6px 0 #b92e5e;cursor:pointer}
+.sl-big[hidden]{display:none}
+.sl-sentence{min-height:44px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sl-piece{border:0;border-radius:999px;padding:9px 13px;font-weight:900;font-size:14px;color:#2a1d2a;background:#fff;box-shadow:0 3px 0 #f3d6dc,0 0 0 2px #f3d6dc;cursor:pointer}
+.sl-piece.used{background:#ffe3ea}
+.sl-piece:disabled{opacity:.35}
+.sl-bins{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:10px}
+.sl-bin{border:0;border-radius:16px;padding:8px 2px;background:#fff;box-shadow:0 4px 0 #f3d6dc,0 0 0 2px #f3d6dc;font-weight:900;font-size:11px;color:#4a2338;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.sl-bin b{font-size:24px}
+.sl-bin.hover,.sl-bin:focus-visible{box-shadow:0 4px 0 #7cc4f2,0 0 0 3px #7cc4f2}
+.sl-card{display:block;margin:10px auto 0;max-width:360px;border:0;border-radius:18px;padding:12px 14px;background:#fff;box-shadow:0 5px 0 #f3d6dc,0 0 0 2px #f3d6dc;font-weight:900;color:#4a2338;touch-action:none;cursor:grab}
+.sl-prop{position:absolute;left:50%;bottom:16px;transform:translateX(-50%) scale(0);font-size:54px;transition:transform .5s cubic-bezier(.3,1.6,.5,1)}
+.sl-prop.on{transform:translateX(-50%) scale(1)}
+.sl-board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px}
+.sl-board .h{font-size:11px;font-weight:900;text-align:center;color:#8a6577}
+.sl-board button{border:0;border-radius:12px;padding:12px 0;background:linear-gradient(#5b55c9,#3f3a9e);color:#ffd25e;font-family:"Baloo 2",system-ui,sans-serif;font-weight:800;font-size:18px;box-shadow:0 4px 0 #2a2670;cursor:pointer}
+.sl-board button:disabled{opacity:.3}
+.sl-score{display:flex;justify-content:space-between;font-weight:900;color:#4a2338;margin-top:8px;font-size:14px}
+@media (prefers-reduced-motion:reduce){.sl-actor svg,.sl-fx span{animation:none!important}}`;
+if(!document.getElementById('slCss')){const st=document.createElement('style');st.id='slCss';st.textContent=SL_CSS;document.head.appendChild(st);}
+
+/* faces: hair/dress colors + expression */
+const SL_PEOPLE={riki:{name:'Riki',hair:'#5b3a5e',skin:'#ffd8bd',dress:'#f58fb6'},friend:{name:'Maya',hair:'#2f2a33',skin:'#e8b48f',dress:'#7cc4f2'},friend2:{name:'Noa',hair:'#c9783f',skin:'#ffe0c8',dress:'#8ed6c4'}};
+function slFace(who,expr){const p=SL_PEOPLE[who]||SL_PEOPLE.friend;
+  const eyes={happy:'<path d="M70 92 q7-8 14 0 M106 92 q7-8 14 0" stroke="#3a2430" stroke-width="5" fill="none" stroke-linecap="round"/>',
+    excited:'<path d="M77 82 l3 8 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1z M113 82 l3 8 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1z" fill="#ffc21a"/>',
+    sad:'<circle cx="77" cy="92" r="6" fill="#3a2430"/><circle cx="113" cy="92" r="6" fill="#3a2430"/><path d="M66 84 l18 -6 M124 84 l-18 -6" stroke="#3a2430" stroke-width="4" stroke-linecap="round"/><path d="M118 100 q4 10 0 14 q-4-4 0-14z" fill="#7cc4f2"/>',
+    upset:'<circle cx="77" cy="93" r="6" fill="#3a2430"/><circle cx="113" cy="93" r="6" fill="#3a2430"/><path d="M66 78 l18 8 M124 78 l-18 8" stroke="#3a2430" stroke-width="5" stroke-linecap="round"/>',
+    surprised:'<circle cx="77" cy="90" r="8" fill="#fff" stroke="#3a2430" stroke-width="3"/><circle cx="113" cy="90" r="8" fill="#fff" stroke="#3a2430" stroke-width="3"/><circle cx="77" cy="91" r="4" fill="#3a2430"/><circle cx="113" cy="91" r="4" fill="#3a2430"/>',
+    nervous:'<circle cx="77" cy="92" r="6" fill="#3a2430"/><circle cx="113" cy="92" r="6" fill="#3a2430"/><path d="M132 74 q5 8 0 12 q-5-4 0-12z" fill="#9fd8ff"/>',
+    think:'<circle cx="81" cy="90" r="6" fill="#3a2430"/><circle cx="117" cy="90" r="6" fill="#3a2430"/><path d="M68 80 q9-5 18 0" stroke="#3a2430" stroke-width="4" fill="none" stroke-linecap="round"/>',
+    neutral:'<circle cx="77" cy="92" r="6" fill="#3a2430"/><circle cx="113" cy="92" r="6" fill="#3a2430"/><circle cx="79" cy="90" r="2" fill="#fff"/><circle cx="115" cy="90" r="2" fill="#fff"/>'};
+  const mouth={happy:'<path d="M80 112 q15 16 30 0" stroke="#3a2430" stroke-width="5" fill="#ff8fa8" stroke-linecap="round"/>',excited:'<path d="M76 108 q19 26 38 0z" fill="#c43a5e" stroke="#3a2430" stroke-width="4" stroke-linejoin="round"/>',
+    sad:'<path d="M82 120 q13-12 26 0" stroke="#3a2430" stroke-width="5" fill="none" stroke-linecap="round"/>',upset:'<path d="M82 118 h26" stroke="#3a2430" stroke-width="5" stroke-linecap="round"/>',
+    surprised:'<ellipse cx="95" cy="116" rx="8" ry="10" fill="#c43a5e" stroke="#3a2430" stroke-width="4"/>',nervous:'<path d="M80 116 q5-5 10 0 t10 0 t10 0" stroke="#3a2430" stroke-width="4" fill="none" stroke-linecap="round"/>',
+    think:'<path d="M88 116 q8 3 14-2" stroke="#3a2430" stroke-width="4" fill="none" stroke-linecap="round"/>',neutral:'<path d="M84 112 q11 9 22 0" stroke="#3a2430" stroke-width="5" fill="none" stroke-linecap="round"/>'};
+  const e=eyes[expr]?expr:'neutral';
+  return `<svg viewBox="0 0 190 210" aria-hidden="true"><ellipse cx="95" cy="202" rx="52" ry="7" fill="#4a2338" opacity=".15"/>
+   <path d="M52 200 q-2-46 43-50 q45 4 43 50z" fill="${p.dress}"/><circle cx="95" cy="168" r="6" fill="#fff" opacity=".8"/>
+   <path d="M40 95 q-6-68 55-70 q61 2 55 70 l-4 34 h-102z" fill="${p.hair}"/>
+   <ellipse cx="95" cy="100" rx="47" ry="50" fill="${p.skin}"/>
+   <path d="M48 86 q12-46 47-46 q35 0 47 46 q-26-24-47-24 q-21 0-47 24z" fill="${p.hair}"/>
+   <ellipse cx="64" cy="112" rx="9" ry="6" fill="#ff9fb8" opacity=".55"/><ellipse cx="126" cy="112" rx="9" ry="6" fill="#ff9fb8" opacity=".55"/>
+   ${eyes[e]}${mouth[e]}</svg>`;}
+function slSceneHTML(left='riki',right='friend',bg=''){return `<div class="sl-scene" id="slScene" style="${bg}"><div class="sl-fx" id="slFx"></div>
+  <div class="sl-actor" id="slA"><div class="sl-bubble" id="slBA"></div><span id="slFA">${slFace(left,'neutral')}</span><span class="sl-name">${SL_PEOPLE[left].name}</span></div>
+  <div class="sl-actor" id="slB"><div class="sl-bubble" id="slBB"></div><span id="slFB">${slFace(right,'neutral')}</span><span class="sl-name">${SL_PEOPLE[right].name}</span></div>
+  <div class="sl-prop" id="slProp"></div></div>`;}
+let slWho={A:'riki',B:'friend'},slTimers=[];
+const slWait=ms=>new Promise(r=>slTimers.push(setTimeout(r,ms)));
+function slStop(){slTimers.forEach(clearTimeout);slTimers=[];try{speechSynthesis.cancel();}catch(e){}}
+function slExpr(side,expr,anim){const f=$id('slF'+side),a=$id('sl'+side);if(!f||!a)return;f.innerHTML=slFace(slWho[side],expr);if(anim){a.classList.remove('bounce','shake');void a.offsetWidth;a.classList.add(anim);}}
+function slSpeak(text){try{if(typeof soundOn!=='undefined'&&!soundOn)return Promise.resolve();if(!('speechSynthesis' in window))return Promise.resolve();return new Promise(res=>{const u=new SpeechSynthesisUtterance(text.replace(/[“”"]/g,''));u.lang='en-US';u.rate=.98;u.onend=res;u.onerror=res;speechSynthesis.speak(u);setTimeout(res,Math.max(1600,text.length*70));});}catch(e){return Promise.resolve();}}
+async function slSay(side,text,expr='happy'){const b=$id('slB'+side),a=$id('sl'+side);if(!b)return;slExpr(side,expr);b.textContent='';b.classList.add('on');a.classList.add('talk');
+  const sp=slSpeak(text);const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce)b.textContent=text;else{for(let i=1;i<=text.length;i++){if(!b.isConnected)return;b.textContent=text.slice(0,i);await slWait(24);}}
+  await sp;a.classList.remove('talk');}
+function slHush(side){const b=$id('slB'+side);if(b)b.classList.remove('on');}
+function slFx(chars,n=8){const fx=$id('slFx');if(!fx||matchMedia('(prefers-reduced-motion: reduce)').matches)return;for(let i=0;i<n;i++){const s=document.createElement('span');s.textContent=chars[i%chars.length];s.style.left=(15+Math.random()*70)+'%';s.style.bottom=(10+Math.random()*30)+'%';s.style.animationDelay=(i*.08)+'s';fx.appendChild(s);setTimeout(()=>s.remove(),2000);}}
+function slProp(emoji){const p=$id('slProp');if(!p)return;p.textContent=emoji;p.classList.remove('on');void p.offsetWidth;if(emoji)p.classList.add('on');}
+let slHearts=0;const slMeterHTML=()=>`<div class="sl-meter">💗 Friendship<span class="bar"><i id="slMeter" style="width:${Math.min(100,slHearts*10)}%"></i></span><span id="slMeterN">${slHearts}</span></div>`;
+function slGain(n=1){slHearts+=n;const m=$id('slMeter'),t=$id('slMeterN');if(m)m.style.width=Math.min(100,slHearts*10)+'%';if(t)t.textContent=slHearts;if(slHearts%10===0){try{celebrate();award(5);}catch(e){}}}
+const slShell=(title,body)=>{slStop();shell(title,body);const back=$id('selBackNew');if(back){const o=back.onclick;back.onclick=()=>{slStop();o&&o();};}};
+
+/* ---------- Talk Show: live ---------- */
+const SL_TOPICS=['Friendship','Big Feelings','Plan B','Everyday Talk'];
+drawBoard=function(){
+  slWho={A:'riki',B:'friend'};
+  if(boardPick===null){slShell('🎤 Talk Show',`${slMeterHTML()}<div class="sl-board">${SL_TOPICS.map(t=>`<div class="h">${t}</div>`).join('')}${[100,200,300,400].map(p=>SL_TOPICS.map(t=>{const i=scenes.findIndex(s=>s.topic===t&&s.points===p);return `<button data-board="${i}" ${boardUsed.has(i)?'disabled':''}>${boardUsed.has(i)?'✓':p}</button>`;}).join('')).join('')}</div><div class="sl-score"><span>⭐ ${boardScore} points</span><span>${boardUsed.size}/16 played</span></div>`);
+    document.querySelectorAll('[data-board]').forEach(b=>b.onclick=()=>{boardPick=Number(b.dataset.board);audio('tap');drawBoard();});return;}
+  const q=scenes[boardPick];const opts=[q.good,...q.bad].sort(()=>Math.random()-.5);const pick=boardPick;let first=true;
+  const line=q.say.replace(/^Your friend says, /,'').replace(/^Someone says, /,'');
+  slShell(`🎤 ${q.topic} · ${q.points}`,`${slMeterHTML()}${slSceneHTML('riki','friend')}<div class="sl-choices" id="slCh" hidden>${opts.map((x,i)=>`<button class="sl-choice c${i}" data-i="${i}">${x}</button>`).join('')}</div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Back to the board →</button>`);
+  (async()=>{await slWait(250);await slSay('B',line.replace(/^“|”$/g,''),/hurt|no|can't|cancel|bump|lost|sad/i.test(line)?'sad':'neutral');if(boardPick!==pick)return;const ch=$id('slCh');if(ch){ch.hidden=false;if(window.RikiFit)RikiFit();}})();
+  document.querySelectorAll('#slCh .sl-choice').forEach(b=>b.onclick=async()=>{if(b.disabled)return;const said=opts[+b.dataset.i];document.querySelectorAll('#slCh .sl-choice').forEach(x=>x.disabled=true);slHush('B');
+    await slSay('A',said.replace(/^“|”$/g,''),said===q.good?'happy':'upset');if(boardPick!==pick)return;
+    if(said===q.good){slExpr('B','excited','bounce');slFx(['💖','✨','👏','🌟'],10);audio('good');await slSay('B',['Thanks! That helps.','Aw, thank you!','That feels so much better.','You’re a great friend!'][Math.floor(Math.random()*4)],'excited');
+      if(first)boardScore+=q.points;slGain(1);const n=$id('slNote');if(n){n.hidden=false;n.textContent='🌟 '+q.why;}const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();boardUsed.add(pick);boardPick=null;drawBoard();};nx.scrollIntoView({block:'nearest',behavior:'smooth'});}}
+    else{first=false;slExpr('B','sad','shake');slFx(['💧','🌧️'],5);audio('tap');await slSay('B','Oh… that hurts my feelings.','sad');const n=$id('slNote');if(n){n.hidden=false;n.textContent='💜 How would Maya feel? Try a kinder answer.';}
+      document.querySelectorAll('#slCh .sl-choice').forEach(x=>{if(x!==b)x.disabled=false;});slHush('A');slExpr('A','think');}});
+};
+
+/* ---------- Conversation Builder: live ---------- */
+drawTalk=function(){
+  slWho={A:'riki',B:'friend2'};const t=talks[dialogueStep%talks.length];const opts=[...t.pieces,...t.extras].sort(()=>Math.random()-.5);const step=dialogueStep;let built=[];
+  slShell('💬 Build the Conversation',`${slMeterHTML()}${slSceneHTML('riki','friend2')}<div class="sl-sentence" id="slSent"></div><div class="sl-sentence" id="slPieces">${opts.map((v,i)=>`<button class="sl-piece" data-i="${i}">${v}</button>`).join('')}</div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slSay" hidden>🗣️ Say it!</button><button class="sl-big" id="slNext" hidden>Next conversation →</button>`);
+  (async()=>{await slWait(250);await slSay('B',t.s.replace(/^Your friend asks if you want to play, but you are busy\./,'Wanna play with me?').replace(/^You disagree with your partner about a game\./,'Let’s play MY game!').replace(/^You forgot the instructions in class\./,'Okay class, start step three!').replace(/^You accidentally interrupted someone\./,'So then I went to the… hey!'),'neutral');})();
+  const redraw=()=>{const s=$id('slSent');s.innerHTML=built.length?built.map((v,i)=>`<button class="sl-piece used" data-u="${i}">${v} ↩</button>`).join(''):'<span style="opacity:.6;font-weight:800">Tap words to build what Riki says…</span>';
+    s.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{built.splice(+b.dataset.u,1);redraw();});document.querySelectorAll('#slPieces [data-i]').forEach(b=>b.disabled=built.includes(opts[+b.dataset.i]));$id('slSay').hidden=built.length<t.pieces.length;
+    const bad=built.find(x=>t.extras.includes(x));if(bad){slExpr('B','upset','shake');}else if(built.length)slExpr('B','think');};
+  document.querySelectorAll('#slPieces [data-i]').forEach(b=>b.onclick=()=>{built.push(opts[+b.dataset.i]);audio('tap');redraw();});redraw();
+  $id('slSay').onclick=async()=>{$id('slSay').hidden=true;slHush('B');await slSay('A',built.join(' '),'happy');if(dialogueStep!==step)return;
+    if(JSON.stringify(built)===JSON.stringify(t.pieces)){slExpr('B','excited','bounce');slFx(['💬','💖','✨'],9);audio('good');await slSay('B',['Sure, that works!','Okay, good idea!','Thanks for telling me!'][step%3],'excited');slGain(1);
+      const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();dialogueStep++;dialogueTokens=[];drawTalk();};}}
+    else{const rude=built.some(x=>t.extras.includes(x));slExpr('B',rude?'sad':'think','shake');audio('tap');await slSay('B',rude?'Hmm… that sounded a little unkind.':'Wait, I’m confused. Can you say it again?',rude?'sad':'think');
+      const n=$id('slNote');if(n){n.hidden=false;n.textContent=rude?'💜 Take out the unkind words and try again.':'💡 Start politely, explain, then ask.';}$id('slSay').hidden=false;slHush('A');}};
+};
+
+/* ---------- Feelings Sort: the friend acts out the feeling ---------- */
+const SL_FEEL={Disappointed:['sad','🌧️'],Excited:['excited','🤩'],Nervous:['nervous','🦋'],Happy:['happy','😊'],Frustrated:['upset','😤']};
+drawSort=function(){
+  slWho={A:'friend',B:'friend2'};const s=sortCases[sortIndex%sortCases.length];const idx=sortIndex;
+  slShell('🌦️ Feelings Detective',`${slMeterHTML()}${slSceneHTML('friend','friend2')}<button class="sl-card" id="slCard">🗂️ ${s[0]}</button><div class="sl-bins">${feelings.map(f=>`<button class="sl-bin" data-feeling="${f}"><b>${SL_FEEL[f][1]}</b>${f}</button>`).join('')}</div><p class="sl-note" id="slNote" hidden></p>`);
+  (async()=>{await slWait(200);await slSay('A',s[0].replace(/^You /,'I ').replace(/^Your /,'My ').replace(/^Someone /,'Someone ').replace(/ you /g,' me ').replace(/ your /g,' my '),'neutral');await slSay('B','How do you think Maya feels?','think');})();
+  const pick=async f=>{if(sortIndex!==idx)return;const [ex]=SL_FEEL[f];slExpr('A',ex,f===s[1]?'bounce':'shake');
+    if(f===s[1]){audio('good');slFx([SL_FEEL[f][1],'✨'],8);slHush('B');await slSay('A',`Yes! I feel ${f.toLowerCase()}.`,ex);await slSay('B','Thanks for noticing. That helps!','happy');sortCorrect++;slGain(1);if(sortIndex===idx){sortIndex++;drawSort();}}
+    else{audio('tap');const n=$id('slNote');if(n){n.hidden=false;n.textContent=`That could happen too! Look at Maya's story again. Which feeling fits best?`;}await slWait(900);slExpr('A','think');}};
+  document.querySelectorAll('[data-feeling]').forEach(b=>b.onclick=()=>pick(b.dataset.feeling));
+  dragTiles('#slCard',pick);
+};
+
+/* ---------- Plan B: the new plan plays out ---------- */
+const SL_PLAN={fort:['🏕️','Let’s build a blanket fort!','A fort! This is even better!'],bake:['🍪','Want to bake cookies?','Yum! Rainy-day cookies!'],seat:['🪑','I’ll try this cozy spot.','That spot looks comfy!'],trade:['🤝','Can I have it next time?','Sure, next time it’s yours!'],turn:['🎲','Let’s take turns picking.','Fair! You pick next!'],invent:['💡','Let’s make up a new game!','Ooh, a brand new game!'],stuck:['⛈️','No! It HAS to be my way!','Oh no… now nobody is having fun.']};
+drawPlan=function(){
+  slWho={A:'riki',B:'friend'};const p=plans[planStep%plans.length];const step=planStep;
+  slShell('🛤️ Plan B Adventure',`${slMeterHTML()}${slSceneHTML('riki','friend')}<div class="sl-choices" id="slCh" hidden>${p.choices.map((c,i)=>`<button class="sl-choice c${i}" data-i="${i}">${c[0]}</button>`).join('')}</div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Next surprise →</button>`);
+  (async()=>{await slWait(200);await slSay('B',p.scene.replace(/^You planned to play outside, but it starts raining\./,'Oh no, it’s raining! Our outside plan is ruined!').replace(/^Your favorite seat is taken today\./,'Somebody is sitting in your favorite seat!').replace(/^Your friend wants a different game\./,'I want to play a different game!'),'surprised');slExpr('A','sad');if(planStep!==step)return;$id('slCh').hidden=false;if(window.RikiFit)RikiFit();})();
+  document.querySelectorAll('#slCh .sl-choice').forEach(b=>b.onclick=async()=>{const c=p.choices[+b.dataset.i];const k=SL_PLAN[c[1]]||['✨',c[0],'That could work!'];document.querySelectorAll('#slCh .sl-choice').forEach(x=>x.disabled=true);slHush('B');
+    await slSay('A',k[1],c[1]==='stuck'?'upset':'happy');if(planStep!==step)return;
+    if(c[1]==='stuck'){slProp('⛈️');slExpr('B','sad','shake');audio('tap');await slSay('B',k[2],'sad');const n=$id('slNote');if(n){n.hidden=false;n.textContent='💜 It’s okay to be upset. Pick a plan that could still be fun.';}slProp('');document.querySelectorAll('#slCh .sl-choice').forEach(x=>{if(x!==b)x.disabled=false;});slHush('A');slExpr('A','think');}
+    else{slProp(k[0]);slExpr('B','excited','bounce');slFx([k[0],'✨','💖'],9);audio('good');await slSay('B',k[2],'excited');slExpr('A','excited','bounce');slGain(1);const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();planStep++;planChoice=null;drawPlan();};nx.scrollIntoView({block:'nearest',behavior:'smooth'});}}});
+};
+
+window.RikiSocial={state:()=>({boardPick,good:boardPick!==null?scenes[boardPick].good:null,pieces:talks[dialogueStep%talks.length].pieces,sortAnswer:sortCases[sortIndex%sortCases.length][1],sortIndex,planStep})};
 selHub=newHub;
 })();
