@@ -1507,6 +1507,153 @@ if(!document.getElementById('mpCss')){const st=document.createElement('style');s
 @keyframes mpFade{from{opacity:0}to{opacity:1}}`;document.head.appendChild(st);}
 if(!document.getElementById('cgCss')){const st=document.createElement('style');st.id='cgCss';st.textContent=CGCSS;document.head.appendChild(st);}
 
+/* ---------- Hands-on play (Claude, Oct 30): play the skill instead of picking an answer ---------- */
+let hoSel=null;
+function hoDrag(el,targets,onDrop){el.style.touchAction='none';
+ const hit=ev=>targets().find(x=>{const b=x.getBoundingClientRect();return ev.clientX>=b.left-8&&ev.clientX<=b.right+8&&ev.clientY>=b.top-8&&ev.clientY<=b.bottom+8;});
+ el.addEventListener('pointerdown',e=>{if(el.classList.contains('ho-used')||el.closest('.ho-lock'))return;e.preventDefault();const sx=e.clientX,sy=e.clientY;let moved=false;try{el.setPointerCapture(e.pointerId);}catch(_){}
+  const mv=ev=>{const dx=ev.clientX-sx,dy=ev.clientY-sy;if(!moved&&Math.hypot(dx,dy)<8)return;if(!moved){moved=true;el.classList.add('ho-dragging');targets().forEach(x=>x.classList.add('ho-target'));}el.style.transform=`translate(${dx}px,${dy}px) rotate(${Math.max(-6,Math.min(6,dx/30))}deg)`;const t=hit(ev);targets().forEach(x=>x.classList.toggle('ho-over',x===t));};
+  const up=ev=>{el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);targets().forEach(x=>x.classList.remove('ho-over','ho-target'));el.classList.remove('ho-dragging');
+   if(!moved){document.querySelectorAll('.ho-sel').forEach(x=>x.classList.remove('ho-sel'));if(hoSel&&hoSel.el===el){hoSel=null;return;}el.classList.add('ho-sel');hoSel={el,onDrop};targets().forEach(x=>x.classList.add('ho-target'));audio('tap');return;}
+   const t=ev.type==='pointerup'&&hit(ev);const from=el.style.transform;el.style.transform='';
+   if(t){hoSel=null;onDrop(t,el);}else{try{el.animate([{transform:from},{transform:'none'}],{duration:260,easing:'cubic-bezier(0.23,1,0.32,1)'});}catch(_){}}};
+  el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);});}
+function hoTapTarget(t){if(t.dataset.hoT)return;t.dataset.hoT=1;t.addEventListener('click',()=>{if(!hoSel||!hoSel.el.isConnected)return;const s=hoSel;hoSel=null;document.querySelectorAll('.ho-sel').forEach(x=>x.classList.remove('ho-sel'));document.querySelectorAll('.ho-target').forEach(x=>x.classList.remove('ho-target'));s.onDrop(t,s.el);});}
+const hoBox=ch=>{let box=ch.querySelector(':scope>.ho-box');if(!box){box=document.createElement('div');box.className='ho-box';ch.prepend(box);}ch.classList.add('ho-on');return box;};
+const hoBounce=el=>{try{el.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(7px)'},{transform:'translateX(-4px)'},{transform:'none'}],{duration:320,easing:'cubic-bezier(0.23,1,0.32,1)'});}catch(_){}};
+function hoHold(btn,ms,{onIn,onDone,label}){const bar=document.createElement('i');btn.appendChild(bar);let a=null,full=false;
+ const start=e=>{e.preventDefault();if(btn.disabled)return;full=false;btn.classList.add('ho-holding');onIn&&onIn();try{a=bar.animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:ms,easing:'linear',fill:'forwards'});a.onfinish=()=>{full=true;btn.classList.add('ho-full');label&&label('out');};}catch(_){setTimeout(()=>{full=true;},ms);}};
+ const end=()=>{if(!btn.classList.contains('ho-holding'))return;btn.classList.remove('ho-holding','ho-full');if(a)a.cancel();if(full)onDone();else label&&label('short');};
+ btn.style.touchAction='none';btn.addEventListener('pointerdown',start);btn.addEventListener('pointerup',end);btn.addEventListener('pointerleave',end);btn.addEventListener('pointercancel',end);}
+
+/* Act it out: drag the choice onto Riki and she does it */
+function hoAct(ch,btns,{ask='🎬 Drag what Riki should do onto Riki',isGood=null,skip=null,side='A'}={}){const box=hoBox(ch);const riki=$id('sl'+side);if(!riki)return;hoTapTarget(riki);const who=side==='A'?'Riki':(SL_PEOPLE[slWho.B]||{name:'them'}).name;
+ const list=btns.map((b,i)=>[b,i]).filter(([b])=>b!==skip);
+ box.innerHTML=`<p class="ho-ask">${ask}</p><small class="ho-tip">Drag a card up to ${who} (or tap a card, then tap ${who})</small><div class="ho-cards">${list.map(([b,i],k)=>`<div class="ho-card c${k%4}" data-h="${i}">${b.textContent}</div>`).join('')}</div>`;
+ const cards=[...box.querySelectorAll('.ho-card')];
+ const sync=()=>{const open=btns.some(b=>b.isConnected&&!b.disabled);cards.forEach(c=>{const b=btns[+c.dataset.h];const off=!b.isConnected||b.disabled;c.classList.toggle('ho-used',off);if(off&&open&&c.classList.contains('ho-went'))c.classList.add('ho-bad');});};
+ cards.forEach(c=>hoDrag(c,()=>[$id('sl'+side)].filter(Boolean),()=>{const b=btns[+c.dataset.h];if(!b||b.disabled)return;c.classList.add('ho-went');b.click();sync();}));
+ const ob=new MutationObserver(()=>{if(!box.isConnected){ob.disconnect();return;}sync();});btns.forEach(b=>ob.observe(b,{attributes:true,attributeFilter:['disabled']}));
+ if(isGood&&ch.querySelector('.z-hint')){const h=document.createElement('button');h.type='button';h.className='z-hint';h.textContent='💡 Hint';box.appendChild(h);h.onclick=()=>{const c=cards.find(c=>isGood(btns[+c.dataset.h]));if(c){c.classList.remove('z-glow');void c.offsetWidth;c.classList.add('z-glow');}h.disabled=true;sLog(false,true);};}
+ sync();}
+
+/* Story games pick a different way to play each time */
+const hoOptOf=(it,b)=>it.opts.find(o=>o[0]===b.textContent)||[b.textContent,0];
+const hoQuote=s=>{const m=/“([^”]{6,})”/.exec(s);return m?m[1]:null;};
+function hoMode(key,it){const g=it.opts.find(o=>o[1]);const list=['act','stop','sort'];if(g&&hoQuote(g[0])&&hoQuote(g[0]).split(' ').length>=4)list.push('say');if(/calmq|pause|no/.test(key))list.push('cool');zSave.ho=(zSave.ho||0)+1;zPut();return window.RikiHO&&RikiHO.force?RikiHO.force:list[zSave.ho%list.length];}
+function hoPlay(key,it,ch){const btns=[...ch.querySelectorAll('.sl-choice[data-i]')];if(!btns.length)return;const good=b=>!!hoOptOf(it,b)[1];const mode=hoMode(key,it);ch.dataset.mode=mode;window.RikiHO.last=mode;
+ const act=(skip,ask)=>hoAct(ch,btns,{isGood:good,skip,ask});
+ if(mode==='act')return act();
+ if(mode==='stop')return hoStop(ch,btns,good,act);
+ if(mode==='sort')return hoSort(ch,btns,good);
+ if(mode==='say')return hoSay(ch,btns,good,act);
+ if(mode==='cool')return hoCool(ch,()=>act(null,'😌 Calm now. Drag what Riki should do onto Riki'));}
+
+/* Stop the Oops: catch the impulsive choice before it happens, breathe, then choose */
+function hoStop(ch,btns,good,act){const bads=btns.filter(b=>!good(b));if(!bads.length)return act();const bad=bads[Math.floor(Math.random()*bads.length)];const box=hoBox(ch);const ms=easy(curUnit())?6500:4800;
+ box.innerHTML=`<p class="ho-ask">⚠️ Uh-oh! Riki is about to…</p><div class="ho-oops"><span>${bad.textContent}</span><i class="ho-fuse"><b id="hoFuse"></b></i></div><button type="button" class="ho-stop" id="hoStopB">🛑 STOP!</button>`;
+ const A=$id('slA');if(A)A.classList.add('ho-lean');slExpr('A','upset');let done=false,a=null;
+ try{a=$id('hoFuse').animate([{transform:'scaleX(1)'},{transform:'scaleX(0)'}],{duration:ms,easing:'linear',fill:'forwards'});}catch(_){}
+ const tm=setTimeout(()=>{if(done||!box.isConnected)return;done=true;if(A)A.classList.remove('ho-lean');box.innerHTML='<p class="ho-ask">😬 Too late! Watch what happens…</p>';bad.click();
+  const w=setInterval(()=>{if(!box.isConnected){clearInterval(w);return;}if(btns.some(b=>b!==bad&&!b.disabled)){clearInterval(w);act(bad,'Let’s try again. Drag a better choice onto Riki');}},250);},ms);slTimers.push(tm);
+ $id('hoStopB').onclick=async()=>{if(done)return;done=true;clearTimeout(tm);if(a)a.pause();if(A)A.classList.remove('ho-lean');audio('good');slFx(['🛑','✨','⭐'],8);
+  box.innerHTML=`<p class="ho-ask">🛑 You stopped! Now take one big breath.</p><button type="button" class="ho-hold" id="hoBr">🎈 Hold to breathe in</button>`;
+  slSay('A','Wait. Let me stop and think.','think');
+  const br=$id('hoBr');hoHold(br,1300,{label:s=>{br.firstChild.textContent=s==='out'?'😮‍💨 Let go to breathe out':'🎈 Keep holding… breathe in';},onDone:()=>{audio('good');slExpr('A','happy','bounce');act(bad,'Great thinking! Drag the BETTER choice onto Riki');}});};}
+
+/* Sort it: every choice goes in Helps or Makes it worse; then the best one plays out */
+function hoSort(ch,btns,good){const box=hoBox(ch);let missed=false;
+ box.innerHTML=`<p class="ho-ask">🧺 Sort the choices! Which ones help?</p><div class="ho-cards">${btns.map((b,i)=>`<div class="ho-card c${i%4}" data-h="${i}">${b.textContent}</div>`).join('')}</div><div class="ho-bins"><div class="ho-bin ok" data-b="1"><b>💚 Helps</b><div class="ho-in"></div></div><div class="ho-bin no" data-b="0"><b>💔 Makes it worse</b><div class="ho-in"></div></div></div>`;
+ const bins=[...box.querySelectorAll('.ho-bin')];bins.forEach(hoTapTarget);
+ box.querySelectorAll('.ho-card').forEach(c=>hoDrag(c,()=>bins,t=>{const b=btns[+c.dataset.h];const right=(t.dataset.b==='1')===good(b);
+  if(!right){if(!missed){missed=true;zMiss();}audio('tap');hoBounce(c);zNote('🤔 Think: how would the other kid feel if Riki did that?');return;}
+  audio('good');c.classList.add('ho-used');c.remove();const chip=document.createElement('span');chip.className='ho-chip';chip.textContent=b.textContent;t.querySelector('.ho-in').appendChild(chip);
+  if(!box.querySelector('.ho-cards .ho-card')){const n=$id('slNote');if(n)n.hidden=true;box.querySelector('.ho-ask').textContent='✨ Perfect sorting! Watch Riki do the best one…';const g=btns.find(good);setTimeout(()=>{if(g&&g.isConnected)g.click();},600);}}));}
+
+/* Say it: build the kind words in the right order */
+function hoSay(ch,btns,good,act){const g=btns.find(good);const q=g&&hoQuote(g.textContent);if(!q)return act();const box=hoBox(ch);
+ const w=q.split(' ');const n=w.length<=5?3:4;const per=Math.ceil(w.length/n);const parts=[];for(let i=0;i<w.length;i+=per)parts.push(w.slice(i,i+per).join(' '));
+ const bad=btns.find(b=>!good(b));const bq=bad&&(hoQuote(bad.textContent)||bad.textContent.replace(/^Say\s*/,'').replace(/\.$/,''));const extra=bq?bq.split(' ').slice(0,3).join(' '):'Whatever';
+ const pool=zShuf([...parts.map((p,i)=>[p,i]),[extra,-1]]);let built=[];
+ box.innerHTML=`<p class="ho-ask">🎤 Build what Riki says, in order</p><div class="ho-sent" id="hoSent"></div><div class="ho-pieces">${pool.map((p,k)=>`<button type="button" class="ho-piece" data-k="${k}">${p[0]}</button>`).join('')}</div><button type="button" class="sl-big ho-sayit" id="hoSayIt" hidden>🎤 Riki, say it!</button>`;
+ const draw=()=>{const s=$id('hoSent');if(!s)return;s.innerHTML=built.length?built.map((k,j)=>`<button type="button" class="ho-piece in" data-j="${j}">${pool[k][0]}</button>`).join(''):'<span class="ho-ph">Tap the word bubbles…</span>';
+  s.querySelectorAll('[data-j]').forEach(x=>x.onclick=()=>{built.splice(+x.dataset.j,1);draw();});box.querySelectorAll('.ho-pieces [data-k]').forEach(x=>x.disabled=built.includes(+x.dataset.k));$id('hoSayIt').hidden=built.length<parts.length;};
+ box.querySelectorAll('.ho-pieces [data-k]').forEach(x=>x.onclick=()=>{if(x.disabled)return;audio('tap');built.push(+x.dataset.k);draw();});
+ $id('hoSayIt').onclick=async()=>{const ok=built.length===parts.length&&built.every((k,j)=>pool[k][1]===j);
+  if(ok){box.classList.add('ho-lock');g.click();return;}
+  zMiss();audio('tap');const rude=built.some(k=>pool[k][1]===-1);slExpr('B',rude?'sad':'think','shake');await slSay('A',built.map(k=>pool[k][0]).join(' '),'neutral');if(!box.isConnected)return;await slSay('B',rude?'Hmm… that part didn’t sound kind.':'Huh? That sounded mixed up.',rude?'sad':'think');if(!box.isConnected)return;zNote(rude?'💜 Take out the part that isn’t kind.':'💡 Which words come first?');built=[];draw();};
+ draw();}
+
+/* Cool down first: hot feelings → three balloon breaths → then choose */
+function hoCool(ch,next){const box=hoBox(ch);let n=0;slExpr('A','upset','shake');
+ box.innerHTML=`<p class="ho-ask">🌡️ Riki’s feelings got HOT! Cool down before you choose.</p><div class="ho-thermo"><span>😤</span><div class="ho-tb"><i id="hoTi"></i></div><span>😌</span></div><button type="button" class="ho-hold" id="hoBr">🎈 Hold to breathe in</button><small class="ho-tip" id="hoBn">0 of 3 balloon breaths</small>`;
+ const br=$id('hoBr'),ti=$id('hoTi');ti.style.transform='scaleX(1)';
+ hoHold(br,1200,{label:s=>{br.firstChild.textContent=s==='out'?'😮‍💨 Let go to breathe out':'🎈 Keep holding… breathe in';},onDone:()=>{n++;audio('good');ti.style.transform=`scaleX(${1-n/3})`;ti.style.background=n>=2?'#58c98a':'#ffb347';$id('hoBn').textContent=`${n} of 3 balloon breaths`;br.firstChild.textContent='🎈 Hold to breathe in';
+  if(n===1)slExpr('A','neutral');if(n>=3){slExpr('A','happy','bounce');slFx(['🎈','💨','😌'],8);setTimeout(()=>{if(box.isConnected)next();},700);}}});}
+
+const hoSetPrior=drawSet;drawSet=function(key){hoSetPrior(key);const set=SL_SETS[key];const ch=$id('slCh');if(!set||!ch)return;const it=set.items[slSetStep[key]%set.items.length];
+ const go=()=>{if(ch.dataset.ho)return;ch.dataset.ho=1;try{hoPlay(key,it,ch);}catch(e){console.warn(e);ch.classList.remove('ho-on');}};
+ if(!ch.hidden)go();else{const ob=new MutationObserver(()=>{if(!ch.isConnected){ob.disconnect();return;}if(!ch.hidden){ob.disconnect();go();}});ob.observe(ch,{attributes:true,attributeFilter:['hidden']});}};
+window.RikiHO={force:null,last:null};
+
+/* Work It Out + Clue Detective “what should Riki do?”: act it out by dragging onto Riki */
+const hoWatchChoices=(ch,getGood)=>{if(!ch)return;const ob=new MutationObserver(()=>{if(!ch.isConnected){ob.disconnect();return;}const bs=[...ch.querySelectorAll(':scope>[data-i]')];if(!bs.length)return;const old=ch.querySelector(':scope>.ho-box');if(old){if(old.dataset.for===bs.map(b=>b.textContent).join('|'))return;old.remove();}const q=ch.querySelector(':scope>.zg-ask');const qt=q?q.textContent:'';const worry=/worried/.test(qt);hoAct(ch,bs,{isGood:getGood,side:worry?'B':'A',ask:qt?'🎬 '+qt+(worry?' Drag it onto '+((SL_PEOPLE[slWho.B]||{}).name||'them')+'.':''):undefined});const nb=ch.querySelector(':scope>.ho-box');if(nb)nb.dataset.for=bs.map(b=>b.textContent).join('|');});ob.observe(ch,{childList:true});};
+const hoCpsPrior=drawCps;drawCps=function(){hoCpsPrior();hoWatchChoices($id('slCh'));};
+
+/* Clue Detective: drag the magnifying glass to the friend's face and words to find the clues */
+const hoAccPrior=drawAccident;drawAccident=function(){hoAccPrior();const ch=$id('slCh'),cl=$id('accClues');if(!ch||!cl)return;let opened=false;
+ hoWatchChoices(ch,null);
+ const ob=new MutationObserver(()=>{if(opened||cl.hidden||!cl.querySelector('span'))return;opened=true;ob.disconnect();const sp=[...cl.querySelectorAll('span')];sp.forEach(s=>s.classList.add('ho-fog'));ch.classList.add('ho-wait');
+  const bub=$id('slBB');const said=(sp[1]&&sp[1].textContent.replace(/^Words:\s*/,'').replace(/[“”]/g,''))||'';if(bub&&!bub.classList.contains('on')){bub.textContent=said;bub.classList.add('on');}
+  const bar=document.createElement('div');bar.className='ho-mag';bar.innerHTML=`<span class="ho-glass" id="hoGlass">🔍</span><span id="hoMagT">Drag the magnifying glass to their <b>face</b> and their <b>words</b>!</span>`;cl.after(bar);
+  const found=new Set();const tgt=()=>[$id('slFB'),$id('slBB')].filter(Boolean);tgt().forEach(hoTapTarget);
+  hoDrag($id('hoGlass'),tgt,t=>{const i=t.id==='slFB'?0:1;if(found.has(i))return;found.add(i);audio('good');sp[i]&&sp[i].classList.remove('ho-fog');slFx(['🔍','✨'],5);t.classList.add('ho-found');
+   if(found.size>=2){bar.querySelector('#hoMagT').textContent='Clues found! Now decide 👇';$id('hoGlass').classList.add('ho-used');ch.classList.remove('ho-wait');if(window.RikiFit)RikiFit();}
+   else bar.querySelector('#hoMagT').innerHTML=i===0?'Nice! Now check their <b>words</b> 💬':'Nice! Now check their <b>face</b> 🙂';});});
+ ob.observe(cl,{attributes:true,childList:true,subtree:true});};
+
+/* Tone of Voice, Riki's turn: mix the voice until it sounds friendly */
+const hoTonePrior=drawTone;drawTone=function(){hoTonePrior();const ch=$id('slCh');if(!ch)return;const it=TN[tnI%TN.length];
+ const ob=new MutationObserver(()=>{if(!ch.isConnected){ob.disconnect();return;}const ask=ch.querySelector('.zg-ask');if(!ask||!/Riki’s turn/.test(ask.textContent)||ch.querySelector('.ho-mix'))return;ob.disconnect();hoMixer(ch,it.friendly);});ob.observe(ch,{childList:true});};
+function hoMixer(ch,text){ch.classList.add('ho-on');const box=hoBox(ch);let v=Math.random()<.5?.92:.08,s=Math.random()<.5?.9:.12,f=.12;
+ box.innerHTML=`<div class="ho-mix"><p class="ho-ask">🎚️ Riki’s turn! Mix her voice so it sounds <b>friendly</b>.</p>
+  <label>🤫 <input type="range" min="0" max="100" id="hoV"> 📢<small>How loud</small></label>
+  <label>🐢 <input type="range" min="0" max="100" id="hoS"> 🐇<small>How fast</small></label>
+  <label>😠 <input type="range" min="0" max="100" id="hoF"> 😊<small>Face</small></label>
+  <div class="ho-prev" id="hoPrev">“${text}”</div><button type="button" class="sl-big" id="hoGo">🎤 Riki, say it!</button></div>`;
+ const V=$id('hoV'),S=$id('hoS'),F=$id('hoF'),P=$id('hoPrev');V.value=v*100;S.value=s*100;F.value=f*100;
+ const paint=()=>{v=V.value/100;s=S.value/100;f=F.value/100;P.style.fontSize=(13+v*13)+'px';P.style.letterSpacing=((1-s)*3-.5)+'px';P.style.fontWeight=v>.75?900:700;P.textContent=v>.8?`“${text.toUpperCase()}”`:`“${text}”`;P.style.color=f<.4?'#b3264f':f<.6?'#6b4a5c':'#2f8a57';slExpr('A',f<.35?'upset':f<.6?'neutral':'happy');};
+ [V,S,F].forEach(x=>x.oninput=paint);paint();let busy=false;
+ $id('hoGo').onclick=async()=>{if(busy)return;busy=true;const B=$id('slBA');if(B){B.className='sl-bubble on'+(f<.4?' t-bossy':s<.25?' t-whiny':'');B.textContent=v>.8?text.toUpperCase():text;}
+  await speakTone(text,'riki',.8+f*.45,.65+s*.7);await slWait(Math.max(700,text.length*35));if(!ch.isConnected)return;
+  const tip=v>.75?['📢 Too loud. That sounds like yelling!','surprised']:v<.25?['🤫 Too quiet. Maya can’t hear Riki!','think']:s>.75?['🐇 Too fast. Slow down a little!','think']:s<.25?['🐢 Too slow and stretchy. That sounds whiny.','sad']:f<.6?['😠 A grumpy face makes it sound bossy. Add a smile!','sad']:null;
+  if(tip){zMiss();audio('tap');slExpr('B',tip[1],'shake');zNote(tip[0]);busy=false;return;}
+  slGain(1);audio('good');slExpr('B','excited','bounce');slFx(['😊','💖','🎤'],8);zNote('🌟 Medium voice, medium speed, friendly face. That’s a friendly tone!');await slSay('B','Sure! Thanks for asking so nicely!','excited');if(!ch.isConnected)return;tnI++;const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=drawTone;nx.scrollIntoView({block:'nearest',behavior:'smooth'});}};}
+Object.assign(ZRUN,{tone:drawTone,cps:drawCps,accident:drawAccident});
+window.RikiHO.mix=()=>({v:$id('hoV')&&$id('hoV').value,s:$id('hoS')&&$id('hoS').value,f:$id('hoF')&&$id('hoF').value});
+
+if(!document.getElementById('hoCss')){const st=document.createElement('style');st.id='hoCss';st.textContent=`
+.ho-on>.sl-choice,.ho-on>.z-hint,.ho-on>.zg-ask{display:none!important}.ho-wait{display:none!important}
+.ho-box{display:flex;flex-direction:column;gap:8px}.ho-ask{margin:2px 0 0;font-weight:900;color:#4a2338;font-size:16px;text-align:center}.ho-tip{display:block;text-align:center;font-weight:800;color:#8a6577;font-size:12px}
+.ho-cards{display:flex;flex-direction:column;gap:8px}.ho-card{position:relative;background:#fff;border-radius:18px;padding:12px 14px;font-weight:900;color:#4a2338;font-size:15px;box-shadow:0 4px 0 #f0bcd3,0 0 0 2px #ffd6e7;cursor:grab;user-select:none;-webkit-user-select:none;transition:transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1)),opacity .2s}
+.ho-card::before{content:'✋';margin-right:6px}.ho-card.c1{box-shadow:0 4px 0 #b9d8f5,0 0 0 2px #d8ecff}.ho-card.c2{box-shadow:0 4px 0 #f5d79a,0 0 0 2px #fff0c9}.ho-card.c3{box-shadow:0 4px 0 #b7e4c4,0 0 0 2px #dff6e6}
+.ho-card.ho-dragging{z-index:60;cursor:grabbing;transition:none;box-shadow:0 14px 28px rgba(160,60,110,.28),0 0 0 3px #ff7eb6}.ho-card.ho-sel{box-shadow:0 0 0 3px #ff7eb6,0 4px 0 #f0bcd3;transform:scale(1.02)}.ho-card.ho-used{opacity:.4;pointer-events:none}.ho-card.ho-bad{text-decoration:line-through;opacity:.35}.ho-card.ho-went:not(.ho-bad){opacity:1;box-shadow:0 0 0 3px #58c98a,0 4px 0 #9fdcb5}.ho-card.ho-went:not(.ho-bad)::before{content:'✅'}
+.ho-target{outline:3px dashed #ff7eb6;outline-offset:4px;border-radius:22px}.ho-over{outline-style:solid;transform:scale(1.06);transition:transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1))}
+.sl-actor.ho-lean{transform:translateX(18px) rotate(4deg);transition:transform 1.2s cubic-bezier(0.77,0,0.175,1)}
+.ho-oops{background:#fff3f6;border-radius:18px;padding:12px;font-weight:900;color:#b3264f;text-align:center;box-shadow:0 0 0 2px #ffc2d6}.ho-fuse{display:block;height:10px;border-radius:9px;background:#ffe0ea;margin-top:8px;overflow:hidden}.ho-fuse b{display:block;height:100%;background:linear-gradient(90deg,#ff5d8f,#ffb347);transform-origin:left}
+.ho-stop{border:0;border-radius:999px;padding:16px;font-size:22px;font-weight:900;color:#fff;background:#e2385f;box-shadow:0 6px 0 #a3203f;cursor:pointer}.ho-stop:active{transform:scale(.97) translateY(3px);box-shadow:0 3px 0 #a3203f}
+.ho-hold{position:relative;overflow:hidden;border:0;border-radius:999px;padding:16px;font-size:18px;font-weight:900;color:#4a2338;background:#e6f4ff;box-shadow:0 5px 0 #a9cdeb;cursor:pointer;user-select:none;-webkit-user-select:none}.ho-hold>i{position:absolute;inset:0;background:#8fd3ff;opacity:.55;transform:scaleX(0);transform-origin:left;pointer-events:none}.ho-hold.ho-holding{transform:scale(.98)}.ho-hold.ho-full{background:#c9f0d6}
+.ho-bins{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ho-bin{min-height:96px;border-radius:20px;padding:8px;background:#effaf2;border:3px dashed #8fd6a6;text-align:center;font-size:14px;color:#2f6b44}.ho-bin.no{background:#fff1f4;border-color:#f3a2b8;color:#a3203f}.ho-in{display:flex;flex-direction:column;gap:4px;margin-top:6px}.ho-chip{background:#fff;border-radius:12px;padding:5px 7px;font-size:11px;font-weight:800;color:#4a2338;animation:hoIn 260ms cubic-bezier(0.23,1,0.32,1)}
+.ho-sent{min-height:52px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;background:#fff;border-radius:18px;padding:8px;box-shadow:inset 0 0 0 2px #ffd6e7}.ho-ph{opacity:.55;font-weight:800}
+.ho-pieces{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.ho-piece{border:0;border-radius:999px;padding:10px 14px;font-weight:900;font-size:15px;color:#4a2338;background:#f3ecff;box-shadow:0 3px 0 #cbb8f2;cursor:pointer}.ho-piece.in{background:#ffe6f1;box-shadow:0 3px 0 #f0bcd3}.ho-piece:disabled{opacity:.3}
+.ho-thermo{display:flex;align-items:center;gap:8px;font-size:24px}.ho-tb{flex:1;height:16px;border-radius:9px;background:#eef2f5;overflow:hidden}.ho-tb i{display:block;height:100%;background:#ff6b6b;transform-origin:left;transition:transform 500ms cubic-bezier(0.23,1,0.32,1),background .4s}
+.ho-mag{display:flex;align-items:center;gap:10px;background:#fff8e6;border-radius:18px;padding:8px 12px;font-weight:800;color:#6b4a1f;margin:6px 0}.ho-glass{font-size:40px;cursor:grab;filter:drop-shadow(0 3px 2px rgba(0,0,0,.18));transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}.ho-glass.ho-sel{transform:scale(1.15)}.ho-glass.ho-used{opacity:.4;pointer-events:none}
+.ho-fog{filter:blur(5px);opacity:.6;transition:filter .3s,opacity .3s}.ho-found{animation:hoIn 300ms cubic-bezier(0.23,1,0.32,1)}
+.ho-mix{display:flex;flex-direction:column;gap:6px}.ho-mix label{display:grid;grid-template-columns:28px 1fr 28px;align-items:center;font-size:22px;gap:6px;background:#fff;border-radius:16px;padding:6px 10px}.ho-mix label small{grid-column:1/-1;text-align:center;font-size:11px;font-weight:900;color:#8a6577;margin-top:-4px}.ho-mix input[type=range]{width:100%;accent-color:#ff5d9e;height:28px}
+.ho-prev{text-align:center;background:#fff;border-radius:18px;padding:12px;font-weight:700;min-height:48px;transition:font-size 160ms cubic-bezier(0.23,1,0.32,1),color .2s,letter-spacing .2s}
+@keyframes hoIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.sl-actor.ho-lean{transform:none}.ho-card,.ho-glass,.ho-prev{transition:opacity .15s}}`;document.head.appendChild(st);}
+
 window.RikiSocial={state:()=>({boardPick,good:boardPick!==null?scenes[boardPick].good:null,pieces:talks[dialogueStep%talks.length].pieces,sortAnswer:sortCases[sortIndex%sortCases.length][1],sortIndex,planStep,zone:zSave,zCur})};
 selHub=newHub;
 })();
