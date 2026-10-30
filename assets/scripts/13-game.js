@@ -1,3 +1,4 @@
+/* Claim setup: Claw Machine gameplay, no reward popups. */
 
 /* Riki Studio Games: the make-something Shoresh games rebuilt in 3D.
    Every right answer puts the chosen piece onto the creation. Words come from the game's own list (W, ids()). */
