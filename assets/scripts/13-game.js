@@ -498,17 +498,21 @@ function addSpeakers(root){if(!canSpeak)return;(root||document).querySelectorAll
 let unlocked=false;document.addEventListener('pointerdown',()=>{if(unlocked||!canSpeak)return;unlocked=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}},true);
 document.addEventListener('click',e=>{const b=e.target.closest('.rk-say');if(!b)return;e.preventDefault();e.stopPropagation();say(b.dataset.say,b);},true);
 
-/* Android/browser Back should return to the arcade menu while playing.
-   Do not trap visitors on the home page or replace browser history. */
+/* Keep a single browser-history stop for arcade screens, but never trap users at home. */
 (function(){
- let armed=false,inside=false;
- const home=()=>{const a=document.getElementById('app');return !!(a&&a.querySelector('.hub-grid'));};
- const arm=()=>{if(home()){inside=false;return;}if(armed)return;try{history.pushState({rikiArcade:true},'','#arcade');armed=true;inside=true;}catch(_){}};
+ let armed=false;
+ const home=()=>{const a=document.getElementById('app');return !!(a&&a.querySelector('.hero h1'));};
+ const arm=()=>{
+  if(home())return;
+  if(armed)return;
+  try{history.pushState({rikiArcade:true},'',location.href);armed=true;}catch(_){}
+ };
  document.addEventListener('click',()=>setTimeout(arm,0),true);
- window.addEventListener('popstate',()=>{if(!armed)return;armed=false;if(!home()){
-  try{const h=window.RikiHub;if(typeof h==='function')h();else{const m=G('menu');if(typeof m==='function')m();}}catch(_){}
-  inside=false;
- }});
+ window.addEventListener('popstate',()=>{
+  if(!armed)return;
+  armed=false;
+  if(!home()){const m=G('menu');if(typeof m==='function')m();}
+ });
 })();
 /* ---- quiz celebrations ---- */
 function burstAt(el,n=26){if(!el||matchMedia('(prefers-reduced-motion: reduce)').matches)return;const r=el.getBoundingClientRect();const cols=['#ff71ad','#ffd45b','#5bd8bf','#8fc6e8','#c8a2ff'];
