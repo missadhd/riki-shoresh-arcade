@@ -1090,3 +1090,21 @@ const nav=document.querySelector('.top .stats');if(nav&&!document.getElementById
  function paint(){document.querySelectorAll('.gamecard').forEach(c=>{const id=c.dataset.game||c.dataset.creative||c.dataset.extra||c.dataset.special,el=c.querySelector('.emoji');if(!id||!el||el.dataset.softToy)return;el.dataset.softToy='1';el.classList.add('game-card-art');el.innerHTML='<img class="game-art-marker" alt="" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=">'+icon(id);});document.querySelectorAll('.learning-rocket').forEach(el=>{if(el.dataset.softToy)return;el.dataset.softToy='1';el.innerHTML=icon('sort');});}
  window.RikiGameArt={icon};const app=document.getElementById('app');if(app)new MutationObserver(paint).observe(app,{childList:true,subtree:true});paint();
 })();
+
+/* Word Wheel: drag the wheel to spin it (Claude, Oct 30). A drag ends by itself after about 3/4 turn or 1.5 seconds, then the wheel spins on its own. */
+(function(){
+const G=n=>{try{return (0,eval)(n)}catch(e){return undefined}};
+const MAXDEG=270,MAXMS=1500;
+function hook(){const disc=document.getElementById('wordWheel'),btn=document.getElementById('spinButton');if(!disc||!btn||btn.disabled||disc.dataset.drag)return;disc.dataset.drag='1';disc.style.touchAction='none';disc.style.cursor='grab';
+ if(!document.getElementById('wheelDragTip')){const tip=document.createElement('p');tip.id='wheelDragTip';tip.className='subtle';tip.style.cssText='font-weight:900;margin:8px 0 0';tip.textContent='👆 Or grab the wheel and give it a big swipe!';btn.after(tip);}
+ disc.addEventListener('pointerdown',e=>{const s=G('session');if(!s||s.wheelPhase!=='ready'||btn.disabled)return;e.preventDefault();try{disc.setPointerCapture(e.pointerId);}catch(_){}
+  const r=disc.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let last=Math.atan2(e.clientY-cy,e.clientX-cx),total=0,rot=s.wheelRotation||0,t0=Date.now(),done=false;const start=rot;disc.style.transition='none';disc.style.cursor='grabbing';
+  const move=ev=>{if(done)return;const a=Math.atan2(ev.clientY-cy,ev.clientX-cx);let d=a-last;if(d>Math.PI)d-=2*Math.PI;if(d<-Math.PI)d+=2*Math.PI;last=a;const deg=d*180/Math.PI;total+=Math.abs(deg);rot+=deg;disc.style.transform=`rotate(${rot}deg)`;if(total>=MAXDEG||Date.now()-t0>=MAXMS)release();};
+  const timer=setTimeout(()=>release(),MAXMS);
+  const release=()=>{if(done)return;done=true;clearTimeout(timer);disc.removeEventListener('pointermove',move);disc.removeEventListener('pointerup',release);disc.removeEventListener('pointercancel',release);disc.style.cursor='grab';
+   if(total<25){disc.style.transition='transform .3s';disc.style.transform=`rotate(${start}deg)`;return;}
+   s.wheelRotation=rot;btn.click();};
+  disc.addEventListener('pointermove',move);disc.addEventListener('pointerup',release);disc.addEventListener('pointercancel',release);});}
+const app=document.getElementById('app');if(app)new MutationObserver(()=>{try{hook();}catch(e){}}).observe(app,{childList:true,subtree:true});
+window.RikiWheelDrag={MAXDEG,MAXMS};
+})();
