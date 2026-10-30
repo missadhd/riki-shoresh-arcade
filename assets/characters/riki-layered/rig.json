@@ -1,46 +1,33 @@
 {
-  "version": 2,
+  "version": 3,
   "canvas": [
     1086,
     1448
   ],
   "master": "master.png",
   "zOrder": [
-    "hair-back",
-    "legs-shoes",
-    "torso",
-    "arm-left",
-    "arm-right",
-    "outfit",
-    "head-base",
-    "eye-left",
-    "eye-right",
+    "bracelet-back",
+    "neutral-base",
+    "eyes",
+    "blink",
     "mouth",
-    "hand-left",
-    "hand-right",
-    "accessories"
+    "outfit",
+    "headband",
+    "earrings",
+    "hair-clips",
+    "shoes",
+    "bracelet-front",
+    "wave-pose"
   ],
   "parts": {
-    "hair-back": "hair-back.webp",
-    "torso": "torso.webp",
-    "arm-left": "arm-left.webp",
-    "arm-right": "arm-right-clean-v2.webp",
-    "hand-left": "hand-left.webp",
-    "hand-right": "hand-right-clean-v2.webp",
-    "headBase": "head-base.webp",
-    "eyeLeft": "eye-left.webp",
-    "eyeRight": "eye-right.webp",
+    "neutralBase": "neutral-base-clean-v3.png",
+    "eyeLeft": "eye-left-tight.png",
+    "eyeRight": "eye-right-tight.png",
     "blink": "eyes-blink.webp",
-    "mouthClosed": "mouth-closed.webp",
-    "mouthSmall": "mouth-small.webp",
-    "mouthWide": "mouth-wide.webp",
-    "mouthO": "mouth-o.webp",
-    "legLeft": "leg-left.webp",
-    "legRight": "leg-right.webp",
-    "hipCover": "hip-cover.webp",
-    "neckShoulderCover": "neck-shoulder-cover.webp",
-    "rightArmUnderlay": "right-arm-underlay-blended-v2.webp",
-    "hairSeamCover": "hair-seam-cover.webp"
+    "mouthClosed": "mouth-closed-tight.png",
+    "mouthSmall": "mouth-small-fitted.png",
+    "mouthWide": "mouth-wide-fitted.png",
+    "mouthO": "mouth-o-fitted.png"
   },
   "anchors": {
     "hat": [
@@ -48,12 +35,12 @@
       176
     ],
     "earLeft": [
-      331,
-      576
+      338,
+      592
     ],
     "earRight": [
-      793,
-      576
+      789,
+      603
     ],
     "shoulderLeft": [
       422,
@@ -102,13 +89,36 @@
     "shoeRight": [
       608,
       1292
+    ],
+    "wristRight": [
+      784,
+      1015
+    ],
+    "waveWristRight": [
+      836,
+      740
     ]
   },
   "wearables": {
     "dress": "outfit-pink-dress-fitted-v3.webp",
-    "earrings": "accessory-earrings-drop-v6.webp",
+    "earrings": {
+      "left": "accessory-earring-left-v11.png",
+      "right": "accessory-earring-right-v11.png"
+    },
     "hairClips": "accessory-hair-clips.webp",
-    "mintDress": "outfit-mint-dress-fitted-v2.webp"
+    "mintDress": "outfit-mint-dress-fitted-v2.webp",
+    "headbandOn": "accessory-headband-pink-clean.png",
+    "headbandOff": null,
+    "shoes": {
+      "white": "base leg layers",
+      "pink": "accessory-shoes-pink.png",
+      "mint": "accessory-shoes-mint.png"
+    },
+    "bracelet": {
+      "neutralBack": "accessory-bracelet-neutral-back-v2.png",
+      "neutralFront": "accessory-bracelet-neutral-front-v2.png",
+      "wave": "accessory-bracelet-wave-fitted-v2.png"
+    }
   },
   "garmentZones": {
     "upperBody": [
@@ -121,11 +131,15 @@
   },
   "animations": {
     "walk": {
-      "durationMs": 1400,
+      "durationMs": 1600,
       "parts": [
-        "wholeRig"
+        "walk-body",
+        "walk-hip-overlay",
+        "left-leg",
+        "right-leg"
       ],
-      "note": "Whole-rig stepping prevents source-layer seams."
+      "steps": 4,
+      "note": "Four alternating foot lifts and body rise-and-fall; legs remain separated with no sideways glide."
     },
     "jump": {
       "durationMs": 850,
@@ -144,5 +158,29 @@
     "basics": "wave-pose-basics-v1.webp",
     "pink": "wave-pose-pink-v1.webp",
     "mint": "wave-pose-mint-v1.webp"
+  },
+  "rendering": {
+    "neutralPose": "Flattened seamless body and hair base with a clean rebuilt lower jaw; the previous gray chin crescent is removed.",
+    "facialFeatures": "Eyes and four mouth states remain independent, while the clean nose and cheek pixels stay in the neutral base without a blurred skin disc.",
+    "accessories": "Independent left/right earrings follow the asymmetric earlobes. Skin-clipped cuffs cross each wrist perpendicular to the arm and use a real rear layer in the neutral pose."
+  },
+  "walkRig": {
+    "body": "walk-body.png",
+    "hipOverlay": "walk-hip-overlay.png",
+    "leftLeg": "walk-leg-left.png",
+    "rightLeg": "walk-leg-right.png",
+    "shoeLayers": {
+      "pink": [
+        "walk-shoe-left-pink.png",
+        "walk-shoe-right-pink.png"
+      ],
+      "mint": [
+        "walk-shoe-left-mint.png",
+        "walk-shoe-right-mint.png"
+      ]
+    },
+    "durationMs": 1600,
+    "steps": 4,
+    "note": "Alternating vertical foot lifts with slight outward angles prevent the legs from crossing; feathered hip overlay hides the joint."
   }
 }
