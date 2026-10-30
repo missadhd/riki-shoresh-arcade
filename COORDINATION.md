@@ -4,7 +4,7 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
-|---|---|---|---|
+|---|---|---|---|\n| ChatGPT | `chatgpt/center-unique-game-icons` | `assets/scripts/13-game.js`, `assets/styles/16-styles.css`, `assets/images/dolls/game-icons-18.webp`, `index.html` | Centered unique game-card icons |
 
 ## Map of the code
 
