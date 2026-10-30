@@ -6,8 +6,6 @@ Add a row when you open your draft PR and remove it in the same PR when you fini
 | Who | Branch | Files | Status |
 |---|---|---|
 
-| ChatGPT | chatgpt/doll-wardrobe | assets/scripts/12-game.js, assets/scripts/13-game.js, assets/styles/16-styles.css, assets/images/dolls/soft-toy-dolls.webp, assets/images/dolls/dress-collection.webp, index.html, COORDINATION.md | Final 3D artwork, clothing and wardrobe verification |
-
 ## Map of the code
 
 - `assets/scripts/01-game.js` — core: word list `W`, menu, quiz games, header, Social Skills, old 2D "Play inside" house
