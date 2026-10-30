@@ -46,12 +46,12 @@
       176
     ],
     "earLeft": [
-      319,
-      587
+      323,
+      585
     ],
     "earRight": [
-      805,
-      587
+      801,
+      585
     ],
     "shoulderLeft": [
       422,
@@ -105,7 +105,7 @@
   "wearables": {
     "dress": "outfit-pink-dress-fitted-v3.webp",
     "shoes": "shoes-pink.webp",
-    "earrings": "accessory-earrings.webp",
+    "earrings": "accessory-earrings-fitted-v2.webp",
     "hairClips": "accessory-hair-clips.webp",
     "mintDress": "outfit-mint-dress-fitted-v2.webp"
   },
@@ -136,9 +136,10 @@
     "wave": {
       "durationMs": 650,
       "parts": [
-        "arm-right",
-        "hand-right"
-      ]
+        "wholeRig"
+      ],
+      "name": "hello",
+      "note": "Whole-rig greeting prevents source-layer seams."
     }
   }
 }
