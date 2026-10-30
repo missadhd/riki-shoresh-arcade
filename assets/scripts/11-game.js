@@ -312,6 +312,9 @@ function hitFloor(pt){ED.ray.setFromCamera(ndc(pt),ED.cam);const v=new THREE.Vec
 function edSelect(id,quiet){
   ED.sel=id;const g=ED.items.find(x=>x.userData.id===id);ED.ring.visible=!!g&&!g.userData.onWall;
   SET(`selectedItem=${JSON.stringify(id||'')};`);
+  const status=document.getElementById('rk3SelectedStatus');
+  if(status){const it=(G('ITEMS')||[]).find(t=>t[0]===id);status.textContent=id?'✨ Selected: '+(it?it[2]:'furniture')+' — drag to move, or tap the floor to place':'✨ Tap furniture to select it, or choose an owned item below';}
+  const clear=document.getElementById('rk3ClearSelection');if(clear)clear.hidden=!id;
   if(!quiet&&g){const it=(G('ITEMS')||[]).find(t=>t[0]===id);const isSt=G('isStorage');const store=typeof isSt==='function'&&isSt(id);
     msg('Selected '+(it?it[2]:'furniture')+'. Drag it to move it'+(store?', or tap Open selected storage.':', or tap Remove to put it away.'));}
 }
@@ -365,10 +368,12 @@ if(typeof prevHtml==='function'&&typeof prevBind==='function'){
     h=h.replace(/<div class="dream-room dream3d" id="dreamRoom">\s*<canvas[^>]*><\/canvas>/,`<div class="rk3-room ${room}" id="dreamRoom"><div class="rk3-load">Building your room…</div>`);
     h=h.replace(/<div class="riki3d-hud">[\s\S]*?<\/div>/,`<div class="riki3d-hud"><span>🏡 ${NICE[room]||'Dream room'}</span><span>Drag to look around</span></div>`);
     h=h.replace(/<p class="riki3d-legend">[\s\S]*?<\/p>/,'<p class="riki3d-legend">Tap something you bought below, then tap the floor to place it. Drag furniture to move it. Drag the empty room to look around.</p>');
+    h=h.replace(/<p class="riki3d-legend">[\s\S]*?<\/p>/,`<p class="riki3d-legend">Tap an owned item below, then tap the floor to place it. Tap furniture to select it and drag to move. Drag empty space to look around.</p><div class="rk3-selection-tools" style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0"><strong id="rk3SelectedStatus" role="status" aria-live="polite">✨ Tap furniture to select it, or choose an owned item below</strong><button type="button" class="smallbtn" id="rk3ClearSelection" hidden>✕ Deselect</button></div>`);
     return h;};
   const newBind=function(){prevBind.apply(this,arguments);const box=document.getElementById('dreamRoom');if(!box||!box.classList.contains('rk3-room'))return;
     box.onclick=null;
     const $=id=>document.getElementById(id);
+    if($('rk3ClearSelection'))$('rk3ClearSelection').onclick=()=>{edSelect(null,true);msg('Selection cleared. Choose an item below to decorate.');};
     if($('orbitLeft'))$('orbitLeft').onclick=()=>{ED.azT=cl(ED.azT-.3,-.9,.9);};
     if($('orbitRight'))$('orbitRight').onclick=()=>{ED.azT=cl(ED.azT+.3,-.9,.9);};
     if($('orbitReset'))$('orbitReset').onclick=()=>{ED.azT=0;ED.elT=.5;ED.zoom=1;};
