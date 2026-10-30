@@ -47,3 +47,37 @@
 #app .match-btn.picked{border-color:#7cc4f2!important;box-shadow:0 5px 0 #7cc4f2!important;background:#eef8ff!important}
 #app .match-btn.solved{border-color:#5cc6a8!important;box-shadow:0 5px 0 #5cc6a8!important;background:#e9fbf3!important;opacity:.85}
 @media (prefers-reduced-motion:reduce){#app .bubble,#app .option.correct,#app .option.wrong{animation:none!important}}
+
+/* Fixes (Claude, Oct 29) */
+/* Header: brand on top, one swipeable row of buttons, matches the sparkle theme */
+.top{min-width:0;max-width:100%;background:#fff1e8f2!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 6px 18px -12px #4a233855!important;border:0!important;border-radius:0 0 22px 22px!important;padding:10px 12px!important;flex-direction:column;align-items:stretch!important;gap:8px!important}
+.top .brand{font-size:clamp(18px,5vw,26px)!important;letter-spacing:-.02em!important;color:#4a2338!important}
+.top .brand span{color:#e2457a!important}
+.top .stats{min-width:0;max-width:100%;width:100%;flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;gap:6px!important;padding-bottom:2px}
+.top .stats::-webkit-scrollbar{display:none}
+.top .stats>*{flex:none}
+.top .smallbtn,.top .pill{padding:7px 11px!important;font-size:13px!important;border-radius:999px!important;background:#fff!important;border:2px solid #f3d6dc!important;color:#4a2338!important;box-shadow:none!important}
+.top .sound-settings{flex:none;display:flex;gap:6px}
+.top .sound-settings[hidden]{display:none!important}
+/* Game list: two columns, grouped, compact cards */
+.games{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+.games .games-group{grid-column:1/-1;margin:10px 2px 0;font-family:"Baloo 2","Trebuchet MS",system-ui,sans-serif;font-size:1.2rem;color:#4a2338}
+.games .gamecard{min-height:0!important;padding:10px 10px 12px!important;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left}
+.games .gamecard .emoji{font-size:34px;line-height:1}
+.games .gamecard .emoji.emoji-3d{width:100%;aspect-ratio:1.25;max-width:100%;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#fff,#ffeef4);border-radius:16px;margin-bottom:2px}
+.games .gamecard .emoji.emoji-3d img{width:88%;height:100%;object-fit:contain}
+.games .gamecard strong{font-size:15px!important;line-height:1.15}
+.games .gamecard p{display:none}
+.games .gamecard .tag{font-size:11px!important}
+@media (min-width:700px){.games{grid-template-columns:repeat(3,minmax(0,1fr))!important}.games .gamecard p{display:block;font-size:13px}}
+/* Game screens: drop the repeated "music / level" line (coins are in the header) */
+[data-live-coins-summary]{display:none!important}
+/* Game Show and other English answer cards: readable size that fits */
+#app .option:not(.he){font-family:"Nunito","Segoe UI",system-ui,sans-serif!important;font-size:clamp(17px,4.8vw,22px)!important;line-height:1.2!important;padding:10px!important;overflow-wrap:anywhere;hyphens:auto}
+/* Word wheel: labels stay upright while the wheel turns */
+.wheel-label{transition:transform 3.5s cubic-bezier(.12,.75,.12,1);white-space:nowrap}
+/* Adventure worlds: show the badge you're working toward instead of a padlock */
+.quest-island.locked{opacity:.55!important;filter:grayscale(.5)}
+/* Decorate screen: fewer buttons. Dragging the room turns it; Shop is already in the top tabs */
+#orbitLeft,#orbitRight,#dreamShop,#playHouse{display:none!important}
+.top .stats #gamesShortcut{background:#e2457a!important;color:#fff!important;border-color:#e2457a!important;box-shadow:none!important}
