@@ -39,7 +39,7 @@
     "legRight": "leg-right.webp",
     "hipCover": "hip-cover.webp",
     "neckShoulderCover": "neck-shoulder-cover.webp",
-    "rightArmUnderlay": "right-arm-underlay.webp",
+    "rightArmUnderlay": "right-arm-underlay-blended-v2.webp",
     "hairSeamCover": "hair-seam-cover.webp"
   },
   "anchors": {
@@ -49,11 +49,11 @@
     ],
     "earLeft": [
       331,
-      580
+      576
     ],
     "earRight": [
       793,
-      580
+      576
     ],
     "shoulderLeft": [
       422,
@@ -106,7 +106,7 @@
   },
   "wearables": {
     "dress": "outfit-pink-dress-fitted-v3.webp",
-    "earrings": "accessory-earrings-drop-v5.webp",
+    "earrings": "accessory-earrings-drop-v6.webp",
     "hairClips": "accessory-hair-clips.webp",
     "mintDress": "outfit-mint-dress-fitted-v2.webp"
   },
