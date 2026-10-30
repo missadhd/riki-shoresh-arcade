@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "canvas": [
     1086,
     1448
@@ -20,7 +20,7 @@
     "wave-pose"
   ],
   "parts": {
-    "neutralBase": "neutral-base-clean-v2.png",
+    "neutralBase": "neutral-base-clean-v3.png",
     "eyeLeft": "eye-left-tight.png",
     "eyeRight": "eye-right-tight.png",
     "blink": "eyes-blink.webp",
@@ -36,11 +36,11 @@
     ],
     "earLeft": [
       338,
-      582
+      592
     ],
     "earRight": [
-      788,
-      582
+      789,
+      603
     ],
     "shoulderLeft": [
       422,
@@ -91,17 +91,20 @@
       1292
     ],
     "wristRight": [
-      780,
-      1000
+      784,
+      1015
     ],
     "waveWristRight": [
-      844,
-      706
+      836,
+      740
     ]
   },
   "wearables": {
     "dress": "outfit-pink-dress-fitted-v3.webp",
-    "earrings": "accessory-earrings-drop-v10.png",
+    "earrings": {
+      "left": "accessory-earring-left-v11.png",
+      "right": "accessory-earring-right-v11.png"
+    },
     "hairClips": "accessory-hair-clips.webp",
     "mintDress": "outfit-mint-dress-fitted-v2.webp",
     "headbandOn": "accessory-headband-pink-clean.png",
@@ -112,9 +115,9 @@
       "mint": "accessory-shoes-mint.png"
     },
     "bracelet": {
-      "neutralBack": "accessory-bracelet-neutral-back.png",
-      "neutralFront": "accessory-bracelet-neutral-front.png",
-      "wave": "accessory-bracelet-wave-fitted.png"
+      "neutralBack": "accessory-bracelet-neutral-back-v2.png",
+      "neutralFront": "accessory-bracelet-neutral-front-v2.png",
+      "wave": "accessory-bracelet-wave-fitted-v2.png"
     }
   },
   "garmentZones": {
@@ -157,9 +160,9 @@
     "mint": "wave-pose-mint-v1.webp"
   },
   "rendering": {
-    "neutralPose": "Flattened seamless body and hair base with a clean, feathered master-face patch; no central face haze or rectangular seams.",
+    "neutralPose": "Flattened seamless body and hair base with a clean rebuilt lower jaw; the previous gray chin crescent is removed.",
     "facialFeatures": "Eyes and four mouth states remain independent, while the clean nose and cheek pixels stay in the neutral base without a blurred skin disc.",
-    "accessories": "Headband, fitted lower-lobe earrings, shoes, and two-sided bracelet remain togglable overlays."
+    "accessories": "Independent left/right earrings follow the asymmetric earlobes. Skin-clipped cuffs cross each wrist perpendicular to the arm and use a real rear layer in the neutral pose."
   },
   "walkRig": {
     "body": "walk-body.png",
