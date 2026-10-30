@@ -140,7 +140,20 @@ const B={
  unicorn(g){B.teddy(g,'#fbf6ff');const h=CO(g,.045,.26,metalM('#f2c94c'),0,.93,.1);h.rotation.x=.45;['#f7a0bd','#c8a2ff','#7fd1c0'].forEach((c,i)=>SP(g,.06,fabric(c),0,.84-i*.08,-.14+i*.02));},
  piano(g){const p=gloss('#e2457a');RB(g,1.3,.6,.52,.03,p,0,.62,0);RB(g,1.3,.12,.3,.02,p,0,.98,-.11);BX(g,1.16,.05,.22,gloss('#fffdf7'),0,.94,.17);for(let i=0;i<8;i++)BX(g,.05,.04,.12,gloss('#1e1418'),-.5+i*.14,.975,.13);
   [[-.58],[.58]].forEach(([x])=>RB(g,.08,.34,.42,.02,p,x,.17,0));RB(g,.7,.06,.32,.03,fabric('#fff1dc'),0,.46,.55);legs4(g,.66,.28,.42,wood('#8a5a35'),.04,.02);g.children.slice(-4).forEach(o=>o.position.z+=.55);},
- fridge(g){const e=mat('#f4f8fb',.28),ch=metalM('#d7dde2');RB(g,.78,1.75,.66,.06,e,0,.88,0);BX(g,.76,.012,.02,mat('#b8c4cc',.5),0,1.18,.34);RB(g,.04,.32,.05,.02,ch,-.3,1.42,.36);RB(g,.04,.48,.05,.02,ch,-.3,.82,.36);SP(g,.04,gloss('#ffc943'),.15,1.5,.34);SP(g,.04,gloss('#e2457a'),.2,.75,.34);BX(g,.14,.1,.01,mat('#ffffff',.9),.12,1.35,.335);},
+ fridge(g,c='#f4f8fb'){
+  const shell=mat(c,.85),inside=mat('#fff9ef',.9),trim=metalM('#d7dde2');
+  RB(g,.78,1.75,.08,.035,shell,0,.88,-.29);
+  [-.35,.35].forEach(x=>RB(g,.08,1.75,.66,.035,shell,x,.88,0));
+  [.045,1.71].forEach(y=>RB(g,.7,.08,.66,.035,shell,0,y,0));
+  [.48,.92,1.34].forEach(y=>RB(g,.64,.035,.54,.012,inside,0,y,0));
+  const door=new THREE.Group();door.position.set(.39,0,.34);g.add(door);
+  RB(door,.78,1.69,.09,.04,shell,-.39,.88,0);
+  RB(door,.68,.012,.015,.005,trim,-.39,1.18,.055);
+  RB(door,.04,.32,.05,.018,trim,-.69,1.42,.07);
+  RB(door,.04,.48,.05,.018,trim,-.69,.82,.07);
+  SP(door,.04,gloss('#ffc943'),-.24,1.5,.055);SP(door,.04,gloss('#e2457a'),-.19,.75,.055);
+  g.userData.fridgeDoor=door;g.userData.setFridgeOpen=on=>{door.rotation.y=on?Math.PI*.57:0;};
+ },
  stove(g){const w=mat('#fbfaf7',.35);RB(g,.85,.86,.64,.03,w,0,.43,0);BX(g,.83,.02,.6,gloss('#1d1a1d'),0,.87,0);[[-.2,-.13],[.2,-.13],[-.2,.15],[.2,.15]].forEach(([x,z])=>{const r=add(g,new THREE.TorusGeometry(.08,.012,8,24),metalM('#8f8f8f'),x,.885,z);r.rotation.x=Math.PI/2;});
   BX(g,.6,.36,.02,mat('#2a2328',.1,0,{transparent:true,opacity:.85}),0,.42,.32);RB(g,.5,.03,.04,.015,metalM('#d7dde2'),0,.66,.34);[-.3,-.15,0,.15,.3].forEach(x=>CY(g,.025,.025,.03,gloss('#4a2338'),x,.77,.33,12).rotation.x=Math.PI/2);},
  cake(g){B.table(g);const pl=gloss('#ffffff');CY(g,.3,.28,.02,pl,0,.7,0,32);CY(g,.24,.24,.18,mat('#f7a0bd',.6),0,.8,0,32);CY(g,.16,.16,.14,mat('#fff1dc',.6),0,.96,0,32);
@@ -339,7 +352,7 @@ function edPointers(cv){
   const up=e=>{const d=ED.drag;if(!d||d.id!==e.pointerId)return;ED.drag=null;
     if(ED.preview){if(!d.moved&&!d.item){const v=hitFloor({x:e.clientX,y:e.clientY});if(v&&!ED.preview.group.userData.onWall){ED.preview.group.position.x=v.x;ED.preview.group.position.z=v.z;}else if(v)ED.preview.group.position.x=v.x;}return;}
     if(d.item&&d.moved){const g=d.item;place(g.userData.id,g.position.x,g.userData.onWall?ED.D/2:g.position.z);return;}
-    if(d.item&&!d.moved){edSelect(d.item.userData.id);try{const a=G('audio');a&&a('tap');}catch(_){}return;}
+    if(d.item&&!d.moved){edSelect(d.item.userData.id);if(window.RikiFurnitureInteractions&&window.RikiFurnitureInteractions.isFridge(d.item.userData.id))window.RikiFurnitureInteractions.openFridge(d.item.userData.id);try{const a=G('audio');a&&a('tap');}catch(_){}return;}
     if(!d.moved&&ED.moveMode&&ED.sel){const v=hitFloor({x:e.clientX,y:e.clientY});ED.moveMode=false;if(v){place(ED.sel,v.x,v.z);return;}}
     if(!d.moved){const sel=G('selectedItem');const owned=G('owned')||[];
       if(sel&&owned.includes(sel)){const v=hitFloor({x:e.clientX,y:e.clientY});if(v){place(sel,v.x,v.z);return;}}
@@ -514,7 +527,7 @@ document.addEventListener('keydown',e=>{if(H.open&&e.key==='Escape')closeHouse()
 function addButtons(){document.querySelectorAll('.house-nav').forEach(n=>{if(n.querySelector('.wh3d-open'))return;const b=document.createElement('button');b.type='button';b.className='secondary wh3d-open';b.textContent='🏡 Whole house 3D';b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openHouse();});n.appendChild(b);});}
 new MutationObserver(addButtons).observe(document.body,{childList:true,subtree:true});addButtons();
 window.openWholeHouse3D=openHouse;
-window.RK3=Object.assign(window.RK3||{},{B,mat,fabric,gloss,wood,metalM,RB,BX,CY,SP,CO,add,rbox,eye,legs4,loadThree,shadeHex,canvasTex,rugTex,lights,makeItem,MODEL:(window.RK3&&window.RK3.MODEL)||{}});
+window.RK3=Object.assign(window.RK3||{},{setFridgeOpen(id,on){const g=ED.items.find(x=>x.userData.id===id);if(g&&g.userData.setFridgeOpen)g.userData.setFridgeOpen(on);},B,mat,fabric,gloss,wood,metalM,RB,BX,CY,SP,CO,add,rbox,eye,legs4,loadThree,shadeHex,canvasTex,rugTex,lights,makeItem,MODEL:(window.RK3&&window.RK3.MODEL)||{}});
 })();
 
 /* Fit game screens to the phone (Claude, Oct 29): when a new question appears, scroll so the prompt

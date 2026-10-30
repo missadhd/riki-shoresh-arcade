@@ -300,3 +300,21 @@ body:has(#app .gamehead) .top .brand{display:none}
 .games .gamecard[data-game="quest"],.games .gamecard[data-extra="quest"],.games .gamecard[data-creative="quest"],.games .gamecard[data-special="quest"]{--clay-x:100.000000%;--clay-y:0.000000%;}
 .games .gamecard[data-game="giftwrap"],.games .gamecard[data-extra="giftwrap"],.games .gamecard[data-creative="giftwrap"],.games .gamecard[data-special="giftwrap"]{--clay-x:66.666667%;--clay-y:100.000000%;}
 .games .gamecard[data-game="garden"],.games .gamecard[data-extra="garden"],.games .gamecard[data-creative="garden"],.games .gamecard[data-special="garden"]{--clay-x:100.000000%;--clay-y:100.000000%;}
+
+/* A fridge opens into real shelves, with food and child-sized tap targets. */
+.rk-fridge-overlay{z-index:10000;padding:14px;overflow-y:auto;align-items:flex-start}
+.rk-fridge-dialog{width:min(100%,480px);max-height:calc(100dvh - 28px);overflow-y:auto;margin:auto;background:#fffaf4;border:3px solid #fff;border-radius:26px;box-sizing:border-box}
+.rk-fridge-dialog h2{padding-right:88px;font-size:22px;line-height:1.2}
+.rk-fridge-dialog p{font-size:14px;line-height:1.4}
+.rk-fridge-interior{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:16px 12px;border:12px solid #afd7c4;border-radius:22px;background:linear-gradient(#fffef4,#e8f2e8);box-shadow:inset 0 4px 12px #66846e22}
+.rk-fridge-slot{min-width:0;min-height:96px;background:#fffdf5;border:0;border-bottom:5px solid #c5dacc;border-radius:10px;color:#634335;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px;font:inherit}
+.rk-fridge-slot>span:not(.rk3-art):not(.rk3-done){font-size:25px;color:#a3baaa}
+.rk-fridge-slot .furniture-svg,.rk-fridge-food .furniture-svg{width:100%!important;height:62px!important;object-fit:contain}
+.rk-fridge-slot small,.rk-fridge-food small{font-size:11px;line-height:1.2;overflow-wrap:anywhere}
+.rk-fridge-status{background:#f3e9db;padding:10px;border-radius:12px;min-height:40px}
+.rk-fridge-food{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.rk-fridge-food button{min-width:0;min-height:90px;border:2px solid #ead5c6;border-radius:14px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;color:#634335}
+.rk-fridge-food .active{border-color:#b94b72;background:#fff0f2}
+.rk-fridge-food>p{grid-column:1/-1}
+.rk-fridge-dialog button:focus-visible{outline:3px solid #b94b72;outline-offset:2px}
+@media(max-width:390px){.rk-fridge-dialog{padding:12px}.rk-fridge-interior{padding:8px;border-width:8px;gap:5px}.rk-fridge-slot{min-height:86px}}

@@ -196,7 +196,7 @@ M.piano=g=>B.piano(g);
 
 /* ---------- kitchen ---------- */
 M.fridge=g=>B.fridge(g);M.stove=g=>B.stove(g);
-M.fridgeretro=g=>{RB(g,.78,1.7,.66,.22,gloss('#9fe0cf'),0,.86,0);BX(g,.7,.012,.02,mat('#6fb8a6',.4),0,1.18,.34);RB(g,.05,.3,.06,.02,metalM('#dfe6ea'),.28,1.4,.36);RB(g,.05,.3,.06,.02,metalM('#dfe6ea'),.28,.9,.36);legs4(g,.6,.5,.1,metalM('#dfe6ea'),.04,.03);g.children.slice(-4).forEach(o=>o.position.y-=.0);};
+M.fridgeretro=g=>B.fridge(g,'#9fe0cf');
 M.ovenheart=g=>{RB(g,.85,.86,.64,.05,toy('#fbe0ea'),0,.43,0);BX(g,.83,.02,.6,gloss('#4a2338'),0,.87,0);ext(g,heartShape(.2),.02,mat('#ffb48a',.1,0,{emissive:new THREE.Color('#ff8a3d'),emissiveIntensity:.6}),0,.43,.33,.01);[-.3,-.1,.1,.3].forEach(x=>CY(g,.03,.03,.03,gloss(C.hot),x,.76,.33,12).rotation.x=Math.PI/2);};
 M.sink=g=>{RB(g,1.0,.85,.55,.03,toy('#cfe8f7'),0,.43,0);BX(g,1.05,.05,.6,mat('#f4f2f0',.25),0,.88,0);BX(g,.5,.04,.32,metalM('#c5ccd0'),0,.9,.03);CY(g,.02,.02,.25,metalM('#dfe6ea'),0,1.02,-.18,10);const sp=CY(g,.018,.018,.18,metalM('#dfe6ea'),0,1.13,-.1,10);sp.rotation.x=Math.PI/2;[-.25,.25].forEach(x=>RB(g,.42,.65,.03,.02,toy('#e2f2fb'),x,.43,.28));};
 M.mixer=g=>{RB(g,.36,.08,.24,.03,gloss(C.pink),0,.04,0);RB(g,.1,.45,.14,.05,gloss(C.pink),-.12,.28,0);RB(g,.42,.16,.2,.08,gloss(C.pink),0,.55,0);CY(g,.14,.1,.18,metalM('#dfe6ea'),.06,.18,0);};
@@ -586,3 +586,112 @@ document.addEventListener('click',e=>{
 window.RikiClaw={start,plush:PLUSH,mini:MINI,buildPlush};
 })();
 
+
+/* Interactive fridge: existing item IDs and room:item storage arrays remain compatible. */
+(function(){
+const G=n=>{try{return (0,eval)(n);}catch(_){return undefined;}};
+const SET=s=>{try{(0,eval)(s);}catch(_){}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const K=window.RK3;
+const groceries=[
+ ['milkcarton','🥛','Milk carton',8,'kitchen','Fridge Food'],
+ ['eggcarton','🥚','Box of eggs',9,'kitchen','Fridge Food'],
+ ['applesbasket','🍎','Basket of apples',10,'kitchen','Fridge Food'],
+ ['cheeseplate','🧀','Cheese plate',8,'kitchen','Fridge Food'],
+ ['juicebottle','🧃','Orange juice bottle',8,'kitchen','Fridge Food']
+];
+const items=G('ITEMS')||[];
+groceries.forEach(it=>{if(!items.some(x=>x[0]===it[0]))items.push(it);});
+const foodIds=new Set([...groceries.map(x=>x[0]),'cupcake','cakeplate','cake','birthdaycake','partycake','fruitbowl','waffles','donuttower','icecreamtower']);
+const isFridge=id=>id==='fridge'||id==='fridgeretro';
+const isFood=id=>foodIds.has(id);
+const isOwned=id=>(G('owned')||[]).includes(id);
+const isPlaced=(id,room)=>Object.values((G('decor')||{})[room]||{}).includes(id);
+const usable=(id,room)=>isFridge(id)&&isOwned(id)&&isPlaced(id,room);
+const capacity=9;
+function contents(id,room){const a=(G('dreamStorage')||{})[room+':'+id];return Array.isArray(a)?a:[];}
+function storeFood(id,room,food,slot){
+ if(!usable(id,room)||!isFood(food)||!isOwned(food)||!Number.isInteger(slot)||slot<0||slot>=capacity)return false;
+ const storage=G('dreamStorage');if(!storage||contents(id,room)[slot])return false;
+ // Move this owned item; do not duplicate it or replace occupied shelves.
+ for(const arr of Object.values(storage))if(Array.isArray(arr))arr.forEach((x,i)=>{if(x===food)delete arr[i];});
+ const key=room+':'+id;if(!Array.isArray(storage[key]))storage[key]=[];
+ storage[key][slot]=food;const save=G('dreamSave');if(save)save();return true;
+}
+function takeFood(id,room,slot){
+ if(!usable(id,room)||!Number.isInteger(slot)||slot<0||slot>=capacity)return false;
+ const arr=contents(id,room);if(!arr[slot])return false;
+ delete arr[slot];const save=G('dreamSave');if(save)save();return true;
+}
+const previousStorage=G('isStorage');
+window.__rkIsStorage=id=>isFridge(id)||/^(shelf|dresser|vanity)|^(wardrobe|cupboard|tvcabinet|nightstand)$/.test(id)||(typeof previousStorage==='function'&&previousStorage(id));
+SET('isStorage=window.__rkIsStorage;');
+const previousType=G('itemType');
+window.__rkFridgeType=it=>isFridge(it[0])?'Fridges':isFood(it[0])?'Fridge Food':it[0]==='tea'?'Tables':previousType(it);
+SET('itemType=window.__rkFridgeType;');
+const categories=G('CATEGORIES');
+if(categories){categories.kitchen=[...new Set(['Fridges',...(categories.kitchen||[]),'Fridge Food'])];}
+/* An existing category lock only recognized the basic fridge. Allow either fridge. */
+const previousShop=G('shopHtml');
+window.__rkFridgeShop=function(){
+ let html=previousShop.apply(this,arguments);
+ if(isOwned('fridgeretro')&&!isOwned('fridge'))html=html.replace('disabled aria-label="Fridge Food unlocks after buying a fridge"','').replace('🔒 Fridge Food','Fridge Food').replace(/<p class="house-help">🧊 Buy a fridge[^<]*<\/p>/,'');
+ return html;
+};
+SET('shopHtml=window.__rkFridgeShop;');
+if(K){
+ const {RB,CY,SP,CO,mat}=K;
+ K.MODEL.milkcarton=g=>{const white=mat('#fff8e9',.85),mint=mat('#9ed9c2',.85);RB(g,.42,.62,.33,.035,white,0,.34,0);const roof=RB(g,.42,.17,.33,.025,mint,0,.72,0);roof.rotation.z=.12;RB(g,.32,.2,.015,.015,mint,0,.34,.175);SP(g,.05,white,.07,.74,.11);};
+ K.MODEL.eggcarton=g=>{RB(g,.65,.12,.42,.04,mat('#d5b59c',.9),0,.08,0);for(let i=0;i<6;i++)SP(g,.09,mat(i%2?'#fff1db':'#e9cba8',.9),(i%3-1)*.19,.19,(i<3?-.1:.1),.8,1.2,.8);};
+ K.MODEL.applesbasket=g=>{CY(g,.27,.21,.2,mat('#d4aa7e',.9),0,.12,0,24);[[-.1,.25,.04],[.1,.26,.03],[0,.3,-.1]].forEach(([x,y,z])=>{SP(g,.12,mat('#ed8d91',.85),x,y,z);CY(g,.008,.008,.065,mat('#906647',.9),x,y+.13,z,6);SP(g,.035,mat('#94c99b',.85),x+.035,y+.13,z,1.4,.35,.7);});};
+ K.MODEL.cheeseplate=g=>{CY(g,.3,.29,.035,mat('#fff8ed',.9),0,.03,0,32);const shape=new THREE.Shape();shape.moveTo(-.2,-.16);shape.lineTo(.21,-.16);shape.lineTo(-.2,.18);shape.closePath();const c=K.ext(g,shape,.12,mat('#f2cf7d',.85),0,.13,0,.02);c.rotation.x=-Math.PI/2;[[-.08,-.02],[.01,.09]].forEach(([x,z])=>SP(g,.025,mat('#d9b45f',.9),x,.21,z,1,.15,1));};
+ K.MODEL.juicebottle=g=>{CY(g,.14,.15,.45,mat('#ffc38a',.85),0,.25,0,24);CY(g,.08,.11,.12,mat('#ffd7aa',.85),0,.53,0,20);CY(g,.09,.09,.06,mat('#99cdb0',.85),0,.62,0,20);RB(g,.2,.17,.018,.025,mat('#fff7e5',.9),0,.28,.145);SP(g,.055,mat('#eeb271',.85),0,.28,.16,1,1,.18);};
+}
+/* Correct grocery silhouettes remain available when 3D cannot load. */
+function grocerySvg(it){
+ const id=it[0],cream='#fff4dd',mint='#9ed9c2',peach='#ffc38a';
+ const drawings={
+ milkcarton:`<path d="M36 35L48 19H88L102 35V112H36Z" fill="${cream}" stroke="#dfd0ba" stroke-width="3"/><path d="M36 35H102L88 19H48Z" fill="${mint}"/><rect x="44" y="58" width="49" height="33" rx="6" fill="${mint}"/><circle cx="88" cy="30" r="6" fill="#fffaf1"/>`,
+ eggcarton:'<rect x="16" y="61" width="108" height="43" rx="12" fill="#d5b59c"/>'+[32,69,106].map(x=>`<ellipse cx="${x}" cy="64" rx="14" ry="23" fill="#fff1db" stroke="#dfc6a6" stroke-width="2"/>`).join(''),
+ applesbasket:'<path d="M24 66H116L104 114H36Z" fill="#d4aa7e"/>'+[[45,60],[90,59],[68,44]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="20" fill="#ed8d91"/><path d="M${x} ${y-17}v-10" stroke="#906647" stroke-width="4"/><ellipse cx="${x+8}" cy="${y-25}" rx="10" ry="5" fill="#94c99b"/>`).join(''),
+ cheeseplate:'<ellipse cx="70" cy="105" rx="57" ry="14" fill="#fff4dd" stroke="#ddd1b8" stroke-width="3"/><path d="M32 90V56L103 33V84Z" fill="#f2cf7d" stroke="#d9b45f" stroke-width="3"/><path d="M32 56L66 35L103 33" fill="#ffe6a0"/>'+[[48,69],[76,61],[86,78]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="5" fill="#d9b45f"/>`).join(''),
+ juicebottle:`<path d="M51 30H89V43Q105 49 105 65V110H35V65Q35 49 51 43Z" fill="${peach}" stroke="#e4ab77" stroke-width="3"/><rect x="49" y="16" width="42" height="18" rx="5" fill="${mint}"/><rect x="40" y="63" width="60" height="33" rx="6" fill="${cream}"/><circle cx="70" cy="79" r="11" fill="#eeb271"/>`
+ };
+ return `<svg class="furniture-svg" viewBox="0 0 140 140" role="img" aria-label="${esc(it[2])}"><ellipse cx="70" cy="120" rx="53" ry="9" fill="#71513a18"/>${drawings[id]||''}</svg>`;
+}
+for(const fn of ['furnitureArt','dreamFurnitureArt']){
+ const previous=G(fn);if(typeof previous!=='function')continue;
+ window['__rkGrocery_'+fn]=function(it){const html=previous.apply(this,arguments);if(!it||!groceries.some(x=>x[0]===it[0])||/rk3-thumb/.test(html))return html;return `<span class="rk3-art" data-rk3-id="${it[0]}">${grocerySvg(it)}</span>`;};
+ SET(fn+'=window.__rkGrocery_'+fn+';');
+}
+let closeCurrent=null;
+function openFridge(id){
+ const room=G('currentRoom');if(!usable(id,room))return false;
+ if(closeCurrent)closeCurrent();
+ const it=items.find(x=>x[0]===id),previousFocus=document.activeElement;
+ const overlay=document.createElement('div');overlay.className='storage-overlay rk-fridge-overlay';
+ const dialog=document.createElement('section');dialog.className='storage-dialog rk-fridge-dialog';dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-labelledby','rkFridgeTitle');
+ overlay.appendChild(dialog);document.body.appendChild(overlay);
+ let selected='',status='The fridge is open. Choose food, then an empty shelf space.';
+ const name=food=>items.find(x=>x[0]===food)?.[2]||'Stored item';
+ const art=food=>{const it=items.find(x=>x[0]===food);const fn=G('furnitureArt');return it&&fn?fn(it):'🍽️';};
+ const close=()=>{overlay.remove();document.removeEventListener('keydown',keys);if(K&&K.setFridgeOpen)K.setFridgeOpen(id,false);closeCurrent=null;if(previousFocus&&previousFocus.isConnected)previousFocus.focus();};
+ function keys(e){if(e.key==='Escape'){e.preventDefault();close();}else if(e.key==='Tab'){const all=[...dialog.querySelectorAll('button:not(:disabled)')];const first=all[0],last=all[all.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}
+ function paint(focus){
+  const arr=contents(id,room),available=items.filter(x=>isFood(x[0])&&isOwned(x[0])&&!arr.includes(x[0]));
+  dialog.innerHTML=`<button type="button" class="close-storage" id="rkCloseFridge">Close fridge ✕</button><h2 id="rkFridgeTitle">${esc(it?.[2]||'My fridge')}</h2><p>Put purchased food on a shelf. Tap stored food to take it out.</p><div class="rk-fridge-interior" aria-label="Open fridge shelves">${Array.from({length:capacity},(_,i)=>`<button type="button" class="rk-fridge-slot" data-fridge-slot="${i}" aria-label="${arr[i]?'Take out '+esc(name(arr[i])):'Empty shelf space '+(i+1)}">${arr[i]?art(arr[i]):'<span aria-hidden="true">＋</span>'}<small>${arr[i]?esc(name(arr[i])):'Empty'}</small></button>`).join('')}</div><p class="rk-fridge-status" role="status" aria-live="polite">${esc(status)}</p><h3>My food</h3><div class="rk-fridge-food">${available.length?available.map(x=>`<button type="button" data-fridge-food="${x[0]}" class="${selected===x[0]?'active':''}" aria-pressed="${selected===x[0]}">${art(x[0])}<small>${esc(x[2])}</small></button>`).join(''):'<p>Your purchased food is on the shelves, or waiting in the shop.</p>'}</div><button type="button" class="secondary" id="rkFridgeFoodShop">Shop for food →</button>`;
+  dialog.querySelector('#rkCloseFridge').onclick=close;
+  dialog.querySelectorAll('[data-fridge-food]').forEach(b=>b.onclick=()=>{selected=b.dataset.fridgeFood;status='Selected '+name(selected)+'. Tap an empty shelf space.';paint('[data-fridge-food="'+selected+'"]');});
+  dialog.querySelectorAll('[data-fridge-slot]').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.fridgeSlot),food=contents(id,room)[n];if(food){takeFood(id,room,n);status=name(food)+' is back in your collection.';}else if(selected){if(storeFood(id,room,selected,n)){status=name(selected)+' is on the shelf.';selected='';}else status='That food could not be placed.';}else status='Choose some food below first.';paint('[data-fridge-slot="'+n+'"]');});
+  dialog.querySelector('#rkFridgeFoodShop').onclick=()=>{close();SET("shopRoom='kitchen';shopType='Fridge Food';housePage='shop';");const render=G('houseRender');if(render)render();};
+  if(focus)dialog.querySelector(focus)?.focus();
+ }
+ closeCurrent=close;overlay.addEventListener('click',e=>{if(e.target===overlay)close();});document.addEventListener('keydown',keys);
+ if(K&&K.setFridgeOpen)K.setFridgeOpen(id,true);
+ paint('#rkCloseFridge');return true;
+}
+const previousModal=G('storageModal');
+window.__rkFridgeModal=function(id){return isFridge(id)?openFridge(id):previousModal.apply(this,arguments);};
+SET('storageModal=window.__rkFridgeModal;');
+window.RikiFurnitureInteractions={isFridge,isFood,storeFood,takeFood,contents,openFridge};
+})();
