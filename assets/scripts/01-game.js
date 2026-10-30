@@ -328,7 +328,84 @@ if($('#socialCheck'))$('#socialCheck').onclick=()=>{a.stage=2;if(a.selected.ever
 if($('#socialNext'))$('#socialNext').onclick=()=>{a.at++;a.stage=0;a.selected=[];socialDraw()}
 }
 
-function selHub(){game='sel';session=null;selMode='';app.innerHTML=`<section class="sel-hero"><div style="font-size:50px">🌈🦋💖</div><h1>Social Skills & Feelings World</h1><p>Practice big feelings, friendships, flexibility, and solving tricky moments. There is no timer and you can always try again.</p><button class="secondary" id="selToHebrew">🎮 Back to Hebrew Arcade</button></section><section class="panel"><h2>✨ Choose a social skills adventure</h2><div class="sel-grid"><button class="sel-card" id="socialDetectiveStart"><span class="sel-emoji">🔎</span><strong>Social Detective</strong><p>Investigate clues and possibilities</p></button><button class="sel-card" id="socialSayStart"><span class="sel-emoji">💬🧩</span><strong>Say It Better</strong><p>Build a respectful sentence</p></button></div><button class="secondary" id="selAddQuestion">✏️ Add your own question</button><div class="sel-grid">${SEL_MODES.map(m=>`<button class="sel-card" data-sel-mode="${m.id}"><span class="sel-emoji">${m.emoji}</span><strong>${m.name}</strong><p>${m.subtitle}</p><span class="tag">${m.theme}</span></button>`).join('')}</div></section><section class="panel"><h3>💜 A note for grown-ups</h3><p>These are practice scenarios, not tests of obedience. Validate feelings, invite Riki to explain her reasoning, and discuss what might work in real life. More than one response can sometimes be reasonable. Try a skill together outside the game.</p></section>`;$('#selToHebrew').onclick=menu;$('#selAddQuestion').onclick=selEditor;$('#socialDetectiveStart').onclick=()=>socialStart('detective');$('#socialSayStart').onclick=()=>socialStart('say');document.querySelectorAll('[data-sel-mode]').forEach(b=>b.onclick=()=>{selMode=b.dataset.selMode;selAt=0;selWins=0;selAnswered=null;selOrder=selMode==='reset'?[]:selNewOrder(selMode);audio('tap');selRender()})}
+
+/* Three hands-on SEL adventures: choices affect subsequent scenes, not just a quiz score. */
+const SEL_MYSTERIES=[
+['Your friend walked away while you were talking.','She looked at the clock.','She had a worried expression.','She may have needed to be somewhere.','Could we finish talking later?'],
+['Two classmates whisper and look toward you.','They are holding a surprise invitation.','You did not hear what they said.','There is not enough information to know.','What are you planning?'],
+['A friend seems upset after a group project.','She worked on a part nobody used.','She stayed quiet during the vote.','She may feel left out or disappointed.','I noticed your idea was not included. Want to talk?'],
+['Someone does not answer your message.','They were at an after-school activity.','You have not seen them online.','They may be busy rather than upset.','Hope you are okay! Talk when you can.'],
+['Your friend says she does not want to play today.','She has been tired all afternoon.','She said she might play tomorrow.','She may need a break, not an end to the friendship.','No problem. Maybe another day.'],
+['Your partner makes changes to your poster.','She thought you agreed to a new layout.','She saved the original drawing.','There may have been a misunderstanding.','Can we compare our plans?']
+];
+const SEL_TEAM=[
+['Your group has ten minutes to make a poster.','Choose a plan',['Ask what everyone wants to contribute.','Assign every job without asking.','Do all the work yourself.'],'A good team shares the work.'],
+['Two teammates want different titles.','Handle disagreement',['Hear both ideas and vote or combine them.','Tell one teammate to be quiet.','Refuse to continue.'],'A fair process helps everyone participate.'],
+['One teammate is working slowly.','Help the team',['Ask whether they want help or a smaller task.','Take their materials without asking.','Call them lazy.'],'Support is more useful than blame.'],
+['Your idea was not chosen.','Stay involved',['Explain one concern and help with the chosen plan.','Stop helping.','Insist everyone restart.'],'You can disagree and still participate.'],
+['A teammate wants to change the rules.','Find a solution',['Discuss the change and agree together.','Change the rules secretly.','End the game.'],'Shared agreements are easier to follow.'],
+['Your group finishes early.','Wrap up together',['Check whether everyone is satisfied and included.','Take all the credit.','Leave without telling anyone.'],'Notice everyone’s contribution.']
+];
+const SEL_EMOTIONS=[
+['😤','You feel frustrated when the directions change.',['Name it: I am frustrated.','Pretend nothing happened.','Shout at someone.'],'Naming a feeling can help you choose your next step.'],
+['😟','You are worried about presenting to the class.',['Ask to practice once with a trusted person.','Tell yourself you will definitely fail.','Run away without telling anyone.'],'Small preparations can make a hard task manageable.'],
+['😢','A friend leaves you out of a game.',['Tell someone how you feel and ask about joining.','Decide nobody likes you.','Insult the group.'],'You can acknowledge hurt and still choose what to do.'],
+['😠','You are angry because someone took your turn.',['Pause and say, I think it was my turn.','Push them.','Break the game.'],'A clear boundary protects your needs without hurting anyone.'],
+['😵','There is too much noise around you.',['Ask for a quieter spot or short break.','Force yourself to stay until you explode.','Yell at everyone.'],'Noticing sensory overload is useful information.'],
+['😳','You made a mistake in front of classmates.',['Remind yourself mistakes happen and try again.','Call yourself stupid.','Blame someone else.'],'You can feel embarrassed and still keep learning.']
+];
+const SEL_NEW_SEEN='rikiSocialHandsOnSeenV1';
+let selHands=null;
+function selHandsStart(kind){
+ game='sel';selMode=kind;
+ const data=selRead(SEL_NEW_SEEN),bank=kind==='mystery'?SEL_MYSTERIES:kind==='team'?SEL_TEAM:SEL_EMOTIONS;
+ const old=Array.isArray(data[kind])?data[kind]:[];
+ let pool=bank.map((_,i)=>i).filter(i=>!old.includes(i));
+ if(!pool.length)pool=bank.map((_,i)=>i);
+ for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+ const picks=pool.slice(0,Math.min(4,pool.length));
+ data[kind]=old.concat(picks).length>=bank.length?[]:old.concat(picks);
+ selWrite(SEL_NEW_SEEN,data);
+ selHands={kind,picks,at:0,phase:0,choice:null,points:0,paid:false,tools:[]};
+ selHandsDraw()
+}
+function selHandsDraw(){
+ const a=selHands;if(!a)return;
+ const bank=a.kind==='mystery'?SEL_MYSTERIES:a.kind==='team'?SEL_TEAM:SEL_EMOTIONS;
+ if(a.at>=a.picks.length){
+  if(!a.paid){award(8+a.points*2);a.paid=true}
+  app.innerHTML='<section class="panel"><h2>🏆 Adventure complete!</h2><p>You tried '+a.picks.length+' situations and earned 🪙 '+(8+a.points*2)+' coins.</p><p>Balance: 🪙 '+coins+'</p><button class="primary" id="handsReplay">Another round</button><button class="secondary" id="handsBack">Social Skills</button></section>';
+  $('#handsReplay').onclick=()=>selHandsStart(a.kind);$('#handsBack').onclick=selHub;return
+ }
+ const q=bank[a.picks[a.at]],safe=selSafe,kind=a.kind;
+ let html='<section class="panel"><button class="secondary" id="handsBack">← Social Skills</button><p class="sel-progress">Challenge '+(a.at+1)+' of '+a.picks.length+'</p><div class="sel-scene">';
+ if(kind==='mystery'){
+  html+='<div class="sel-illustration">🕵️‍♀️🔎</div><h2>Friendship Mystery</h2><p>'+safe(q[0])+'</p><p>Open both clue cards before making a guess.</p>';
+  [1,2].forEach(i=>{html+='<button class="sel-card" data-hands-clue="'+i+'" '+(a.tools.includes(i)?'disabled':'')+'>'+(a.tools.includes(i)?safe(q[i]):'🔒 Tap to reveal clue '+i)+'</button>'});
+  if(a.tools.length===2)html+='<p>What is a possible explanation?</p>'+['There may be more to the story.','They are definitely being mean.','I should immediately end the friendship.'].map((t,i)=>'<button class="sel-choice" data-hands-answer="'+i+'" '+(a.phase?'disabled':'')+'>'+safe(t)+'</button>').join('');
+ }else if(kind==='team'){
+  html+='<div class="sel-illustration">🧑‍🤝‍🧑📋</div><h2>Teamwork Challenge</h2><p>'+safe(q[0])+'</p><h3>'+safe(q[1])+'</h3>';
+  q[2].forEach((t,i)=>{html+='<button class="sel-choice" data-hands-answer="'+i+'" '+(a.phase?'disabled':'')+'>'+safe(t)+'</button>'});
+ }else{
+  html+='<div class="sel-illustration">'+q[0]+'</div><h2>Emotion Lab</h2><p>'+safe(q[1])+'</p><p>Try a tool, then choose a next step.</p>';
+  ['🌬️ Take three slow breaths','🖐️ Ground your feet','💬 Name the feeling'].forEach((t,i)=>{html+='<button class="secondary" data-hands-tool="'+i+'" '+(a.tools.includes(i)?'disabled':'')+'>'+t+(a.tools.includes(i)?' ✓':'')+'</button>'});
+  if(a.tools.length)q[2].forEach((t,i)=>{html+='<button class="sel-choice" data-hands-answer="'+i+'" '+(a.phase?'disabled':'')+'>'+safe(t)+'</button>'});
+ }
+ if(a.phase){
+  html+='<div class="sel-feedback"><h3>'+(a.choice===0?'🌟 Thoughtful choice!':'💜 Another approach might help.')+'</h3><p>'+safe(kind==='mystery'?q[3]:kind==='team'?q[3]:q[3])+'</p>';
+  if(kind==='mystery')html+='<p><strong>Something you could say:</strong> '+safe(q[4])+'</p>';
+  if(kind==='team')html+='<p>How might your teammate feel about your decision?</p>';
+  if(kind==='emotion')html+='<p>Different tools work for different people. You can try another if this one does not help.</p>';
+  html+='<button class="primary" id="handsNext">Next challenge →</button></div>'
+ }
+ html+='</div></section>';app.innerHTML=html;$('#handsBack').onclick=selHub;
+ document.querySelectorAll('[data-hands-clue]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.handsClue);if(!a.tools.includes(i))a.tools.push(i);selHandsDraw()});
+ document.querySelectorAll('[data-hands-tool]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.handsTool);if(!a.tools.includes(i))a.tools.push(i);selHandsDraw()});
+ document.querySelectorAll('[data-hands-answer]').forEach(b=>b.onclick=()=>{if(a.phase)return;a.choice=Number(b.dataset.handsAnswer);a.phase=1;if(a.choice===0)a.points++;selHandsDraw()});
+ if($('#handsNext'))$('#handsNext').onclick=()=>{a.at++;a.phase=0;a.choice=null;a.tools=[];selHandsDraw()}
+}
+
+function selHub(){game='sel';session=null;selMode='';app.innerHTML=`<section class="sel-hero"><div style="font-size:50px">🌈🦋💖</div><h1>Social Skills & Feelings World</h1><p>Practice big feelings, friendships, flexibility, and solving tricky moments. There is no timer and you can always try again.</p><button class="secondary" id="selToHebrew">🎮 Back to Hebrew Arcade</button></section><section class="panel"><h2>✨ Choose a social skills adventure</h2><div class="sel-grid"><button class="sel-card" data-hands-kind="mystery"><span class="sel-emoji">🕵️‍♀️</span><strong>Friendship Mystery</strong><p>Reveal clues and solve misunderstandings</p></button><button class="sel-card" data-hands-kind="team"><span class="sel-emoji">🧑‍🤝‍🧑</span><strong>Teamwork Challenge</strong><p>Make decisions in a group project</p></button><button class="sel-card" data-hands-kind="emotion"><span class="sel-emoji">🌬️</span><strong>Emotion Lab</strong><p>Try coping tools and choose a next step</p></button></div><div class="sel-grid"><button class="sel-card" id="socialDetectiveStart"><span class="sel-emoji">🔎</span><strong>Social Detective</strong><p>Investigate clues and possibilities</p></button><button class="sel-card" id="socialSayStart"><span class="sel-emoji">💬🧩</span><strong>Say It Better</strong><p>Build a respectful sentence</p></button></div><button class="secondary" id="selAddQuestion">✏️ Add your own question</button><div class="sel-grid">${SEL_MODES.map(m=>`<button class="sel-card" data-sel-mode="${m.id}"><span class="sel-emoji">${m.emoji}</span><strong>${m.name}</strong><p>${m.subtitle}</p><span class="tag">${m.theme}</span></button>`).join('')}</div></section><section class="panel"><h3>💜 A note for grown-ups</h3><p>These are practice scenarios, not tests of obedience. Validate feelings, invite Riki to explain her reasoning, and discuss what might work in real life. More than one response can sometimes be reasonable. Try a skill together outside the game.</p></section>`;$('#selToHebrew').onclick=menu;$('#selAddQuestion').onclick=selEditor;document.querySelectorAll('[data-hands-kind]').forEach(b=>b.onclick=()=>selHandsStart(b.dataset.handsKind));$('#socialDetectiveStart').onclick=()=>socialStart('detective');$('#socialSayStart').onclick=()=>socialStart('say');document.querySelectorAll('[data-sel-mode]').forEach(b=>b.onclick=()=>{selMode=b.dataset.selMode;selAt=0;selWins=0;selAnswered=null;selOrder=selMode==='reset'?[]:selNewOrder(selMode);audio('tap');selRender()})}
 function selRender(){if(selMode==='reset')return selCalm();const m=SEL_MODES.find(x=>x.id===selMode),list=selAll(selMode),roundLength=selOrder.length;if(selAt>=roundLength){if(!selRoundPaid){award(8+selWins);selRoundPaid=true}app.innerHTML=`<section class="panel">${selHeader('Mission complete')}<div class="sel-scene"><div class="sel-illustration">🎉💖🏆</div><h2>You practiced ${m.theme}!</h2><p>Real-life skills grow with practice. Which idea would you like to try today?</p><p>🌟 ${selWins} thoughtful choices</p><p>🪙 You earned ${8+selWins} coins! Balance: ${coins}</p><button class="primary" id="selReplay">Play again</button></div></section>`;$('#selBack').onclick=selHub;$('#selReplay').onclick=()=>{selAt=0;selWins=0;selAnswered=null;selRoundPaid=false;selOrder=selNewOrder(selMode);selRender()};return}
 const q=list[selOrder[selAt]??selAt],done=selAnswered!==null;app.innerHTML=`<section class="panel">${selHeader(m.emoji+' '+m.name)}<p class="sel-progress">Scene ${selAt+1} of ${roundLength} · No countdown</p><div class="progress"><div style="width:${100*selAt/roundLength}%"></div></div><div class="sel-scene"><div class="sel-illustration">${q[0]}</div><h2>${q[1]}</h2><p>${q[2]}</p></div><div class="sel-options">${q[3].map((t,i)=>`<button class="sel-choice" data-sel-choice="${i}" ${done?'disabled':''}>${['🌷','⭐','💜'][i]} ${t}</button>`).join('')}</div>${done?`<div class="sel-feedback"><h3>${selAnswered===q[4]?'🌟 That is a helpful option!':'💜 Let’s think about another option.'}</h3><p>${q[5]}</p><p><strong>Try saying:</strong> ${q[6]}</p><button class="primary" id="selNext">${selAt===roundLength-1?'Finish mission':'Next scene →'}</button></div>`:''}</section>`;$('#selBack').onclick=selHub;document.querySelectorAll('[data-sel-choice]').forEach(b=>b.onclick=()=>{selAnswered=Number(b.dataset.selChoice);selRecordAnswer(selMode,selAnswered===q[4]);if(selAnswered===q[4]){selWins++;audio('good')}else audio('tap');selRender()});if(done)$('#selNext').onclick=()=>{selAt++;selAnswered=null;selRender()}}
 const CALM_TOOLS=[['🫧','Bubble Breaths','Breathe in gently, then breathe out slowly as if blowing a big bubble.'],['🖐️','Five Senses','Name five things you see, four you feel, three you hear, two you smell, and one you taste (or imagine).'],['🐢','Turtle Pause','Put your feet on the ground, relax your shoulders, and choose one small next step.'],['🎨','Color Check-In','Pick a color that matches how you feel. Draw or imagine it. There is no wrong color.'],['💬','Ask for Space','Practice saying: “I need a few minutes. I will come back.”']];
