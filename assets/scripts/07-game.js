@@ -60,12 +60,13 @@ function playComic(c){
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;const doneStep=comicStep;let timers=[];const later=(f,ms)=>timers.push(setTimeout(f,ms));
   const parts=c.panels.map(t=>{const m=t.match(/^(\S+)\s+([^:]+):\s*(.*)$/);return m?{emo:m[1],label:m[2],line:m[3]}:{emo:[...t][0],label:'',line:t.slice([...t][0].length).trim()};});
   const moods=['comic-pop','comic-think','comic-talk'];
-  shell('🎬 Comic Story Director',`${stage(c.title)}<div class="comic-theater" id="comicTheater">${parts.map((p,i)=>`<div class="comic-panel" id="comicPanel${i}"><span class="comic-num">${i+1}</span><div class="comic-actor ${moods[i%3]}">${p.emo}</div><div class="comic-bubble"><b>${p.label}</b><span class="comic-line"></span></div></div>`).join('')}</div><div class="comic-controls"><button class="sel-tile" id="comicReplay" hidden>↻ Play again</button><button class="sel-big-btn" id="comicNext" hidden>Next comic →</button></div>`);
-  const speak=t=>{try{if(typeof soundOn!=='undefined'&&!soundOn)return;if(!('speechSynthesis' in window))return;const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.95;speechSynthesis.speak(u);}catch(e){}};
+  const comicDoll=()=>window.RikiArt?RikiArt.doll(RikiArt.look('riki'),'stand','happy',true):'👧';
+  shell('🎬 Comic Story Director',`${stage(c.title)}<div class="comic-theater" id="comicTheater">${parts.map((p,i)=>`<div class="comic-panel" id="comicPanel${i}"><span class="comic-num">${i+1}</span><div class="comic-actor ${moods[i%3]}">${comicDoll()}</div><div class="comic-bubble"><b>${p.label}</b><span class="comic-line"></span></div></div>`).join('')}</div><div class="comic-controls"><button class="sel-tile" id="comicReplay" hidden>↻ Play again</button><button class="sel-big-btn" id="comicNext" hidden>Next comic →</button></div>`);
+  const speak=(t,target)=>{try{if(window.RikiVoice)return RikiVoice.speak(t,{character:'riki',target});if(typeof soundOn!=='undefined'&&!soundOn)return;if(!('speechSynthesis' in window))return;const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.95;speechSynthesis.speak(u);}catch(e){}};
   const stop=()=>{timers.forEach(clearTimeout);timers=[];try{speechSynthesis.cancel();}catch(e){}};
   function run(){stop();parts.forEach((p,i)=>{const el=$id('comicPanel'+i);el.classList.remove('on');el.querySelector('.comic-line').textContent='';});
     $id('comicReplay').hidden=true;$id('comicNext').hidden=true;let t=300;
-    parts.forEach((p,i)=>{later(()=>{const el=$id('comicPanel'+i);if(!el)return;el.classList.add('on');el.scrollIntoView({block:'nearest',behavior:reduce?'auto':'smooth'});audio('tap');speak((p.label?p.label+'. ':'')+p.line);
+    parts.forEach((p,i)=>{later(()=>{const el=$id('comicPanel'+i);if(!el)return;el.classList.add('on');el.scrollIntoView({block:'nearest',behavior:reduce?'auto':'smooth'});audio('tap');speak((p.label?p.label+'. ':'')+p.line,el.querySelector('.comic-actor'));
       const line=el.querySelector('.comic-line');if(reduce){line.textContent=p.line;return;}let k=0;const ty=setInterval(()=>{if(!line.isConnected){clearInterval(ty);return;}k++;line.textContent=p.line.slice(0,k);if(k>=p.line.length)clearInterval(ty);},38);timers.push(ty);},t);t+=reduce?600:Math.max(2400,p.line.length*38+1500);});
     later(()=>{if(!$id('comicNext'))return;audio('good');$id('comicReplay').hidden=false;$id('comicNext').hidden=false;$id('comicNext').scrollIntoView({block:'nearest'});
       later(()=>{if(comicStep===doneStep&&game==='sel'&&$id('comicNext'))$id('comicNext').click();},6000);},t+200);}
@@ -157,11 +158,11 @@ function slSceneHTML(left='riki',right='friend',bg=''){return `<div class="sl-sc
   <div class="sl-prop" id="slProp"></div></div>`;}
 let slWho={A:'riki',B:'friend'},slTimers=[];
 const slWait=ms=>new Promise(r=>slTimers.push(setTimeout(r,ms)));
-function slStop(){slTimers.forEach(clearTimeout);slTimers=[];try{speechSynthesis.cancel();}catch(e){}}
+function slStop(){slTimers.forEach(clearTimeout);slTimers=[];try{window.RikiVoice?RikiVoice.stop():speechSynthesis.cancel();}catch(e){}}
 function slExpr(side,expr,anim){const f=$id('slF'+side),a=$id('sl'+side);if(!f||!a)return;f.innerHTML=slFace(slWho[side],expr);if(anim){a.classList.remove('bounce','shake');void a.offsetWidth;a.classList.add(anim);}}
-function slSpeak(text){try{if(typeof soundOn!=='undefined'&&!soundOn)return Promise.resolve();if(!('speechSynthesis' in window))return Promise.resolve();return new Promise(res=>{const u=new SpeechSynthesisUtterance(text.replace(/[“”"]/g,''));u.lang='en-US';u.rate=.98;u.onend=res;u.onerror=res;speechSynthesis.speak(u);setTimeout(res,Math.max(1600,text.length*70));});}catch(e){return Promise.resolve();}}
+function slSpeak(text,who='riki',target){try{if(window.RikiVoice)return RikiVoice.speak(text,{character:who,target});if(typeof soundOn!=='undefined'&&!soundOn)return Promise.resolve();if(!('speechSynthesis' in window))return Promise.resolve();return new Promise(res=>{const u=new SpeechSynthesisUtterance(text.replace(/[“”"]/g,''));u.lang='en-US';u.rate=.98;u.onend=res;u.onerror=res;speechSynthesis.speak(u);setTimeout(res,Math.max(1600,text.length*70));});}catch(e){return Promise.resolve();}}
 async function slSay(side,text,expr='happy'){const b=$id('slB'+side),a=$id('sl'+side);if(!b)return;slExpr(side,expr);b.textContent='';b.classList.add('on');a.classList.add('talk');
-  const sp=slSpeak(text);const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const sp=slSpeak(text,slWho[side],a);const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(reduce)b.textContent=text;else{for(let i=1;i<=text.length;i++){if(!b.isConnected)return;b.textContent=text.slice(0,i);await slWait(24);}}
   await sp;a.classList.remove('talk');}
 function slHush(side){const b=$id('slB'+side);if(b)b.classList.remove('on');}

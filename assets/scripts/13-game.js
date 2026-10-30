@@ -528,14 +528,26 @@ if(typeof prevStart==='function'){window.__rkStart=function(g){const r=prevStart
 function hideHints(){const c=cur();const app=document.getElementById('app');if(!app)return;const on=!!(c&&WEIGHT.includes(G('game'))&&mastered(c.id));app.classList.toggle('rk-mastered',on);
   if(on){app.querySelectorAll('button').forEach(b=>{if(/hint|clue/i.test(b.textContent)&&!b.closest('.st'))b.hidden=true;});const pr=app.querySelector('.prompt');if(pr&&!pr.querySelector('.rk-star'))pr.insertAdjacentHTML('beforeend','<div class="rk-star">⭐ Mastered word — no hints needed!</div>');}}
 
+/* ---- expressive character voices ---- */
+const canSpeak='speechSynthesis' in window;
+const VOICE_PROFILES={narrator:{slot:0,pitch:1.02,rate:.94},riki:{slot:1,pitch:1.16,rate:.96},maya:{slot:2,pitch:1.04,rate:.9},friend:{slot:2,pitch:1.04,rate:.9},zoe:{slot:3,pitch:1.23,rate:1.02},friend2:{slot:3,pitch:1.23,rate:1.02},mom:{slot:4,pitch:.9,rate:.91},teacher:{slot:5,pitch:.98,rate:.87}};
+let activeSpeech=0;
+function voiceChoices(lang){const want=String(lang||'en-US').slice(0,2).toLowerCase(),all=speechSynthesis.getVoices();return all.filter(v=>String(v.lang).toLowerCase().startsWith(want)).sort((a,b)=>(b.localService?1:0)-(a.localService?1:0)||a.name.localeCompare(b.name));}
+function voiceTarget(target){if(target instanceof Element)return target;if(typeof target==='string')return document.querySelector(target);return document.querySelector('.sl-actor.talk,.comic-panel.on .comic-actor,#app .game-title-doll,#app .pd-actor');}
+function speechStop(){activeSpeech++;try{speechSynthesis.cancel();}catch(_){}document.querySelectorAll('.riki-speaking').forEach(el=>el.classList.remove('riki-speaking','riki-mouth-open'));}
+function expressiveSpeak(text,options={}){if(!canSpeak||G('soundOn')===false)return Promise.resolve();const character=options.character||'narrator',profile={...(VOICE_PROFILES[character]||VOICE_PROFILES.narrator),...options},lang=profile.lang||'en-US',target=voiceTarget(profile.target);if(profile.cancel)speechStop();const token=++activeSpeech;if(target)target.classList.add('riki-speaking');
+ const clean=String(text).replace(/[“”]/g,'"').replace(/\s+/g,' ').trim(),phrases=clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[clean],voices=voiceChoices(lang),voice=voices.length?voices[profile.slot%voices.length]:null;
+ return new Promise(resolve=>{let at=0,done=false,timer=0;const finish=()=>{if(done)return;done=true;clearTimeout(timer);if(target)target.classList.remove('riki-speaking','riki-mouth-open');resolve();};const next=()=>{if(token!==activeSpeech||at>=phrases.length){finish();return;}const phrase=phrases[at++].trim(),u=new SpeechSynthesisUtterance(phrase);u.lang=lang;if(voice)u.voice=voice;const lift=/\?$/.test(phrase)?.09:/!$/.test(phrase)?.13:at===phrases.length?.01:0;u.pitch=Math.max(.6,Math.min(1.6,profile.pitch+lift));u.rate=Math.max(.65,Math.min(1.3,profile.rate+(/!$/.test(phrase)?.03:0)));u.onboundary=()=>{if(target)target.classList.toggle('riki-mouth-open');};u.onend=next;u.onerror=next;try{speechSynthesis.speak(u);}catch(_){finish();}};
+  timer=setTimeout(finish,Math.max(2200,clean.length*95));window.dispatchEvent(new CustomEvent('riki:voice-start',{detail:{character,lang,voice:voice?.name||'',pitch:profile.pitch,rate:profile.rate}}));next();});}
+window.RikiVoice={speak:expressiveSpeak,stop:speechStop,profiles:VOICE_PROFILES};
+
 /* ---- hear the Hebrew ---- */
-const canSpeak='speechSynthesis' in window;let heVoice=null;
+let heVoice=null;
 function findVoice(){if(!canSpeak)return null;const v=speechSynthesis.getVoices();heVoice=v.find(x=>/^he|^iw/i.test(x.lang))||null;return heVoice;}
 if(canSpeak){findVoice();speechSynthesis.onvoiceschanged=findVoice;}
 /* American (Ashkenazi) reading: a tav that isn't the first letter is read as a soft s (sav), so it goes to the voice as a samech */
 function ashk(t){return String(t).replace(/[\u0591-\u05C7]/g,'').split(/\s+/).map(w=>w.replace(/(?!^)ת/g,'ס')).join(' ');}
-function say(text,btn){if(!canSpeak)return;const sOn=G('soundOn');if(sOn===false&&!btn)return;try{if(btn)speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(ashk(text));u.lang='he-IL';if(heVoice||findVoice())u.voice=heVoice;u.rate=.8;speechSynthesis.speak(u);
-  if(btn){btn.classList.add('on');u.onend=()=>btn.classList.remove('on');}if(!heVoice&&speechSynthesis.getVoices().length&&btn&&!btn.dataset.warned){btn.dataset.warned=1;btn.title='This device may not have a Hebrew voice installed';}}catch(e){}}
+function say(text,btn){if(!canSpeak)return;const sOn=G('soundOn');if(sOn===false&&!btn)return;try{if(btn)btn.classList.add('on');expressiveSpeak(ashk(text),{character:'riki',lang:'he-IL',rate:.8,pitch:1.08,cancel:!!btn,target:'.game-title-doll'}).finally(()=>btn&&btn.classList.remove('on'));if(!heVoice&&speechSynthesis.getVoices().length&&btn&&!btn.dataset.warned){btn.dataset.warned=1;btn.title='This device may not have a Hebrew voice installed';}}catch(e){}}
 const sayBtn=t=>`<button type="button" class="rk-say" data-say="${esc(t)}" aria-label="Hear it">🔊</button>`;
 /* Speak once per question, not when feedback re-renders the same prompt. */
 let rkLastSpeechQuestion='',rkLastSpeechPhase='';
@@ -662,7 +674,7 @@ addSpeakers(app);upgradeSel(app);
 const prevOpts=G('optionsFor');
 if(typeof prevOpts==='function'){window.__rkOpts=function(id,n,rev){if(G('game')==='bubbles'&&mastered(id))n=Math.max(n||3,4);return prevOpts.call(this,id,n,rev);};SET('optionsFor=window.__rkOpts;');}
 /* English read aloud: the English meaning in quiz prompts and studio orders is spoken automatically */
-function sayEn(t){if(!canSpeak||G('soundOn')===false)return;try{const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.95;speechSynthesis.speak(u);}catch(e){}}
+function sayEn(t){if(!canSpeak||G('soundOn')===false)return;expressiveSpeak(t,{character:'riki',target:'.game-title-doll'});}
 function speakEnglish(root){(root||document).querySelectorAll('.prompt .meaning,.st-order .st-bub b,.wheel-question h2,.show-spotlight h2').forEach(el=>{if(el.dataset.enSaid)return;el.dataset.enSaid=1;const t=el.textContent.trim();if(!t||/[֐-׿]/.test(t))return;setTimeout(()=>{if(el.isConnected)sayEn(t);},350);});}
 if(app)new MutationObserver(()=>speakEnglish(app)).observe(app,{childList:true,subtree:true});
 document.addEventListener('click',e=>{const b=e.target.closest('#app .option:not(.he),#app .bubble,#app .match-btn,#app .cm-ans,#app .st-card span:not(.st-he)');if(!b)return;const t=(b.matches('.st-card span')?b:b).textContent.trim();if(t&&!/[֐-׿]/.test(t)&&t.length<40){try{speechSynthesis.cancel();}catch(_){}sayEn(t);}},true);
@@ -786,7 +798,8 @@ function doll(d,pose='stand',expr,crop){
  const facial=!['happy','excited','neutral'].includes(expr)?`<defs><radialGradient id="${id}mouthblend"><stop offset=".7" stop-color="#f8d5c2"/><stop offset="1" stop-color="#f8d5c2" stop-opacity="0"/></radialGradient></defs><ellipse cx="60" cy="86" rx="12" ry="7" fill="url(#${id}mouthblend)"/>${mouthFor(expr)}${browsFor(expr)}`:'';
  const identityFace=sprite!==original?`<defs><clipPath id="${id}identity"><ellipse cx="60" cy="77" rx="29" ry="22"/></clipPath></defs><g clip-path="url(#${id}identity)"><svg width="120" height="204" viewBox="${centers[original]-213} 0 426 724"><image href="${image}" width="2172" height="724"/></svg></g>`:'';
  const extras=d.acc!==undefined&&d.acc!==[1,3,2,4,5,3][original]?extra+glasses:'';
- return `<svg class="pd-doll" viewBox="${crop?'0 0 120 118':'0 0 120 204'}" aria-hidden="true" data-skin-tone="${sk}" data-art-style="soft-3d-toy" data-doll-identity="${d.identity||'guest'}" data-dress="${garment?.id||'saved'}" data-shoes="${shoe?.id||'saved'}">${defs}${art}${tint}${identityFace}${out==='dress'||out==='tutu'?(garment?(wearGroup(garment)==='pajamas'?pajamaArt(garment):dressArt(garment)):signatureDress(d.color||0)):sleeve+body}${shoe?toyFeet(shoe):''}${facial}${extras}${dollAccessories(d)}</svg>`;
+ const speechMouth=`<g class="pd-speech-mouth" aria-hidden="true"><ellipse cx="60" cy="86" rx="8.5" ry="6.5" fill="${sk}"/><ellipse class="pd-speech-mouth-shape" cx="60" cy="87" rx="4.5" ry="2.2" fill="#a8315a"/><path d="M57 87q3 2 6 0" stroke="#ff9fb8" stroke-width="1" fill="none"/></g>`;
+ return `<svg class="pd-doll" viewBox="${crop?'0 0 120 118':'0 0 120 204'}" aria-hidden="true" data-skin-tone="${sk}" data-art-style="soft-3d-toy" data-doll-identity="${d.identity||'guest'}" data-dress="${garment?.id||'saved'}" data-shoes="${shoe?.id||'saved'}">${defs}${art}${tint}${identityFace}${out==='dress'||out==='tutu'?(garment?(wearGroup(garment)==='pajamas'?pajamaArt(garment):dressArt(garment)):signatureDress(d.color||0)):sleeve+body}${shoe?toyFeet(shoe):''}${facial}${extras}${dollAccessories(d)}${speechMouth}</svg>`;
 }
 
 const PETS={puppy:{name:'Puppy',c:'#eebd84',d:'#a86f3e',e:'#5a3420'},kitty:{name:'Kitty',c:'#c9c2d6',d:'#7c7290',e:'#4fae7a'},bunny:{name:'Bunny',c:'#fff6f8',d:'#efc3d2',e:'#c9558a'},

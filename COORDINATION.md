@@ -4,7 +4,7 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
-|---|---|---|---|\n| ChatGPT | `chatgpt/expressive-character-voices` | `assets/scripts/07-game.js`, `assets/scripts/13-game.js`, `assets/styles/16-styles.css`, `index.html` | Expressive voices and animated mouths |
+|---|---|---|---|
 
 ## Map of the code
 
