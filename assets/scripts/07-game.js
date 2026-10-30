@@ -128,7 +128,7 @@ const SL_CSS=`
 if(!document.getElementById('slCss')){const st=document.createElement('style');st.id='slCss';st.textContent=SL_CSS;document.head.appendChild(st);}
 
 /* faces: hair/dress colors + expression */
-const SL_PEOPLE={riki:{name:'Riki',hair:'#5b3a5e',skin:'#ffd8bd',dress:'#f58fb6'},friend:{name:'Maya',hair:'#2f2a33',skin:'#e8b48f',dress:'#7cc4f2'},friend2:{name:'Noa',hair:'#c9783f',skin:'#ffe0c8',dress:'#8ed6c4'}};
+const SL_PEOPLE={riki:{name:'Riki',hair:'#5b3a5e',skin:'#ffd8bd',dress:'#f58fb6'},friend:{name:'Maya',hair:'#2f2a33',skin:'#ffe3cf',dress:'#7cc4f2'},friend2:{name:'Noa',hair:'#c9783f',skin:'#ffe0c8',dress:'#8ed6c4'}};
 const SL_LOOKS={friend:{skin:2,hair:1,style:1,color:1,out:1,acc:3},friend2:{skin:1,hair:3,style:4,color:2,out:3,acc:4},mom:{skin:1,hair:0,style:2,color:1,out:0,acc:0},teacher:{skin:2,hair:1,style:3,color:3,out:0,acc:6}};
 function slFace(who,expr){if(window.RikiArt){try{const L=who==='riki'?window.RikiArt.look('riki'):(SL_LOOKS[who]||SL_LOOKS.friend);return window.RikiArt.doll(L,'stand',expr||'neutral',true);}catch(e){}}const p=SL_PEOPLE[who]||SL_PEOPLE.friend;
   const eyes={happy:'<path d="M70 92 q7-8 14 0 M106 92 q7-8 14 0" stroke="#3a2430" stroke-width="5" fill="none" stroke-linecap="round"/>',
@@ -259,8 +259,8 @@ function drawSet(key){
     else{slExpr('B','sad','shake');slFx(['💧'],4);audio('tap');await slSay('B',set.wrong||'Hmm… that doesn’t feel good.','sad');const n=$id('slNote');if(n){n.hidden=false;n.textContent='💜 '+set.lead+' Try another choice.';}document.querySelectorAll('#slCh .sl-choice').forEach(x=>{if(x!==b)x.disabled=false;});slHush('A');slExpr('A','think');}});
 }
 /* ---------- Skill Zones (Claude, Oct 30): games grouped by skill ---------- */
-SL_PEOPLE.mom={name:'Mom',hair:'#7a4b2a',skin:'#f6cfae',dress:'#b38be0'};
-SL_PEOPLE.teacher={name:'Ms. Dana',hair:'#3b2b20',skin:'#d9a27c',dress:'#ffb35c'};
+SL_PEOPLE.mom={name:'Mom',hair:'#7a4b2a',skin:'#ffe6d3',dress:'#b38be0'};
+SL_PEOPLE.teacher={name:'Ms. Dana',hair:'#3b2b20',skin:'#f9ddc9',dress:'#ffb35c'};
 SL_SETS.no={title:'🙅 Hearing No',who:'mom',lead:'Take the no calmly, then ask for something that could work.',wrong:'Hmm. The answer is still no.',items:[
  {say:'No candy now. It’s almost dinner.',mood:'neutral',opts:[['Say “Okay. Can I have some after dinner?”',1],['Whine “Pleeease!” over and over.',0],['Sneak some when Mom isn’t looking.',0]],ok:'Thanks for taking no so well. Yes, one after dinner!'},
  {say:'Screen time is done for today.',mood:'neutral',opts:[['Say “Okay,” and pick something else to do.',1],['Yell “That’s not fair!” and slam the door.',0],['Keep playing and pretend you didn’t hear.',0]],ok:'You handled that like a pro! Want to play a game with me?'},
@@ -499,3 +499,4 @@ if(!document.getElementById('zoneCss')){const st=document.createElement('style')
 window.RikiSocial={state:()=>({boardPick,good:boardPick!==null?scenes[boardPick].good:null,pieces:talks[dialogueStep%talks.length].pieces,sortAnswer:sortCases[sortIndex%sortCases.length][1],sortIndex,planStep,zone:zSave,zCur})};
 selHub=newHub;
 })();
+

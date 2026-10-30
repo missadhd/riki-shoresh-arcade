@@ -5,7 +5,6 @@ Add a row when you open your draft PR and remove it in the same PR when you fini
 
 | Who | Branch | Files | Status |
 |---|---|---|
-| ChatGPT | chatgpt/dolls-pets-game-polish | assets/scripts/01-game.js, assets/scripts/07-game.js, assets/scripts/12-game.js, assets/scripts/13-game.js, assets/styles/16-styles.css, index.html, COORDINATION.md | QA and publishing |
 
 ## Map of the code
 
