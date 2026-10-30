@@ -36,7 +36,9 @@
     "mouthWide": "mouth-wide.webp",
     "mouthO": "mouth-o.webp",
     "legLeft": "leg-left.webp",
-    "legRight": "leg-right.webp"
+    "legRight": "leg-right.webp",
+    "hipCover": "hip-cover.webp",
+    "neckShoulderCover": "neck-shoulder-cover.webp"
   },
   "anchors": {
     "hat": [
@@ -105,12 +107,13 @@
     ]
   },
   "wearables": {
-    "dress": "outfit-pink-dress-fitted-v2.webp",
+    "dress": "outfit-pink-dress-fitted-v3.webp",
     "shoes": "shoes-pink.webp",
     "earrings": "accessory-earrings.webp",
     "hairClips": "accessory-hair-clips.webp",
-    "bracelet": "accessory-bracelet.webp",
-    "mintDress": "outfit-mint-dress-fitted-v2.webp"
+    "mintDress": "outfit-mint-dress-fitted-v2.webp",
+    "braceletBack": "accessory-bracelet-back.webp",
+    "braceletFront": "accessory-bracelet-front.webp"
   },
   "garmentZones": {
     "upperBody": [
@@ -125,21 +128,16 @@
     "walk": {
       "durationMs": 1400,
       "parts": [
-        "legLeft",
-        "legRight",
-        "arm-left",
-        "arm-right"
-      ]
+        "wholeRig"
+      ],
+      "note": "Whole-rig stepping prevents source-layer seams."
     },
     "jump": {
       "durationMs": 850,
       "parts": [
-        "wholeRig",
-        "arm-left",
-        "arm-right",
-        "legLeft",
-        "legRight"
-      ]
+        "wholeRig"
+      ],
+      "note": "Whole-rig movement prevents seams."
     },
     "wave": {
       "durationMs": 650,
