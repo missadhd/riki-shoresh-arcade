@@ -4,6 +4,7 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
+| ChatGPT | `chatgpt/layered-riki-preview` | `preview-layered-riki.html`, `assets/images/dolls/riki-talk-closed.webp`, `assets/images/dolls/riki-talk-small.webp`, `assets/images/dolls/riki-talk-wide.webp`, `assets/images/dolls/riki-blink.webp` | Building a layered animation preview in the approved doll style |
 
 ## Map of the code
 
