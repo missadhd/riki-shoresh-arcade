@@ -446,7 +446,7 @@ ov.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.z==='in')H.distT=Math.max(4,H.distT-2);if(b.dataset.z==='out')H.distT=Math.min(24,H.distT+2);if(b.dataset.z==='all')hFocus('all');
   if(b.id==='wh3dGo'&&H.focus!=='all'){const r=H.focus;closeHouse();SET(`currentRoom=${JSON.stringify(r)};housePage='decorate';selectedItem='';`);try{const hr=G('houseRender');hr&&hr();}catch(_){}window.scrollTo(0,0);}});
 document.addEventListener('keydown',e=>{if(H.open&&e.key==='Escape')closeHouse();});
-function addButtons(){document.querySelectorAll('.house-nav,.riki3d-actions').forEach(n=>{if(n.querySelector('.wh3d-open'))return;const b=document.createElement('button');b.type='button';b.className='secondary wh3d-open';b.textContent='🏡 Whole house 3D';b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openHouse();});n.appendChild(b);});}
+function addButtons(){document.querySelectorAll('.house-nav').forEach(n=>{if(n.querySelector('.wh3d-open'))return;const b=document.createElement('button');b.type='button';b.className='secondary wh3d-open';b.textContent='🏡 Whole house 3D';b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openHouse();});n.appendChild(b);});}
 new MutationObserver(addButtons).observe(document.body,{childList:true,subtree:true});addButtons();
 window.openWholeHouse3D=openHouse;
 window.RK3=Object.assign(window.RK3||{},{B,mat,fabric,gloss,wood,metalM,RB,BX,CY,SP,CO,add,rbox,eye,legs4,loadThree,shadeHex,canvasTex,rugTex,lights,makeItem,MODEL:(window.RK3&&window.RK3.MODEL)||{}});

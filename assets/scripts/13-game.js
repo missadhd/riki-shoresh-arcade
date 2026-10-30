@@ -391,3 +391,39 @@ if(typeof prevRender==='function'){
 document.addEventListener('click',e=>{const b=e.target.closest('[data-creative],[data-extra],[data-special]');if(!b)return;const id=b.dataset.creative||b.dataset.extra||b.dataset.special;if(IDS.includes(id)){e.stopPropagation();e.preventDefault();if(!studioWebGLAvailable()||!startStudio(id))startStudio2D(id);}},true);
 window.RikiStudio={start:startStudio,games:GAMES,state:()=>S};
 })();
+
+/* Menu tidy-up (Claude, Oct 29): group games into "Make something" and "Word games", show each
+   make-game as a 3D picture of a finished creation, point "Play inside" at the 3D rooms, and
+   re-draw the menu once every script has loaded so all games appear on first open. */
+(function(){
+const G=n=>{try{return (0,eval)(n)}catch(e){return undefined}};
+const SET=c=>{try{(0,eval)(c)}catch(e){}};
+const MAKE=['cupcakes','cake','dressup','pets','boutique','claw','aquarium','quest','giftwrap','garden'];
+const pics={};let rig=null;
+function snapCreation(id){
+  if(pics[id])return pics[id];const def=window.RikiStudio&&window.RikiStudio.games[id];if(!def||!window.THREE)return null;
+  if(!rig){const cv=document.createElement('canvas');cv.width=cv.height=240;const r=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true,preserveDrawingBuffer:true});r.setPixelRatio(1);r.setSize(240,240,false);r.outputEncoding=THREE.sRGBEncoding;r.toneMapping=THREE.ACESFilmicToneMapping;r.toneMappingExposure=1.12;r.setClearColor(0,0);
+    const s=new THREE.Scene();s.add(new THREE.HemisphereLight(0xffffff,0xffd9e4,.85));const k=new THREE.DirectionalLight(0xfff3e6,1.1);k.position.set(3,6,5);s.add(k);const rim=new THREE.DirectionalLight(0xffc4dd,.5);rim.position.set(-4,3,-4);s.add(rim);rig={r,s,c:new THREE.PerspectiveCamera(30,1,.01,60)};}
+  const g=new THREE.Group();try{def.base.call(def,g);def.steps.forEach((st,i)=>{const v=st.vs[i%st.vs.length];if(v&&!st.anim)v.build(g);else if(v&&(st.anim==='grow'||st.anim==='swim'))v.build(g);});}catch(e){}
+  const {r,s,c}=rig;s.add(g);g.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(g);if(box.isEmpty()){s.remove(g);return null;}
+  const size=box.getSize(new THREE.Vector3()),ctr=box.getCenter(new THREE.Vector3()),rad=Math.max(size.x,size.y,size.z)*.6,d=rad/Math.sin(c.fov*Math.PI/360);
+  c.position.set(ctr.x+Math.sin(.55)*d*.95,ctr.y+d*.3,ctr.z+Math.cos(.55)*d*.95);c.lookAt(ctr);c.updateProjectionMatrix();r.render(s,c);pics[id]=r.domElement.toDataURL('image/png');s.remove(g);return pics[id];
+}
+function organize(){
+  const grid=document.querySelector('.games');if(!grid||grid.dataset.grouped)return;grid.dataset.grouped='1';
+  const cards=[...grid.querySelectorAll('.gamecard')];const idOf=c=>c.dataset.creative||c.dataset.extra||c.dataset.special||c.dataset.game;
+  const make=cards.filter(c=>MAKE.includes(idOf(c))),words=cards.filter(c=>!MAKE.includes(idOf(c)));
+  grid.innerHTML='';const head=t=>{const h=document.createElement('h3');h.className='games-group';h.textContent=t;grid.appendChild(h);};
+  if(make.length){head('🎨 Make something');make.forEach(c=>grid.appendChild(c));}
+  if(words.length){head('🧠 Word games');words.forEach(c=>grid.appendChild(c));}
+  const live=document.getElementById('livingHouse');if(live)live.textContent='🧸 Decorate my rooms';
+  const paint=()=>make.forEach(c=>{const u=snapCreation(idOf(c));const em=c.querySelector('.emoji');if(u&&em&&!em.querySelector('img')){em.innerHTML=`<img src="${u}" alt="">`;em.classList.add('emoji-3d');}});
+  const K=window.RK3;if(K&&K.loadThree)K.loadThree(()=>requestAnimationFrame(paint),()=>{});
+}
+const prevMenu=G('menu');
+if(typeof prevMenu==='function'){window.__tidyMenu=function(){const r=prevMenu.apply(this,arguments);try{organize();}catch(e){}return r;};SET('menu=window.__tidyMenu;');}
+/* "Play inside" now opens the 3D rooms, which hold the same shelves, drawers and storage */
+document.addEventListener('click',e=>{const b=e.target.closest('#livingHouse,#playHouse');if(!b)return;e.preventDefault();e.stopPropagation();const hh=G('houseHome');if(typeof hh==='function')hh();},true);
+/* All scripts are loaded now: re-draw the home menu so every game shows on first open */
+if(!G('game')&&document.querySelector('.games')){const m=G('menu');if(typeof m==='function')m();}
+})();
