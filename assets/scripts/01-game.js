@@ -1,3 +1,4 @@
+/* SEL rotation audit claim. */
 /* Hebrew editor and SEL mastery claim. */
 /* SEL custom-question builder work claim. */
 /* SEL editorial revision claim. */
@@ -258,8 +259,23 @@ function selAll(mode){const saved=selRead(SEL_CUSTOM_KEY)[mode]||[];return (SEL_
 
 const SEL_MASTERY_KEY='rikiSocialMasteryV1';
 function selMastery(){return selRead(SEL_MASTERY_KEY)}
-function selNewOrder(mode){const all=selAll(mode),seen=selRead(SEL_SEEN_KEY),history=Array.isArray(seen[mode])?seen[mode]:[],progress=selMastery()[mode]||{},correct=Number(progress.correct)||0,attempts=Number(progress.attempts)||0,level=attempts>=24&&correct/Math.max(1,attempts)>=.8?3:attempts>=8&&correct/Math.max(1,attempts)>=.7?2:1;
-const indices=all.map((_,i)=>i),shuffle=a=>a.sort(()=>Math.random()-.5);const tier=i=>i>=10?2:i>=4?1:0;const target=level===1?0:level===2?1:2;const preferred=shuffle(indices.filter(i=>tier(i)===target&&!history.includes(i)));const remaining=shuffle(indices.filter(i=>!preferred.includes(i)&&!history.includes(i)));const picked=preferred.concat(remaining).slice(0,8);if(picked.length<8)picked.push(...shuffle(indices.filter(i=>!picked.includes(i))).slice(0,8-picked.length));seen[mode]=(history.concat(picked)).slice(-Math.max(0,all.length-8));selWrite(SEL_SEEN_KEY,seen);return picked}
+function selNewOrder(mode){
+ const all=selAll(mode),seen=selRead(SEL_SEEN_KEY),previous=Array.isArray(seen[mode])?seen[mode]:[];
+ const available=all.map((_,i)=>i),valid=previous.filter(i=>Number.isInteger(i)&&i>=0&&i<all.length);
+ const used=new Set(valid),remaining=available.filter(i=>!used.has(i));
+ const shuffle=arr=>{for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr};
+ const progress=selMastery()[mode]||{},attempts=Number(progress.attempts)||0,accuracy=(Number(progress.correct)||0)/Math.max(1,attempts);
+ const level=attempts>=24&&accuracy>=.8?3:attempts>=8&&accuracy>=.7?2:1;
+ // Difficulty influences order, but NEVER hides unpracticed questions.
+ const tier=i=>i>=10?3:i>=4?2:1;
+ const arrange=arr=>{const buckets=[[],[],[],[]];shuffle(arr).forEach(i=>buckets[tier(i)].push(i));const result=[];while(buckets.some(a=>a.length)){const preferred=buckets[level].shift();if(preferred!==undefined)result.push(preferred);for(const t of [1,2,3])if(t!==level&&buckets[t].length)result.push(buckets[t].shift())}return result};
+ const round=arrange(remaining).slice(0,Math.min(8,all.length));
+ // Only begin a new cycle when every item has been encountered.
+ if(round.length<Math.min(8,all.length))round.push(...arrange(available.filter(i=>!round.includes(i))).slice(0,Math.min(8,all.length)-round.length));
+ seen[mode]=round.length&&remaining.length<=round.length?round.slice():valid.concat(round);
+ selWrite(SEL_SEEN_KEY,seen);
+ return round
+}
 function selRecordAnswer(mode,correct){const all=selMastery(),p=all[mode]||{attempts:0,correct:0};p.attempts++;if(correct)p.correct++;if(p.attempts>60){p.attempts=Math.ceil(p.attempts/2);p.correct=Math.ceil(p.correct/2)}all[mode]=p;selWrite(SEL_MASTERY_KEY,all)}
 function selEditor(){game='sel';const custom=selRead(SEL_CUSTOM_KEY);app.innerHTML=`<section class="panel"><button class="secondary" id="selEditorBack">← Social Skills</button><h2>✏️ Add a practice question</h2><p>For a grown-up: create a situation Riki is working on. Questions are saved on this device.</p><form id="selQuestionForm" style="display:grid;gap:12px"><label>Game<select id="selQMode">${SEL_MODES.filter(m=>m.id!=='reset').map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}</select></label><label>Situation<textarea id="selQSituation" maxlength="350" required placeholder="A classmate keeps interrupting during group work."></textarea></label><label>Question<input id="selQPrompt" maxlength="180" required value="What could you do?"></label><label>Answer A<input id="selQA" maxlength="200" required></label><label>Answer B<input id="selQB" maxlength="200" required></label><label>Answer C<input id="selQC" maxlength="200" required></label><label>Best answer<select id="selQCorrect"><option value="0">A</option><option value="1">B</option><option value="2">C</option></select></label><label>Why this helps<textarea id="selQExplain" maxlength="350" required></textarea></label><label>Something Riki could say<input id="selQSay" maxlength="220" required></label><button class="primary" type="submit">Save question</button></form><p id="selEditorMessage" role="status"></p></section><section class="panel"><h3>Saved questions</h3><div id="selSavedList"></div></section>`;
 const renderSaved=()=>{const all=selRead(SEL_CUSTOM_KEY),entries=SEL_MODES.filter(m=>m.id!=='reset').flatMap(m=>(all[m.id]||[]).map((q,i)=>({mode:m,index:i,question:q})));document.getElementById('selSavedList').innerHTML=entries.length?entries.map(e=>`<div style="padding:10px 0;border-bottom:1px solid #ddd"><strong>${selSafe(e.mode.name)}</strong> — ${selSafe(e.question[1])}<button class="secondary" data-delete-sel="${e.mode.id}:${e.index}" type="button">Delete</button></div>`).join(''):'No custom questions yet.';document.querySelectorAll('[data-delete-sel]').forEach(b=>b.onclick=()=>{const [mode,index]=b.dataset.deleteSel.split(':');const saved=selRead(SEL_CUSTOM_KEY);saved[mode].splice(Number(index),1);selWrite(SEL_CUSTOM_KEY,saved);renderSaved()})};
