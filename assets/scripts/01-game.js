@@ -421,7 +421,7 @@ function rikiParentMenu(){
  let button=document.getElementById('rikiParentMenuButton');
  if(button)return;
  const stats=document.querySelector('.stats');if(!stats)return;
- button=document.createElement('button');button.type='button';button.id='rikiParentMenuButton';button.className='smallbtn';button.textContent='☰ Parent';button.setAttribute('aria-expanded','false');button.setAttribute('aria-controls','rikiParentPanel');
+ button=document.createElement('button');button.type='button';button.id='rikiParentMenuButton';button.className='smallbtn';button.textContent='☰ Parent';button.setAttribute('aria-expanded','false');button.setAttribute('aria-controls','rikiParentPanel');button.style.setProperty('display','inline-flex','important');
  const panel=document.createElement('div');panel.id='rikiParentPanel';panel.hidden=true;panel.style.cssText='position:absolute;right:8px;top:100%;z-index:1000;background:#fff;border:2px solid #b99fe6;border-radius:14px;padding:14px;box-shadow:0 8px 24px #0002;min-width:210px';
  panel.innerHTML='<strong>Parent tools</strong><p style="margin:10px 0"><button class="secondary" id="parentHebrewRoots">✏️ Add Hebrew שורשים</button></p><p style="font-size:12px;margin:0">Changes are saved on this device.</p>';
  stats.style.position='relative';stats.appendChild(button);stats.appendChild(panel);
@@ -458,3 +458,24 @@ function rocketLaunchMini(s){
  const app=document.getElementById('app');if(app)new MutationObserver(bind).observe(app,{childList:true,subtree:true});bind();
 })();
 
+
+/* Keep core adventures reachable when a later layer replaces the social hub.
+   Observe hub rendering rather than replacing the other layer's navigation. */
+(function(){
+ function addCoreSocialAdventures(){
+  if(!app.querySelector('.z-tabs')||document.getElementById('coreSocialAdventures'))return;
+  const section=document.createElement('section');section.id='coreSocialAdventures';section.className='panel';
+  section.innerHTML='<h2>✨ Five Social Skills Adventures</h2><div class="sel-grid"></div>';
+  const games=[
+   ['🕵️‍♀️','Friendship Mystery','Reveal clues and solve misunderstandings',()=>selHandsStart('mystery')],
+   ['🧑‍🤝‍🧑','Teamwork Challenge','Make decisions in a group project',()=>selHandsStart('team')],
+   ['🌬️','Emotion Lab','Try coping tools and choose a next step',()=>selHandsStart('emotion')],
+   ['🔎','Social Detective','Investigate clues and possibilities',()=>socialStart('detective')],
+   ['💬🧩','Say It Better','Build a respectful sentence',()=>socialStart('say')]
+  ];
+  games.forEach(([emoji,name,description,start])=>{const button=document.createElement('button');button.type='button';button.className='sel-card';button.innerHTML='<span class="sel-emoji">'+emoji+'</span><strong>'+name+'</strong><p>'+description+'</p>';button.onclick=start;section.querySelector('.sel-grid').appendChild(button);});
+  app.appendChild(section);
+ }
+ function ready(){new MutationObserver(addCoreSocialAdventures).observe(app,{childList:true});addCoreSocialAdventures();}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
+})();
