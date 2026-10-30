@@ -93,10 +93,6 @@
       848,
       411
     ],
-    "wristRight": [
-      760,
-      976
-    ],
     "shoeLeft": [
       462,
       1292
@@ -111,9 +107,7 @@
     "shoes": "shoes-pink.webp",
     "earrings": "accessory-earrings.webp",
     "hairClips": "accessory-hair-clips.webp",
-    "mintDress": "outfit-mint-dress-fitted-v2.webp",
-    "braceletBack": "accessory-bangle-forearm-v3-back.webp",
-    "braceletFront": "accessory-bangle-forearm-v3-front.webp"
+    "mintDress": "outfit-mint-dress-fitted-v2.webp"
   },
   "garmentZones": {
     "upperBody": [
@@ -143,8 +137,7 @@
       "durationMs": 650,
       "parts": [
         "arm-right",
-        "hand-right",
-        "bracelet"
+        "hand-right"
       ]
     }
   }
