@@ -102,6 +102,14 @@
     "shoeRight": [
       608,
       1292
+    ],
+    "wristRight": [
+      780,
+      1000
+    ],
+    "waveWristRight": [
+      844,
+      706
     ]
   },
   "wearables": {
@@ -115,6 +123,10 @@
       "white": "base leg layers",
       "pink": "accessory-shoes-pink.png",
       "mint": "accessory-shoes-mint.png"
+    },
+    "bracelet": {
+      "neutral": "accessory-bracelet-neutral.png",
+      "wave": "accessory-bracelet-wave.png"
     }
   },
   "garmentZones": {
