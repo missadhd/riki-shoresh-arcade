@@ -680,14 +680,14 @@ function hub(){
   const tile=(id,icon,title,sub,cls='')=>`<button type="button" class="hub-tile ${cls}" id="${id}"><span class="hub-ic">${icon}</span><b>${title}</b><span>${sub}</span></button>`;
   app.innerHTML=`<section class="hub"><div class="hub-hi"><h1>Hi Riki! 👋</h1><p>What do you want to do?</p></div>
    <button type="button" class="hub-today" id="hubToday"><span class="hub-today-tag">⭐ Today's pick</span><b>${NAMES[pick]}</b><span>Tap to play</span></button>
-   <div class="hub-grid">${tile('hubGames','<span class="hub-alef" lang="he">אב</span>','Shoresh Games','Learn Hebrew roots')}${tile('hubSocial','💖','Social Skills','Feelings & friends')}${tile('hubHouse','🏠','My Dollhouse','Decorate your rooms')}${tile('hubShop','🛍️','Shop',`🪙 ${coins} coins to spend`)}</div>
+   <div class="hub-grid">${tile('hubGames','<span class="hub-alef" lang="he">אב</span>','Shoresh Games','Learn Hebrew roots')}${tile('hubSocial','💖','Social Skills','Feelings & friends')}${tile('hubHouse','🏠','My Dollhouse','Decorate your rooms')}${tile('hubShop','🛍️','Shop',`🪙 ${coins} coins to spend`)}${tile('hubPlay','🎀','Play with Dolls',`🎟️ ${window.RikiPlay?window.RikiPlay.state().tokens:0} plays · dolls & pets`,'hub-play')}</div>
    <button type="button" class="hub-progress" id="hubProgress">📊 Progress for grown-ups</button></section>`;
   const $=id=>document.getElementById(id);const tap=()=>{try{const a=G('audio');a&&a('tap');}catch(_){}};
   $('hubGames').onclick=()=>{tap();const m=G('menu');m&&m();window.scrollTo(0,0);};
   $('hubSocial').onclick=()=>{tap();const s=G('selHub');s&&s();window.scrollTo(0,0);};
   $('hubHouse').onclick=()=>{tap();const h=G('houseHome');h&&h();window.scrollTo(0,0);};
   $('hubShop').onclick=()=>{tap();const h=G('houseHome');h&&h();SET("housePage='shop';");const r=G('houseRender');r&&r();window.scrollTo(0,0);};
-  $('hubProgress').onclick=()=>{tap();window.RikiProgress&&window.RikiProgress.show();};
+  $('hubPlay').onclick=()=>{tap();window.RikiPlay&&window.RikiPlay.open();};$('hubProgress').onclick=()=>{tap();window.RikiProgress&&window.RikiProgress.show();};
   $('hubToday').onclick=()=>{tap();window.RikiStudio&&window.RikiStudio.start(pick);};
   window.scrollTo(0,0);
 }
@@ -711,4 +711,238 @@ function header(){const stats=document.querySelector('.top .stats');if(!stats||d
   const brand=document.querySelector('.top .brand');if(brand){brand.style.cursor='pointer';brand.onclick=hub;}}
 header();
 if(!G('game'))hub();
+})();
+
+/* Doll & pet play mode (Claude, Oct 30): separate from decorating. Plays are earned by winning coins in games. */
+(function(){
+const G=n=>{try{return (0,eval)(n)}catch(e){return undefined}};
+const SET=c=>{try{(0,eval)(c)}catch(e){}};
+/* ---- Doll & pet art ---- */
+const SKIN=['#ffe1cc','#f6c9a6','#dca07a','#a8694a','#7a4a32'];
+const HAIR=['#5a3624','#2b1e1e','#e8b860','#c2552f','#f2a3c7','#9b7be0','#6fc3e8'];
+const OUTFIT=[['#ff8fbd','#ffd1e4'],['#9f8cff','#ddd5ff'],['#5fd0c0','#c9f4ee'],['#ffb547','#ffe6b8'],['#ff6b6b','#ffd0d0'],['#6fa8ff','#d3e4ff']];
+const STYLES=['long','pigtails','bun','bob','ponytail'];
+const OUTS=['dress','tutu','overalls','hoodie','pajamas'];
+const ACC=['none','bow','headband','crown','flower','cat-ears'];
+let uid=0;
+function doll(d,pose='stand'){const id='d'+(++uid);const sk=SKIN[d.skin],hr=HAIR[d.hair],[oc,ol]=OUTFIT[d.color];const hrD=shade(hr,-.25),skD=shade(sk,-.12);
+ const eyes=pose==='sleep'?`<path d="M44 66 q7 6 14 0 M66 66 q7 6 14 0" stroke="#3b2433" stroke-width="2.6" fill="none" stroke-linecap="round"/>`
+  :`<g><ellipse cx="51" cy="64" rx="7.5" ry="9" fill="#fff"/><ellipse cx="73" cy="64" rx="7.5" ry="9" fill="#fff"/>
+   <ellipse cx="51.5" cy="65.5" rx="6" ry="7.5" fill="url(#${id}i)"/><ellipse cx="72.5" cy="65.5" rx="6" ry="7.5" fill="url(#${id}i)"/>
+   <ellipse cx="51.5" cy="66.5" rx="3.2" ry="4.2" fill="#24141f"/><ellipse cx="72.5" cy="66.5" rx="3.2" ry="4.2" fill="#24141f"/>
+   <circle cx="49" cy="62" r="2.4" fill="#fff"/><circle cx="70" cy="62" r="2.4" fill="#fff"/><circle cx="54" cy="69" r="1.1" fill="#fff"/><circle cx="75" cy="69" r="1.1" fill="#fff"/>
+   <path d="M42.5 59 q8.5-8 17 -1 M64.5 58 q8.5-7 17 1" stroke="#2b1a24" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+   <path d="M43 59 l-3 -3 M81.5 59 l3 -3" stroke="#2b1a24" stroke-width="2" stroke-linecap="round"/></g>`;
+ const hairBack={long:`<path d="M24 58 q-2 58 10 74 h52 q12-16 10-74z" fill="${hr}"/>`,pigtails:`<ellipse cx="22" cy="78" rx="11" ry="20" fill="${hr}"/><ellipse cx="98" cy="78" rx="11" ry="20" fill="${hr}"/><circle cx="27" cy="58" r="5" fill="${oc}"/><circle cx="93" cy="58" r="5" fill="${oc}"/>`,
+  bun:`<circle cx="60" cy="16" r="15" fill="${hr}"/><circle cx="55" cy="11" r="4" fill="#fff" opacity=".25"/>`,bob:`<path d="M23 58 q-3 32 6 40 h62 q9-8 6-40z" fill="${hr}"/>`,ponytail:`<path d="M90 36 q26 10 18 52 q-4 14-12 18 q6-30-12-58z" fill="${hr}"/>`}[STYLES[d.style]];
+ const acc={none:'',bow:`<g transform="translate(84 28) rotate(18)"><path d="M0 0 l-13-8 v16z M0 0 l13-8 v16z" fill="${oc}" stroke="${shade(oc,-.2)}" stroke-width="1.5"/><circle r="4" fill="${shade(oc,-.15)}"/></g>`,
+  headband:`<path d="M27 42 q33-30 66 0" stroke="${oc}" stroke-width="6" fill="none" stroke-linecap="round"/>`,crown:`<path d="M44 22 l6 -14 l10 10 l10 -10 l6 14z" fill="#ffd34d" stroke="#e0a800" stroke-width="1.5"/><circle cx="60" cy="16" r="2.5" fill="#ff6fa8"/>`,
+  flower:`<g transform="translate(86 34)">${[0,72,144,216,288].map(a=>`<ellipse rx="4.5" ry="7" transform="rotate(${a}) translate(0 -6)" fill="#ffb3d1"/>`).join('')}<circle r="4" fill="#ffd34d"/></g>`,
+  'cat-ears':`<path d="M30 34 l4 -22 l16 14z M90 34 l-4 -22 l-16 14z" fill="${hr}"/><path d="M34 30 l2 -12 l9 8z M86 30 l-2 -12 l-9 8z" fill="#ffb3c8"/>`}[ACC[d.acc]];
+ const body={dress:`<path d="M42 112 h36 l12 46 q-30 8 -60 0z" fill="${oc}"/><path d="M30 158 q30 8 60 0 l-2 -6 q-28 7 -56 0z" fill="${ol}"/>${[[48,128],[66,124],[58,142],[74,146],[42,148]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.2" fill="${ol}"/>`).join('')}<path d="M48 112 l12 9 l12 -9" fill="${ol}"/>`,
+  tutu:`<path d="M44 112 h32 l2 26 h-36z" fill="${oc}"/><path d="M26 150 q8-14 16-10 q8-8 18 -2 q10-6 18 2 q8-4 16 10 q-34 10 -68 0z" fill="${ol}"/><path d="M30 146 q30 9 60 0" stroke="${oc}" stroke-width="2" fill="none"/><circle cx="60" cy="124" r="3" fill="${ol}"/>`,
+  overalls:`<path d="M42 112 h36 l3 28 h-42z" fill="#fff"/><path d="M45 122 h30 v36 h-30z" fill="${oc}"/><path d="M45 122 l-3 -10 M75 122 l3 -10" stroke="${oc}" stroke-width="4"/><circle cx="48" cy="126" r="2" fill="${ol}"/><circle cx="72" cy="126" r="2" fill="${ol}"/><rect x="53" y="132" width="14" height="10" rx="3" fill="${ol}"/>`,
+  hoodie:`<path d="M40 112 h40 l4 36 h-48z" fill="${oc}"/><path d="M50 112 q10 10 20 0" fill="${ol}"/><rect x="50" y="132" width="20" height="9" rx="4" fill="${ol}"/><path d="M42 148 h36 v12 h-36z" fill="#6b7fbf"/>`,
+  pajamas:`<path d="M42 112 h36 l3 34 h-42z" fill="${ol}"/>${[[50,122],[68,120],[58,134],[48,140],[72,138]].map(([x,y])=>`<path d="M${x} ${y-3} l1 2 2 .3 -1.6 1.4 .5 2.2 -1.9-1.1 -1.9 1.1 .5-2.2 -1.6-1.4 2-.3z" fill="${oc}"/>`).join('')}<path d="M42 146 h36 v14 h-36z" fill="${ol}"/><path d="M60 146 v14" stroke="${oc}" stroke-width="1.5"/>`}[OUTS[d.out]];
+ const armL=pose==='wave'?`<path d="M42 116 q-14 -10 -16 -30" stroke="${sk}" stroke-width="8" fill="none" stroke-linecap="round"/>`:`<path d="M42 116 q-8 14 -8 30" stroke="${sk}" stroke-width="8" fill="none" stroke-linecap="round"/>`;
+ return `<svg class="pd-doll" viewBox="0 0 120 200" aria-hidden="true"><defs><radialGradient id="${id}i" cx=".5" cy=".35" r=".7"><stop offset="0" stop-color="#b98cff"/><stop offset=".6" stop-color="#6b3fa8"/><stop offset="1" stop-color="#3a1f5e"/></radialGradient>
+  <linearGradient id="${id}h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${shade(hr,.15)}"/><stop offset="1" stop-color="${hrD}"/></linearGradient></defs>
+  <ellipse cx="60" cy="194" rx="30" ry="5" fill="#4a2338" opacity=".14"/>
+  ${hairBack}
+  <path d="M48 158 v26 M72 158 v26" stroke="${sk}" stroke-width="8" stroke-linecap="round"/>
+  <path d="M41 186 q7 -6 14 0 q0 5 -7 5 h-7z M65 186 q7 -6 14 0 q0 5 -7 5 h-7z" fill="${shade(oc,-.15)}"/>
+  ${armL}<path d="M78 116 q8 14 8 30" stroke="${sk}" stroke-width="8" fill="none" stroke-linecap="round"/>
+  ${body}
+  <rect x="54" y="98" width="12" height="16" rx="5" fill="${skD}"/>
+  <ellipse cx="60" cy="62" rx="38" ry="40" fill="${sk}"/>
+  <ellipse cx="22.5" cy="66" rx="5" ry="7" fill="${sk}"/><ellipse cx="97.5" cy="66" rx="5" ry="7" fill="${sk}"/>
+  <path d="M21 62 q-1 -46 39 -46 q40 0 39 46 q-6 -10 -14 -14 q-4 10 -18 12 q8 -6 8 -14 q-14 14 -36 14 q-10 0 -18 2z" fill="url(#${id}h)"/>
+  <path d="M40 26 q12 -6 22 -4" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" opacity=".45"/>
+  ${acc}
+  ${eyes}
+  <ellipse cx="41" cy="78" rx="7" ry="4.2" fill="#ff8fb0" opacity=".5"/><ellipse cx="79" cy="78" rx="7" ry="4.2" fill="#ff8fb0" opacity=".5"/>
+  <path d="M59 73 q1 1.5 2 0" stroke="${shade(sk,-.3)}" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  ${pose==='sleep'?`<ellipse cx="60" cy="84" rx="3" ry="2" fill="#c45a78"/>`:`<path d="M53 81 q7 7 14 0 q-7 3 -14 0z" fill="#e8577f" stroke="#a8345a" stroke-width="1.6" stroke-linejoin="round"/>`}
+ </svg>`;}
+function shade(hex,amt){let c=parseInt(hex.slice(1),16),r=c>>16,g=c>>8&255,b=c&255;const f=v=>Math.max(0,Math.min(255,Math.round(amt<0?v*(1+amt):v+(255-v)*amt)));return '#'+((1<<24)+(f(r)<<16)+(f(g)<<8)+f(b)).toString(16).slice(1);}
+const PETS={
+ puppy:{name:'Puppy',c:'#e8b77e',d:'#9c6a3c'},kitty:{name:'Kitty',c:'#bdb6c9',d:'#6f6680'},bunny:{name:'Bunny',c:'#fff4f6',d:'#e8b8c8'},
+ unicorn:{name:'Unicorn',c:'#ffffff',d:'#c8a8ff'},hamster:{name:'Hamster',c:'#f2c48a',d:'#fff3df'},panda:{name:'Panda',c:'#ffffff',d:'#2f2a33'}};
+function pet(kind,mood='happy'){const p=PETS[kind];const id='p'+(++uid);const c=p.c,d=p.d;
+ const ears={puppy:`<ellipse cx="22" cy="40" rx="11" ry="20" fill="${d}" transform="rotate(20 22 40)"/><ellipse cx="78" cy="40" rx="11" ry="20" fill="${d}" transform="rotate(-20 78 40)"/>`,
+  kitty:`<path d="M18 40 l6 -26 l18 16z M82 40 l-6 -26 l-18 16z" fill="${c}"/><path d="M22 34 l3 -13 l9 8z M78 34 l-3 -13 l-9 8z" fill="#ffb8cc"/>`,
+  bunny:`<ellipse cx="36" cy="14" rx="8" ry="24" fill="${c}" stroke="#f0d6de" stroke-width="2"/><ellipse cx="64" cy="14" rx="8" ry="24" fill="${c}" stroke="#f0d6de" stroke-width="2"/><ellipse cx="36" cy="16" rx="4" ry="16" fill="#ffc4d6"/><ellipse cx="64" cy="16" rx="4" ry="16" fill="#ffc4d6"/>`,
+  unicorn:`<path d="M22 36 l4 -16 l12 10z M78 36 l-4 -16 l-12 10z" fill="${c}" stroke="#eadcff" stroke-width="2"/><path d="M50 4 l-6 26 h12z" fill="#ffd34d" stroke="#e8b400" stroke-width="1.5"/><path d="M28 30 q-14 14 -8 34 q4 -16 14 -22z" fill="#ff9ccf"/><path d="M34 26 q-8 18 2 30 q0 -16 8 -24z" fill="#9fd6ff"/>`,
+  hamster:`<circle cx="26" cy="30" r="9" fill="${c}"/><circle cx="74" cy="30" r="9" fill="${c}"/><circle cx="26" cy="30" r="5" fill="#ffb8cc"/><circle cx="74" cy="30" r="5" fill="#ffb8cc"/>`,
+  panda:`<circle cx="24" cy="28" r="11" fill="${d}"/><circle cx="76" cy="28" r="11" fill="${d}"/>`}[kind];
+ const patch=kind==='panda'?`<ellipse cx="38" cy="54" rx="9" ry="11" fill="${d}" transform="rotate(-20 38 54)"/><ellipse cx="62" cy="54" rx="9" ry="11" fill="${d}" transform="rotate(20 62 54)"/>`:kind==='hamster'?`<ellipse cx="50" cy="68" rx="20" ry="13" fill="${d}"/>`:kind==='puppy'?`<ellipse cx="62" cy="44" rx="10" ry="9" fill="${d}" opacity=".6"/>`:'';
+ const eye=mood==='sleep'?`<path d="M33 54 q5 4 10 0 M57 54 q5 4 10 0" stroke="#2a1a24" stroke-width="2.4" fill="none" stroke-linecap="round"/>`:mood==='love'?`<path d="M38 50 c-4-5-10 0-5 5 l5 5 5-5 c5-5-1-10-5-5z M62 50 c-4-5-10 0-5 5 l5 5 5-5 c5-5-1-10-5-5z" fill="#ff4f8b"/>`
+  :`<ellipse cx="38" cy="54" rx="5.5" ry="6.5" fill="#24141f"/><ellipse cx="62" cy="54" rx="5.5" ry="6.5" fill="#24141f"/><circle cx="36" cy="51.5" r="2.2" fill="#fff"/><circle cx="60" cy="51.5" r="2.2" fill="#fff"/><circle cx="40" cy="57" r="1" fill="#fff"/><circle cx="64" cy="57" r="1" fill="#fff"/>`;
+ return `<svg class="pd-pet" viewBox="0 0 100 110" aria-hidden="true"><ellipse cx="50" cy="106" rx="26" ry="4" fill="#4a2338" opacity=".14"/>
+  <ellipse cx="50" cy="88" rx="26" ry="18" fill="${c}" stroke="${shade(c,-.12)}" stroke-width="1.5"/>
+  <ellipse cx="36" cy="102" rx="8" ry="5" fill="${c}" stroke="${shade(c,-.12)}" stroke-width="1.5"/><ellipse cx="64" cy="102" rx="8" ry="5" fill="${c}" stroke="${shade(c,-.12)}" stroke-width="1.5"/>
+  ${kind==='kitty'?`<path d="M74 90 q22 -4 16 -26" stroke="${c}" stroke-width="7" fill="none" stroke-linecap="round"/>`:kind==='puppy'?`<path d="M74 86 q14 -6 12 -18" stroke="${d}" stroke-width="6" fill="none" stroke-linecap="round" class="pd-wag"/>`:kind==='bunny'?`<circle cx="76" cy="92" r="7" fill="#fff"/>`:''}
+  ${ears}
+  <ellipse cx="50" cy="56" rx="32" ry="28" fill="${c}" stroke="${shade(c,-.12)}" stroke-width="1.5"/>
+  ${patch}${eye}
+  <ellipse cx="29" cy="64" rx="6" ry="3.5" fill="#ff8fb0" opacity=".55"/><ellipse cx="71" cy="64" rx="6" ry="3.5" fill="#ff8fb0" opacity=".55"/>
+  <ellipse cx="50" cy="63" rx="4" ry="3" fill="#3a2430"/>
+  <path d="M44 68 q6 6 6 0 q0 6 6 0" stroke="#3a2430" stroke-width="2" fill="none" stroke-linecap="round"/>
+  ${mood!=='sleep'&&(kind==='puppy')?`<path d="M48 70 q2 8 4 0z" fill="#ff7a9c"/>`:''}
+ </svg>`;}
+/* ---- Play mode ---- */
+const KEY='rikiPlayTokensV1';
+const DOLLS=[{id:'riki',name:'Riki',cost:0,look:{skin:0,hair:0,style:0,color:0,out:0,acc:1}},{id:'maya',name:'Maya',cost:0,look:{skin:2,hair:1,style:1,color:1,out:1,acc:3}},
+ {id:'lily',name:'Lily',cost:60,look:{skin:1,hair:2,style:2,color:2,out:2,acc:2}},{id:'zoe',name:'Zoe',cost:60,look:{skin:3,hair:3,style:3,color:3,out:3,acc:4}},
+ {id:'ava',name:'Ava',cost:80,look:{skin:4,hair:4,style:4,color:4,out:0,acc:5}},{id:'luna',name:'Luna',cost:100,look:{skin:0,hair:5,style:0,color:5,out:1,acc:3}}];
+const PETCOST={puppy:0,kitty:50,bunny:50,hamster:50,panda:90,unicorn:120};
+const fresh=()=>({tokens:5,carry:0,dolls:['riki','maya'],pets:['puppy'],doll:'riki',pet:'puppy',looks:{},room:'bed',plays:0});
+let S=(()=>{try{return Object.assign(fresh(),JSON.parse(localStorage.getItem(KEY)||'{}'));}catch(e){return fresh();}})();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
+const look=id=>S.looks[id]||DOLLS.find(d=>d.id===id).look;
+const MAXT=30,PER=12;let buying=false;
+/* earn plays from coins won in games */
+(function(){const prior=G('award');if(typeof prior!=='function'||prior.__rkPlay)return;const wrap=function(n){prior.apply(this,arguments);if(n>0&&!buying){S.carry+=n;let got=0;while(S.carry>=PER){S.carry-=PER;if(S.tokens<MAXT){S.tokens++;got++;}}save();if(got)toast(`+${got} 🎟️ play${got>1?'s':''} for your dolls!`);}};wrap.__rkPlay=1;window.__rkAward=wrap;SET('award=window.__rkAward');})();
+function toast(t){let el=document.getElementById('pdToast');if(!el){el=document.createElement('div');el.id='pdToast';document.body.appendChild(el);}el.textContent=t;el.classList.remove('on');void el.offsetWidth;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),2200);}
+const spend=c=>{const co=G('coins')||0;if(co<c)return false;buying=true;SET(`coins-=${c};try{localStorage.setItem('rickyCoins',coins)}catch(e){};updateStats&&updateStats();`);buying=false;return true;};
+const tap=()=>{try{G('audio')('tap');}catch(_){}};const good=()=>{try{G('audio')('good');}catch(_){}};
+const sayEn=t=>{try{if(G('soundOn')===false)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=1;u.pitch=1.25;speechSynthesis.speak(u);}catch(e){}};
+
+/* ---- rooms: art + spots (x = where the doll walks, % of width) ---- */
+const wall=(a,b,pat)=>`<defs><pattern id="pw" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="${a}"/>${pat}</pattern><linearGradient id="pf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${b}"/><stop offset="1" stop-color="${shade(b,-.12)}"/></linearGradient></defs><rect width="360" height="200" fill="url(#pw)"/><rect y="196" width="360" height="74" fill="url(#pf)"/><rect y="192" width="360" height="8" fill="#fff" opacity=".8"/>${[0,1,2,3,4,5].map(i=>`<path d="M${i*72-20} 270 L${i*72+10} 200" stroke="#0001" stroke-width="2"/>`).join('')}`;
+const win=(x,cur)=>`<g transform="translate(${x} 30)"><rect width="70" height="62" rx="8" fill="#bfe8ff" stroke="#fff" stroke-width="5"/><path d="M35 0 v62 M0 31 h70" stroke="#fff" stroke-width="4"/><circle cx="52" cy="16" r="7" fill="#fff7b0"/><path d="M-10 -6 q10 40 2 74 h16 q4-40 -4-74z M80 -6 q-10 40 -2 74 h-16 q-4-40 4-74z" fill="${cur}"/><rect x="-14" y="-10" width="98" height="7" rx="3" fill="${shade(cur,-.2)}"/></g>`;
+const ROOMS={
+ bed:{name:'Bedroom',ic:'🛏️',art:()=>wall('#ffe4ef','#e9b98f','<circle cx="12" cy="12" r="3" fill="#ffc6dc"/><path d="M0 0l3 3M24 24l-3-3" stroke="#ffd3e4"/>')+win(140,'#ff9cc6')+
+  `<g data-spot="bed"><path d="M14 132 q0-36 48-36 q48 0 48 36z" fill="#c9a2ff"/><path d="M46 112 c-6-8-18 0-9 9 l9 8 9-8 c9-9-3-17-9-9z" fill="#ff7fb4"/><rect x="10" y="168" width="134" height="40" rx="10" fill="#fff"/><rect x="10" y="180" width="134" height="40" rx="10" fill="#ffb3d1"/>${[30,60,90,120].map(x=>`<circle cx="${x}" cy="200" r="4" fill="#fff" opacity=".7"/>`).join('')}<rect x="20" y="152" width="44" height="22" rx="10" fill="#fff" stroke="#f3cfe0" stroke-width="2"/><rect x="12" y="218" width="10" height="20" rx="3" fill="#a77bd9"/><rect x="132" y="218" width="10" height="20" rx="3" fill="#a77bd9"/></g>
+  <g data-spot="closet"><rect x="160" y="100" width="70" height="130" rx="10" fill="#b8a4ff"/><rect x="166" y="108" width="28" height="114" rx="6" fill="#cbbcff"/><rect x="196" y="108" width="28" height="114" rx="6" fill="#cbbcff"/><circle cx="190" cy="165" r="3" fill="#ffd34d"/><circle cx="200" cy="165" r="3" fill="#ffd34d"/><path d="M180 96 q15-14 30 0" stroke="#b8a4ff" stroke-width="5" fill="none"/></g>
+  <g data-spot="mirror"><rect x="262" y="160" width="84" height="44" rx="8" fill="#fff" stroke="#ffc6dc" stroke-width="3"/><rect x="270" y="204" width="8" height="34" fill="#ffc6dc"/><rect x="330" y="204" width="8" height="34" fill="#ffc6dc"/><ellipse cx="304" cy="118" rx="30" ry="38" fill="#d9f2ff" stroke="#ffd34d" stroke-width="6"/><path d="M290 100 l14 -10 M292 116 l22 -16" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="276" cy="154" r="5" fill="#ff7fb4"/><rect x="316" y="148" width="8" height="12" rx="2" fill="#9f8cff"/></g>`,
+  spots:{bed:[22,'Sleep','😴'],closet:[54,'Get dressed','👗'],mirror:[84,'Mirror','🪞']}},
+ kitchen:{name:'Kitchen',ic:'🍳',art:()=>wall('#e3f8f1','#f2d3a8','<rect width="12" height="12" fill="#cdf0e4"/><rect x="12" y="12" width="12" height="12" fill="#cdf0e4"/>')+
+  `<g data-spot="stove"><rect x="14" y="140" width="96" height="100" rx="8" fill="#fff" stroke="#e7d7ea" stroke-width="3"/><rect x="26" y="172" width="72" height="50" rx="6" fill="#3d3550"/><rect x="32" y="178" width="60" height="16" rx="4" fill="#ff9d5c" opacity=".55"/>${[34,62,90].map(x=>`<circle cx="${x}" cy="156" r="4" fill="#ff8fb2"/>`).join('')}<ellipse cx="46" cy="138" rx="22" ry="5" fill="#555"/><rect x="66" y="135" width="26" height="4" rx="2" fill="#555"/></g>
+  <g data-spot="cabinet"><rect x="122" y="40" width="120" height="70" rx="8" fill="#ffd1e4"/>${[0,1,2].map(i=>`<rect x="${128+i*38}" y="46" width="34" height="58" rx="5" fill="#ffe3ee"/><circle cx="${145+i*38}" cy="98" r="3" fill="#ffb547"/>`).join('')}<rect x="118" y="168" width="128" height="10" rx="3" fill="#fff"/><rect x="122" y="178" width="120" height="62" rx="6" fill="#ffd1e4"/>${[0,1].map(i=>`<rect x="${128+i*58}" y="184" width="52" height="50" rx="5" fill="#ffe3ee"/>`).join('')}<path d="M150 162 h16 v6 h-16z M200 150 q6-12 12 0 v18 h-12z" fill="#9fd6ff"/></g>
+  <g data-spot="fridge"><rect x="262" y="70" width="84" height="170" rx="14" fill="#bfe6ff"/><path d="M262 128 h84" stroke="#9cc9e8" stroke-width="3"/><rect x="270" y="90" width="6" height="26" rx="3" fill="#fff"/><rect x="270" y="138" width="6" height="40" rx="3" fill="#fff"/><circle cx="312" cy="96" r="6" fill="#ff7fb4"/><path d="M322 150 l6 10 h-12z" fill="#ffd34d"/><rect x="300" y="160" width="14" height="10" rx="2" fill="#7ad7a0"/></g>`,
+  spots:{stove:[18,'Cook','🥞'],cabinet:[50,'Put away','🥫'],fridge:[84,'Snack','🍓']}},
+ bath:{name:'Bathroom',ic:'🛁',art:()=>wall('#e6f3ff','#ffffff','<rect width="23" height="23" fill="#d6ebff" rx="3"/>')+
+  `<g data-spot="tub"><ellipse cx="80" cy="168" rx="70" ry="10" fill="#bde3ff"/><path d="M10 168 h140 q-4 52 -40 56 h-60 q-36-4 -40-56z" fill="#fff" stroke="#ffc6dc" stroke-width="4"/><path d="M30 238 l-6 12 M130 238 l6 12" stroke="#ffd34d" stroke-width="6" stroke-linecap="round"/><path d="M140 168 v-60 q0-10 -12 -10 h-8" stroke="#c9c9d9" stroke-width="6" fill="none"/><circle cx="56" cy="164" r="8" fill="#fff" opacity=".9"/><circle cx="72" cy="160" r="10" fill="#fff" opacity=".9"/><circle cx="92" cy="163" r="7" fill="#fff" opacity=".9"/></g>
+  <g data-spot="sink"><rect x="244" y="54" width="70" height="80" rx="30" fill="#d9f2ff" stroke="#ffc6dc" stroke-width="5"/><path d="M256 80 l16 -12 M258 96 l24 -18" stroke="#fff" stroke-width="4" stroke-linecap="round"/><rect x="234" y="150" width="90" height="16" rx="8" fill="#fff" stroke="#e5e5f0" stroke-width="2"/><rect x="266" y="166" width="26" height="70" rx="6" fill="#fff" stroke="#e5e5f0" stroke-width="2"/><rect x="276" y="138" width="6" height="14" rx="2" fill="#c9c9d9"/><rect x="300" y="132" width="8" height="18" rx="3" fill="#ff9cc6"/><rect x="312" y="136" width="6" height="14" rx="2" fill="#7ad7a0"/></g>
+  <rect x="160" y="236" width="70" height="18" rx="9" fill="#ffc6dc"/>`,
+  spots:{tub:[22,'Bubble bath','🛁'],sink:[78,'Brush teeth','🪥']}},
+ play:{name:'Playroom',ic:'🧸',art:()=>wall('#fff6d6','#cfe6a8','<path d="M12 6 l1.8 3.6 4 .6-2.9 2.8.7 4-3.6-1.9-3.6 1.9.7-4-2.9-2.8 4-.6z" fill="#ffe08a"/>')+win(130,'#8fd3ff')+
+  `<g data-spot="toys"><rect x="14" y="176" width="90" height="62" rx="10" fill="#ff9d7a"/><rect x="10" y="168" width="98" height="16" rx="6" fill="#ff7f5c"/><circle cx="40" cy="160" r="12" fill="#7ac3ff"/><path d="M62 166 l10 -24 l10 24z" fill="#ffd34d"/><rect x="30" y="200" width="58" height="18" rx="9" fill="#fff" opacity=".6"/><text x="59" y="214" font-size="12" text-anchor="middle" font-weight="900" fill="#ff7f5c">TOYS</text></g>
+  <g data-spot="easel"><path d="M150 240 l20 -120 l20 120 M170 120 v120" stroke="#b77b4a" stroke-width="6" stroke-linecap="round"/><rect x="138" y="110" width="64" height="70" rx="4" fill="#fff" stroke="#e8d3c2" stroke-width="3"/><path d="M146 170 q12-30 24-12 q12-24 24 0" stroke="#ff9cc6" stroke-width="5" fill="none"/><circle cx="186" cy="128" r="7" fill="#ffd34d"/></g>
+  <g data-spot="tv"><rect x="232" y="70" width="110" height="64" rx="8" fill="#3d3550"/><rect x="238" y="76" width="98" height="52" rx="5" fill="#8fd3ff"/><path d="M250 120 q20-30 40 0 q12-16 24 0z" fill="#7ad7a0"/><path d="M280 134 v10" stroke="#3d3550" stroke-width="5"/><path d="M226 186 q0-20 20-20 h80 q20 0 20 20 v40 h-120z" fill="#c9a2ff"/><rect x="220" y="196" width="132" height="34" rx="14" fill="#b38be0"/><rect x="236" y="186" width="44" height="20" rx="8" fill="#ffc6dc"/><rect x="292" y="186" width="44" height="20" rx="8" fill="#ffc6dc"/></g>`,
+  spots:{toys:[18,'Play toys','🧸'],easel:[48,'Paint','🎨'],tv:[80,'Movie','🍿']}},
+ yard:{name:'Yard',ic:'🌳',art:()=>`<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fdcff"/><stop offset="1" stop-color="#e8f7ff"/></linearGradient></defs><rect width="360" height="270" fill="url(#sky)"/><circle cx="300" cy="44" r="22" fill="#fff3a0"/><g fill="#fff"><ellipse cx="90" cy="40" rx="30" ry="12"/><ellipse cx="112" cy="34" rx="22" ry="12"/><ellipse cx="220" cy="60" rx="26" ry="10"/></g><path d="M0 190 q90-24 180 0 t180 0 v80 h-360z" fill="#8edc8a"/><path d="M0 214 q90-14 180 0 t180 0 v56 h-360z" fill="#7acf78"/>
+  <g data-spot="swing"><rect x="34" y="40" width="16" height="170" rx="6" fill="#b77b4a"/><ellipse cx="60" cy="50" rx="56" ry="38" fill="#7ad07a"/><ellipse cx="34" cy="40" rx="30" ry="24" fill="#8fe08f"/><circle cx="50" cy="58" r="5" fill="#ff7fb4"/><circle cx="82" cy="40" r="5" fill="#ff7fb4"/><path d="M66 80 h70" stroke="#b77b4a" stroke-width="8" stroke-linecap="round"/><g class="pd-swing"><path d="M84 80 v100 M120 80 v100" stroke="#c9a27c" stroke-width="3"/><rect x="78" y="178" width="48" height="8" rx="4" fill="#ff9cc6"/></g></g>
+  <g data-spot="doghouse"><path d="M168 230 v-50 l36 -32 l36 32 v50z" fill="#ffc78f"/><path d="M160 184 l44 -40 l44 40" stroke="#ff7fa8" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M190 230 v-24 q14-16 28 0 v24z" fill="#5e3d2a"/><ellipse cx="248" cy="236" rx="14" ry="6" fill="#7ac3ff"/><text x="204" y="176" font-size="11" text-anchor="middle">💖</text></g>
+  <g data-spot="flowers">${[[284,214,'#ff7fb4'],[304,224,'#ffd34d'],[326,212,'#b38be0'],[344,226,'#ff9d7a'],[296,236,'#7ac3ff']].map(([x,y,c])=>`<path d="M${x} ${y} v24" stroke="#4fae4f" stroke-width="3"/>${[0,72,144,216,288].map(a=>`<ellipse cx="${x}" cy="${y}" rx="4" ry="7" transform="rotate(${a} ${x} ${y}) translate(0 -6)" fill="${c}"/>`).join('')}<circle cx="${x}" cy="${y}" r="3.5" fill="#fff3a0"/>`).join('')}<path d="M262 230 l10 -12 h16 l-4 14z" fill="#7ac3ff"/></g>`,
+  spots:{swing:[28,'Swing','🎠'],doghouse:[58,'Play with pet','🎾'],flowers:[86,'Water flowers','🌷']}}
+};
+const ROOM_ORDER=['bed','kitchen','bath','play','yard'];
+/* ---- the play screen ---- */
+let busy=false;
+function screen(){const app=document.getElementById('app');if(!app)return;SET("game='';session=null;");busy=false;const r=ROOMS[S.room]||ROOMS.bed;
+ app.innerHTML=`<section class="panel pd"><div class="pd-top"><button class="secondary" id="pdHome">← Home</button><b class="pd-tok" id="pdTok">🎟️ ${S.tokens}</b><button class="secondary" id="pdFriends">💖 Dolls & Pets</button></div>
+  <div class="pd-rooms">${ROOM_ORDER.map(k=>`<button class="pd-room ${k===S.room?'on':''}" data-room="${k}">${ROOMS[k].ic}<small>${ROOMS[k].name}</small></button>`).join('')}</div>
+  <div class="pd-scene" id="pdScene"><svg viewBox="0 0 360 270" preserveAspectRatio="xMidYMid slice">${r.art()}</svg><div class="pd-fx" id="pdFx"></div>
+   <div class="pd-actor" id="pdDoll" style="left:${50}%">${doll(look(S.doll))}</div><div class="pd-petw" id="pdPet" style="left:${64}%">${pet(S.pet)}</div><div class="pd-bubble" id="pdBub" hidden></div></div>
+  <div class="pd-spots">${Object.entries(r.spots).map(([k,s])=>`<button class="pd-spot" data-spot="${k}"><b>${s[2]}</b>${s[1]}</button>`).join('')}<button class="pd-spot free" data-spot="pet"><b>🐾</b>Pet ${PETS[S.pet].name}</button></div>
+  <div class="pd-panel" id="pdPanel"></div>
+  <p class="pd-hint">Tap the furniture or a button. Each play uses 🎟️ 1. Win games to earn more!</p></section>`;
+ const $=id=>document.getElementById(id);
+ $('pdHome').onclick=()=>{tap();(window.RikiHub||G('menu'))();};$('pdFriends').onclick=()=>{tap();friends();};
+ app.querySelectorAll('[data-room]').forEach(b=>b.onclick=()=>{tap();S.room=b.dataset.room;save();screen();});
+ app.querySelectorAll('.pd-scene [data-spot]').forEach(g=>g.addEventListener('click',()=>act(g.dataset.spot)));
+ app.querySelectorAll('.pd-spots [data-spot]').forEach(b=>b.onclick=()=>act(b.dataset.spot));
+ $('pdPet').onclick=()=>act('pet');$('pdDoll').onclick=()=>{if(busy)return;wave();};
+ window.scrollTo(0,0);}
+const live=()=>!!document.getElementById('pdScene');
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+function bub(t,ms=2200){const b=document.getElementById('pdBub');if(!b)return;b.textContent=t;b.hidden=false;b.classList.remove('on');void b.offsetWidth;b.classList.add('on');sayEn(t);clearTimeout(b._t);b._t=setTimeout(()=>{b.hidden=true;},ms);}
+function fx(chars,n=8,x=50,y=55){const f=document.getElementById('pdFx');if(!f)return;for(let i=0;i<n;i++){const s=document.createElement('span');s.textContent=chars[i%chars.length];s.style.left=(x-12+Math.random()*24)+'%';s.style.top=(y-10+Math.random()*20)+'%';s.style.animationDelay=(i*.1)+'s';f.appendChild(s);setTimeout(()=>s.remove(),2200);}}
+function pose(p){const d=document.getElementById('pdDoll');if(d)d.innerHTML=doll(look(S.doll),p);}
+async function walk(x){const d=document.getElementById('pdDoll'),p=document.getElementById('pdPet');if(!d)return;d.classList.add('walk');d.style.left=x+'%';if(p)p.style.left=Math.min(92,Math.max(8,x+(x>60?-16:16)))+'%';await wait(900);if(d.isConnected)d.classList.remove('walk');}
+function wave(){pose('wave');bub(['Hi Riki! 💖','Let’s play!','I love you!','You’re my best friend!'][Math.floor(Math.random()*4)]);setTimeout(()=>live()&&!busy&&pose('stand'),1400);}
+function useToken(){if(S.tokens<=0){outOf();return false;}S.tokens--;S.plays++;save();const t=document.getElementById('pdTok');if(t){t.textContent='🎟️ '+S.tokens;t.classList.remove('bump');void t.offsetWidth;t.classList.add('bump');}return true;}
+function outOf(){const p=document.getElementById('pdPanel');if(!p)return;p.innerHTML=`<div class="pd-out"><b>🎟️ Out of plays!</b><span>Win games to earn more plays for your dolls.</span><div class="pd-row"><button class="sl-big" id="pdEarnG">אב Shoresh Games</button><button class="sl-big alt" id="pdEarnS">💖 Social Skills</button></div></div>`;
+ document.getElementById('pdEarnG').onclick=()=>{tap();G('menu')();};document.getElementById('pdEarnS').onclick=()=>{tap();G('selHub')();};p.scrollIntoView({block:'nearest',behavior:'smooth'});bub('We need more plays! Let’s win some!');}
+async function act(spot){if(busy||!live())return;const r=ROOMS[S.room];
+ if(spot==='pet'){const p=document.getElementById('pdPet');p.innerHTML=pet(S.pet,'love');p.classList.remove('hop');void p.offsetWidth;p.classList.add('hop');fx(['💖','💕'],5,parseFloat(p.style.left),70);good();setTimeout(()=>p.isConnected&&(p.innerHTML=pet(S.pet)),1300);return;}
+ if(spot==='closet'||spot==='mirror'){busy=true;await walk(r.spots[spot][0]);busy=false;if(spot==='mirror'){pose('wave');fx(['✨','💫','⭐'],8,r.spots[spot][0]);bub('Look at me! So cute!');}style();return;}
+ const s=r.spots[spot];if(!s)return;document.getElementById('pdPanel').innerHTML='';if(!useToken())return;busy=true;tap();await walk(s[0]);if(!live())return;const x=s[0];const d=document.getElementById('pdDoll');
+ const A={
+  bed:async()=>{d.classList.add('lie');pose('sleep');bub('Goodnight! Zzz…',3000);fx(['💤','🌙','⭐'],7,x,40);await wait(3200);d.classList.remove('lie');pose('wave');bub('Good morning! ☀️');},
+  stove:async()=>{await cook();},
+  cabinet:async()=>{await cabinet();},
+  fridge:async()=>{await snack();},
+  tub:async()=>{d.classList.add('dip');bub('Bubble bath time!',2600);fx(['🫧','🫧','🦆','🫧'],12,x,62);await wait(2800);d.classList.remove('dip');fx(['✨'],5,x,45);bub('So fresh and clean! ✨');},
+  sink:async()=>{bub('Brush, brush, brush!',2500);fx(['🪥','🫧','✨'],8,x,38);d.classList.add('wig');await wait(2600);d.classList.remove('wig');bub('Sparkly teeth! 😁');},
+  toys:async()=>{const t=['🧸','🪀','🎲','🪁','🚂','🎈'];fx(t,10,x,45);d.classList.add('hop');bub('Toy party!',2500);await wait(2400);d.classList.remove('hop');},
+  easel:async()=>{bub('I’m painting something for you!',2600);fx(['🎨','🖌️'],5,x,40);await wait(2400);const art=['🌈','🦄','🌸','🏰','🐬','🌻','🎂','💖'][Math.floor(Math.random()*8)];const p=document.getElementById('pdPanel');p.innerHTML=`<div class="pd-art"><div class="pd-frame">${art}</div><b>${look(S.doll)&&DOLLS.find(z=>z.id===S.doll).name} painted this for you!</b></div>`;good();},
+  tv:async()=>{bub('Movie night! 🍿',2800);fx(['🍿','⭐','🍿'],9,x,45);await wait(3000);bub('That was the best movie!');},
+  swing:async()=>{const sw=document.querySelector('.pd-swing');d.classList.add('swing');sw&&sw.classList.add('go');bub('Wheee! Higher!',2800);fx(['💨','✨'],6,x,50);await wait(3200);d.classList.remove('swing');sw&&sw.classList.remove('go');},
+  doghouse:async()=>{const p=document.getElementById('pdPet');bub(`Fetch, ${PETS[S.pet].name}!`);fx(['🎾'],1,x,40);p.style.left='88%';await wait(900);p.classList.add('hop');p.innerHTML=pet(S.pet,'love');await wait(700);p.style.left=(x+12)+'%';fx(['💖','🎾'],5,x+10,65);await wait(900);p.classList.remove('hop');p.innerHTML=pet(S.pet);bub('Good job! You’re the best!');},
+  flowers:async()=>{bub('Grow, flowers, grow!',2500);fx(['💧','💧','🌸','🌷'],10,x,50);await wait(2600);fx(['🦋'],3,x,35);bub('A butterfly came to visit! 🦋');}
+ };
+ try{await (A[spot]||(async()=>{}))();}catch(e){}
+ if(live()){good();pose('stand');busy=false;}}
+/* mini moments */
+async function cook(){const p=document.getElementById('pdPanel');let flips=0;bub('Let’s make pancakes!');p.innerHTML=`<div class="pd-cook"><div class="pd-pan"><span id="pdCake">🥞</span></div><div class="z-bar"><i id="pdHeat" style="width:0"></i></div><button class="sl-big" id="pdFlip">Flip when it’s golden! 🍳</button><small id="pdCookN">Flip 3 times</small></div>`;
+ return new Promise(res=>{let h=0,dir=1;const iv=setInterval(()=>{if(!live()){clearInterval(iv);res();return;}h+=dir*3;if(h>=100||h<=0)dir*=-1;const b=document.getElementById('pdHeat');if(b){b.style.width=h+'%';b.style.background=h>70?'#ffb547':'#ffe0a8';}},40);
+  document.getElementById('pdFlip').onclick=()=>{const c=document.getElementById('pdCake');c.classList.remove('flip');void c.offsetWidth;c.classList.add('flip');if(h>70){flips++;good();fx(['✨','⭐'],4,20,40);}else{tap();bub('Not yet! Wait for golden.',1200);}document.getElementById('pdCookN').textContent=`${flips}/3 golden flips`;
+   if(flips>=3){clearInterval(iv);p.innerHTML='<div class="pd-art"><div class="pd-frame">🥞🍓</div><b>Perfect pancakes! Yum!</b></div>';bub('Yummy! Thank you, chef!');setTimeout(res,1600);}};});}
+async function snack(){const p=document.getElementById('pdPanel');const foods=['🍓','🍎','🧀','🍌','🥕','🍦','🧃','🍇'];bub('What snack should I have?');p.innerHTML=`<div class="pd-pick"><b>Pick a snack!</b><div class="pd-row">${foods.map(f=>`<button class="pd-food" data-f="${f}">${f}</button>`).join('')}</div></div>`;
+ return new Promise(res=>p.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{const f=b.dataset.f;p.innerHTML=`<div class="pd-art"><div class="pd-frame">${f}</div><b>Nom nom nom!</b></div>`;fx([f,'😋','💖'],7,84,45);bub(`Mmm, I love ${f==='🍦'?'ice cream':'this'}!`);setTimeout(res,1500);}));}
+async function cabinet(){const p=document.getElementById('pdPanel');const items=zs([['🥫','can'],['🫙','can'],['🍯','can'],['🍝','box'],['🥣','box'],['🍪','box'],['🍚','box'],['🥜','can']]).slice(0,6);let sel=null,left=items.length;bub('Help me put the groceries away!');
+ p.innerHTML=`<div class="pd-cab"><div class="pd-shelf" data-shelf="box"><b>📦 Boxes & bags</b><div class="pd-on" id="pdOnBox"></div></div><div class="pd-shelf" data-shelf="can"><b>🥫 Cans & jars</b><div class="pd-on" id="pdOnCan"></div></div><div class="pd-row pd-groc">${items.map((it,i)=>`<button class="pd-food" data-g="${i}">${it[0]}</button>`).join('')}</div><small>Tap a grocery, then tap its shelf.</small></div>`;
+ return new Promise(res=>{p.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{p.querySelectorAll('[data-g]').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sel=+b.dataset.g;tap();});
+  p.querySelectorAll('[data-shelf]').forEach(sh=>sh.onclick=()=>{if(sel===null)return;const it=items[sel];const b=p.querySelector(`[data-g="${sel}"]`);if(it[1]===sh.dataset.shelf){b.remove();document.getElementById(it[1]==='box'?'pdOnBox':'pdOnCan').insertAdjacentHTML('beforeend',`<span>${it[0]}</span>`);good();left--;sel=null;
+    if(!left){bub('All organized! You’re so helpful!');fx(['✨','⭐','💖'],8,50,30);setTimeout(res,1500);}}else{tap();sh.classList.remove('no');void sh.offsetWidth;sh.classList.add('no');bub(it[1]==='can'?'That’s a can or jar!':'That one is a box or bag!',1300);}});});}
+const zs=a=>[...a].sort(()=>Math.random()-.5);
+/* style studio (free) */
+function style(){const p=document.getElementById('pdPanel');if(!p)return;const L={...look(S.doll)};
+ const row=(k,label,n,show)=>`<div class="pd-srow"><b>${label}</b><div class="pd-opts">${Array.from({length:n},(_,i)=>`<button class="pd-opt ${L[k]===i?'on':''}" data-k="${k}" data-v="${i}">${show(i)}</button>`).join('')}</div></div>`;
+ const sw=c=>`<i style="background:${c}"></i>`;
+ p.innerHTML=`<div class="pd-style"><h3>👗 Style ${DOLLS.find(z=>z.id===S.doll).name}</h3>${row('out','Outfit',OUTS.length,i=>['👗','🩰','👖','🧥','🌙'][i])}${row('color','Color',OUTFIT.length,i=>sw(OUTFIT[i][0]))}${row('style','Hair',STYLES.length,i=>['💁‍♀️','🎀','🍩','💇‍♀️','🐴'][i])}${row('hair','Hair color',HAIR.length,i=>sw(HAIR[i]))}${row('acc','Extras',ACC.length,i=>['🚫','🎀','〰️','👑','🌸','🐱'][i])}${row('skin','Skin',SKIN.length,i=>sw(SKIN[i]))}</div>`;
+ p.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{L[b.dataset.k]=+b.dataset.v;S.looks[S.doll]={...L};save();tap();p.querySelectorAll(`[data-k="${b.dataset.k}"]`).forEach(x=>x.classList.toggle('on',x===b));pose('wave');fx(['✨'],3,parseFloat(document.getElementById('pdDoll').style.left),40);});
+ p.scrollIntoView({block:'nearest',behavior:'smooth'});}
+/* dolls & pets collection */
+function friends(){const app=document.getElementById('app');const coins=G('coins')||0;
+ app.innerHTML=`<section class="panel pd"><div class="pd-top"><button class="secondary" id="pdBack">← Play</button><b>💖 My Dolls & Pets</b><b class="pd-tok">🪙 ${coins}</b></div>
+  <h3 class="pd-h">Dolls</h3><div class="pd-col">${DOLLS.map(d=>{const own=S.dolls.includes(d.id);return `<button class="pd-card ${S.doll===d.id?'on':''} ${own?'':'locked'}" data-doll="${d.id}">${doll(look(d.id),S.doll===d.id?'wave':'stand')}<b>${d.name}</b><span>${own?(S.doll===d.id?'💖 Playing':'Tap to play'):`🪙 ${d.cost}`}</span></button>`;}).join('')}</div>
+  <h3 class="pd-h">Pets</h3><div class="pd-col pets">${Object.keys(PETS).map(k=>{const own=S.pets.includes(k);return `<button class="pd-card ${S.pet===k?'on':''} ${own?'':'locked'}" data-pet="${k}">${pet(k,S.pet===k?'love':'happy')}<b>${PETS[k].name}</b><span>${own?(S.pet===k?'💖 With you':'Tap to choose'):`🪙 ${PETCOST[k]}`}</span></button>`;}).join('')}</div></section>`;
+ document.getElementById('pdBack').onclick=()=>{tap();screen();};
+ const buy=(cost,name,ok)=>{if(!spend(cost)){toast(`You need 🪙 ${cost} for ${name}. Play games to earn coins!`);return;}ok();good();toast(`Welcome home, ${name}! 💖`);try{G('celebrate')();}catch(e){}};
+ app.querySelectorAll('[data-doll]').forEach(b=>b.onclick=()=>{const d=DOLLS.find(x=>x.id===b.dataset.doll);if(S.dolls.includes(d.id)){S.doll=d.id;save();tap();friends();}else buy(d.cost,d.name,()=>{S.dolls.push(d.id);S.doll=d.id;save();friends();});});
+ app.querySelectorAll('[data-pet]').forEach(b=>b.onclick=()=>{const k=b.dataset.pet;if(S.pets.includes(k)){S.pet=k;save();tap();friends();}else buy(PETCOST[k],PETS[k].name,()=>{S.pets.push(k);S.pet=k;save();friends();});});
+ window.scrollTo(0,0);}
+const CSS=`.pd-top{display:flex;align-items:center;justify-content:space-between;gap:6px}.pd-top .secondary{white-space:nowrap;padding:8px 12px;font-size:14px}.pd-tok{background:#fff3c4;border-radius:999px;padding:6px 12px;font-weight:900;color:#7a4f00}.pd-tok.bump{animation:pdBump .5s}
+.pd-rooms{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:10px 0}.pd-room{border:0;border-radius:14px;background:#fff;font-size:22px;padding:6px 0;display:flex;flex-direction:column;align-items:center;box-shadow:0 3px 0 #f3d6dc,0 0 0 2px #f3d6dc;cursor:pointer}.pd-room small{font-size:10px;font-weight:900;color:#6a4558}.pd-room.on{background:linear-gradient(#ff9cc6,#e2457a);box-shadow:0 3px 0 #b92e5e}.pd-room.on small{color:#fff}
+.pd-scene{position:relative;width:100%;aspect-ratio:4/3;border-radius:22px;overflow:hidden;box-shadow:0 0 0 4px #fff,0 8px 20px #b9567a33;background:#fff}.pd-scene>svg{width:100%;height:100%;display:block}.pd-scene [data-spot]{cursor:pointer}.pd-scene [data-spot]:active{opacity:.85}
+.pd-actor{position:absolute;bottom:3%;width:24%;transform:translateX(-50%);transition:left .9s ease-in-out;z-index:3;cursor:pointer}.pd-actor svg,.pd-petw svg{width:100%;height:auto;display:block}
+.pd-actor.walk{animation:pdWalk .3s infinite alternate}.pd-actor.lie{bottom:22%;transform:translateX(-50%) rotate(-80deg)}.pd-actor.dip{bottom:-6%}.pd-actor.wig{animation:pdWig .25s infinite alternate}.pd-actor.hop,.pd-petw.hop{animation:pdHop .45s 4}.pd-actor.swing{bottom:18%;animation:pdSwing 1s infinite alternate ease-in-out;transform-origin:50% -60%}
+.pd-swing{transform-origin:102px 80px}.pd-swing.go{animation:pdSwingG 1s infinite alternate ease-in-out}
+.pd-petw{position:absolute;bottom:3%;width:15%;transform:translateX(-50%);transition:left .9s ease-in-out;z-index:4;cursor:pointer}.pd-wag{transform-origin:74px 86px;animation:pdWag .4s infinite alternate}
+.pd-bubble{position:absolute;top:5%;left:50%;transform:translateX(-50%);max-width:80%;background:#fff;border-radius:18px;padding:8px 14px;font-weight:900;color:#4a2338;box-shadow:0 4px 0 #f3d6dc;z-index:6;text-align:center}.pd-bubble.on{animation:pdPop .3s}
+.pd-fx{position:absolute;inset:0;pointer-events:none;z-index:5}.pd-fx span{position:absolute;font-size:26px;animation:pdFloat 2s ease-out forwards}
+.pd-spots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.pd-spot{border:0;border-radius:16px;padding:10px;background:linear-gradient(#fff,#fff0f6);font-weight:900;color:#4a2338;display:flex;align-items:center;gap:8px;box-shadow:0 4px 0 #f0cddc,0 0 0 2px #f6d9e5;cursor:pointer;font-size:14px}.pd-spot b{font-size:24px}.pd-spot.free{background:linear-gradient(#fff,#eef8ff);box-shadow:0 4px 0 #cfe3f2,0 0 0 2px #dcebf6}
+.pd-hint{font-size:12px;font-weight:800;color:#8a6577;text-align:center;margin:8px 0 0}
+.pd-panel:empty{display:none}.pd-panel{margin-top:10px;background:#fff;border-radius:20px;padding:12px;box-shadow:0 0 0 2px #f6d9e5}
+.pd-out,.pd-art,.pd-pick,.pd-cook,.pd-cab{display:grid;gap:8px;text-align:center;justify-items:center}.pd-out b{font-size:20px;color:#b92e5e}.pd-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%}.pd-row .sl-big{flex:1;min-width:140px;font-size:17px}.sl-big.alt{background:linear-gradient(135deg,#7c6cf2,#a99bff);box-shadow:0 6px 0 #5848c2}
+.pd-frame{font-size:64px;background:#fff;border:8px solid #ffd34d;border-radius:12px;padding:6px 18px;box-shadow:0 6px 14px #0002}
+.pd-food{border:0;border-radius:14px;background:#fff6fa;font-size:32px;padding:6px 10px;box-shadow:0 3px 0 #f3d6dc,0 0 0 2px #f3d6dc;cursor:pointer}.pd-food.sel{box-shadow:0 0 0 4px #e2457a;transform:scale(1.1)}
+.pd-cab{grid-template-columns:1fr 1fr}.pd-cab .pd-groc,.pd-cab small{grid-column:1/-1}.pd-shelf{border:0;border-radius:14px;background:#ffe3ee;padding:8px;min-height:84px;cursor:pointer;box-shadow:inset 0 -6px 0 #ffc6dc}.pd-shelf b{font-size:12px;color:#8a3c5c}.pd-on{font-size:28px;min-height:36px}.pd-shelf.no{animation:pdShake .35s}
+.pd-pan{width:120px;height:70px;border-radius:50%;background:radial-gradient(#666,#333);display:grid;place-items:center;font-size:42px}.pd-pan span.flip{animation:pdFlip .5s}
+.pd-style h3{margin:0 0 6px;font-family:"Baloo 2",system-ui,sans-serif}.pd-srow{margin:6px 0}.pd-srow>b{font-size:12px;color:#8a6577}.pd-opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px}.pd-opt{border:0;border-radius:12px;min-width:40px;height:40px;background:#fff6fa;font-size:20px;box-shadow:0 0 0 2px #f3d6dc;cursor:pointer;display:grid;place-items:center}.pd-opt i{width:24px;height:24px;border-radius:50%;display:block;box-shadow:inset 0 0 0 2px #0001}.pd-opt.on{box-shadow:0 0 0 3px #e2457a;background:#ffe3ee}
+.pd-h{margin:12px 0 6px;font-family:"Baloo 2",system-ui,sans-serif}.pd-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.pd-card{border:0;border-radius:18px;background:linear-gradient(#fff,#fff0f6);padding:6px 4px 8px;display:flex;flex-direction:column;align-items:center;box-shadow:0 4px 0 #f0cddc,0 0 0 2px #f6d9e5;cursor:pointer}.pd-card svg{width:80%;height:auto}.pd-card b{font-size:14px;color:#4a2338}.pd-card span{font-size:11px;font-weight:900;color:#b92e5e}.pd-card.on{box-shadow:0 4px 0 #b92e5e,0 0 0 3px #e2457a;background:linear-gradient(#fff,#ffe0ec)}.pd-card.locked svg{filter:saturate(.5) brightness(1.05);opacity:.75}
+#pdToast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,120px);background:#4a2338;color:#fff;font-weight:900;padding:10px 18px;border-radius:999px;z-index:9999;transition:transform .35s;pointer-events:none}#pdToast.on{transform:translate(-50%,0)}
+.hub-play{grid-column:1/-1;background:linear-gradient(135deg,#ffd6e8,#e9dcff)!important}
+@keyframes pdWalk{from{margin-bottom:0}to{margin-bottom:6px}}@keyframes pdWig{from{transform:translateX(-50%) rotate(-3deg)}to{transform:translateX(-50%) rotate(3deg)}}@keyframes pdHop{0%,100%{margin-bottom:0}50%{margin-bottom:18px}}
+@keyframes pdSwing{from{transform:translateX(-50%) rotate(-14deg)}to{transform:translateX(-50%) rotate(14deg)}}@keyframes pdSwingG{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}@keyframes pdWag{from{transform:rotate(-12deg)}to{transform:rotate(14deg)}}
+@keyframes pdFloat{0%{transform:translateY(0) scale(.6);opacity:0}20%{opacity:1}100%{transform:translateY(-70px) scale(1.15);opacity:0}}@keyframes pdShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}@keyframes pdBump{50%{transform:scale(1.25)}}@keyframes pdFlip{50%{transform:translateY(-30px) rotateX(180deg)}}
+@keyframes pdPop{0%{transform:translateX(-50%) scale(.85);opacity:0}100%{transform:translateX(-50%) scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.pd-actor,.pd-petw,.pd-fx span,.pd-swing,.pd-wag{animation:none!important;transition:none!important}}`;
+if(!document.getElementById('pdCss')){const st=document.createElement('style');st.id='pdCss';st.textContent=CSS;document.head.appendChild(st);}
+window.RikiPlay={open:screen,friends,state:()=>S};
+
 })();
