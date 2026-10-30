@@ -708,7 +708,10 @@ const eligible=(id,item)=>isFridge(id)?isFood(item):storageType(id)&&!storageTyp
 function contents(id,room){const a=(G('dreamStorage')||{})[room+':'+id];return Array.isArray(a)?a:[];}
 function storeItem(id,room,food,slot){
  if(!usable(id,room)||!eligible(id,food)||!isOwned(food)||!items.some(x=>x[0]===food)||!Number.isInteger(slot)||slot<0||slot>=capacityFor(id))return false;
- const storage=G('dreamStorage');if(!storage||contents(id,room)[slot])return false;
+ const storage=G('dreamStorage');if(!storage)return false;
+ const arr=contents(id,room),origin=arr.indexOf(food),occupant=arr[slot];
+ if(occupant===food)return true;
+ if(occupant){if(origin<0||!isOwned(occupant)||!eligible(id,occupant))return false;arr[origin]=occupant;arr[slot]=food;const save=G('dreamSave');if(save)save();return true;}
  // Move this owned item; do not duplicate it or replace occupied shelves.
  for(const arr of Object.values(storage))if(Array.isArray(arr))arr.forEach((x,i)=>{if(x===food)delete arr[i];});
  const key=room+':'+id;if(!Array.isArray(storage[key]))storage[key]=[];

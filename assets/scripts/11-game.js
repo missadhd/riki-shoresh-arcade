@@ -334,22 +334,27 @@ function storagePick(e){const f=ED.storage;if(!f||f.closing)return null;
  }
  return null;
 }
+function storageHighlight(){const f=ED.storage;if(!f||f.closing)return;const contents=storageApi().contents(f.id,f.room);
+ if(f.list)f.list.querySelectorAll('[data-storage-object]').forEach(b=>{const on=b.dataset.storageObject===f.selected;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});
+ f.item.userData.storage.slots.forEach((slot,i)=>{slot.pad.material.color.set(contents[i]?0xc7d8c8:f.selected?0xe2a34d:0xdbcbac);slot.pad.material.opacity=f.selected&&!contents[i] ? .15 : .06;});
+}
 function storageRefresh(){const f=ED.storage;if(!f||f.closing)return;const K=window.RK3,api=storageApi();ED.items.forEach(g=>K.hydrateStorage(g,f.room));
  const contents=api.contents(f.id,f.room);const items=G('ITEMS')||[],owned=G('owned')||[];
  const available=items.filter(it=>owned.includes(it[0])&&api.isEligible(f.id,it[0])&&!contents.includes(it[0]));
  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const art=G('furnitureArt');
+ const art=G('furnitureArt'),scroll=f.list.scrollLeft;
  f.list.innerHTML=available.map(it=>`<button type="button" data-storage-object="${it[0]}" aria-pressed="${f.selected===it[0]}" class="${f.selected===it[0]?'active':''}">${typeof art==='function'?art(it):it[1]}<small>${esc(it[2])}</small></button>`).join('')||'<p>Visit the shop for small items to put inside.</p>';
+ f.list.scrollLeft=scroll;
  f.list.querySelectorAll('[data-storage-object]').forEach(b=>{
   b.onclick=()=>{if(performance.now()<(f.suppressUntil||0))return;storageChoose(b.dataset.storageObject);};
-  b.onpointerdown=e=>{if(e.button!==0&&e.pointerType==='mouse')return;f.drag={x:e.clientX,y:e.clientY,from:'tray',id:b.dataset.storageObject,pointer:e.pointerId,moved:false};};
+  b.onpointerdown=e=>{if(e.button!==0&&e.pointerType==='mouse')return;f.drag={x:e.clientX,y:e.clientY,from:'tray',id:b.dataset.storageObject,pointer:e.pointerId,pointerType:e.pointerType,moved:false};};
  });
- f.item.userData.storage.slots.forEach((slot,i)=>{slot.pad.material.color.set(contents[i]?0xc7d8c8:f.selected?0xe2a34d:0xdbcbac);slot.pad.material.opacity=f.selected&&!contents[i] ? .1 : .045;});
+ storageHighlight();
 }
 function storageChoose(id,fromSlot=null){const f=ED.storage;if(!f||!storageApi().isEligible(f.id,id))return;storageDisposeGhost();f.selected=id;f.sourceSlot=fromSlot;
  const it=(G('ITEMS')||[]).find(x=>x[0]===id);if(!it)return;
- f.status.textContent=(it[2]||'Item')+' selected. Tap a glowing space, or drag it there.';
- storageRefresh();
+ f.status.textContent=(it[2]||'Item')+' selected. Tap a shelf space, or drag it there.';
+ storageHighlight();
 }
 function storageGhost(e){const f=ED.storage;if(!f||!f.selected)return;
  if(f.sourceSlot!==null){const slot=f.item.userData.storage.slots[f.sourceSlot];if(slot&&slot.content)slot.content.visible=false;}
@@ -359,21 +364,44 @@ function storageGhost(e){const f=ED.storage;if(!f||!f.selected)return;
  else{ED.ray.setFromCamera(ndc({x:e.clientX,y:e.clientY}),ED.cam);const normal=ED.cam.getWorldDirection(new THREE.Vector3()),plane=new THREE.Plane().setFromNormalAndCoplanarPoint(normal,f.look);const point=new THREE.Vector3();if(ED.ray.ray.intersectPlane(plane,point))f.ghost.position.copy(point).add(f.ghost.userData.offset);}
 }
 function storagePlace(slot){const f=ED.storage,api=storageApi();if(!f||!f.selected)return false;
- if(!api.storeItem(f.id,f.room,f.selected,slot)){f.status.textContent='Choose an empty space inside an open drawer or on a shelf.';return false;}
+ if(!api.storeItem(f.id,f.room,f.selected,slot)){f.status.textContent='Choose a shelf space. Drag a stored item onto another to swap them.';return false;}
  storageDisposeGhost();f.selected='';f.sourceSlot=null;f.status.textContent='Placed inside! Tap it to take it out, or choose another item.';storageRefresh();return true;
 }
 function storageDown(e){const f=ED.storage;if(!f||f.closing)return;f.drag={x:e.clientX,y:e.clientY,from:'canvas',hit:storagePick(e),pointer:e.pointerId,moved:false};try{ED.R.domElement.setPointerCapture(e.pointerId);}catch(_){}
 }
 function storageMove(e){const f=ED.storage,d=f&&f.drag;if(!d||d.pointer!==e.pointerId)return;
- if(!d.moved&&Math.hypot(e.clientX-d.x,e.clientY-d.y)>9){d.moved=true;
-  if(d.from==='tray')storageChoose(d.id);
+ const dx=e.clientX-d.x,dy=e.clientY-d.y;
+ if(!d.moved&&Math.hypot(dx,dy)>9){
+  // Sideways finger movement scrolls the tray; upward movement places an item.
+  if(d.from==='tray'&&d.pointerType==='touch'&&Math.abs(dx)>Math.abs(dy)){f.drag=null;f.suppressUntil=performance.now()+250;return;}
+  d.moved=true;
+  if(d.from==='tray'){storageChoose(d.id);try{f.list.setPointerCapture(e.pointerId);}catch(_){}}
   else if(d.hit&&d.hit.kind==='content'){const item=storageApi().contents(f.id,f.room)[d.hit.slot];if(item)storageChoose(item,d.hit.slot);}
  }
- if(d.moved&&f.selected)storageGhost(e);
+ if(d.moved&&f.selected){if(e.cancelable)e.preventDefault();storageGhost(e);}
+}
+function storageDrop(e){const f=ED.storage;if(!f||!f.selected)return false;
+ const hit=storagePick(e),state=f.item.userData.storage;
+ if(hit&&(hit.kind==='slot'||hit.kind==='content'))return storagePlace(hit.slot);
+ if(hit&&hit.kind==='part'){
+  const part=state.parts[hit.part];
+  if(part&&part.kind==='drawer'){
+   const candidates=state.slots.map((slot,i)=>({slot,i})).filter(x=>x.slot.part===hit.part);
+   candidates.sort((a,b)=>a.slot.parent.localToWorld(a.slot.position.clone()).distanceToSquared(hit.point)-b.slot.parent.localToWorld(b.slot.position.clone()).distanceToSquared(hit.point));
+   if(Math.abs(part.target-part.closed)<.01)window.RK3.toggleStoragePart(f.item,hit.part);
+   const contents=storageApi().contents(f.id,f.room),choice=candidates.find(x=>!contents[x.i]||x.i===f.sourceSlot)||candidates[0];
+   if(choice)return storagePlace(choice.i);
+  }
+ }
+ // Give shelf spaces a generous screen-space drop area on small phones.
+ const rect=ED.R.domElement.getBoundingClientRect();if(e.clientX<rect.left||e.clientX>rect.left+rect.width||e.clientY<rect.top||e.clientY>rect.top+rect.height)return false;
+ let closest=null,best=44*44;
+ state.slots.forEach((slot,i)=>{if(!slot.pad.visible)return;const p=slot.pad.getWorldPosition(new THREE.Vector3()).project(ED.cam);const x=rect.left+(p.x+1)*rect.width/2,y=rect.top+(1-p.y)*rect.height/2,d=(e.clientX-x)**2+(e.clientY-y)**2;if(d<best){best=d;closest=i;}});
+ return closest!==null&&storagePlace(closest);
 }
 function storageUp(e){const f=ED.storage,d=f&&f.drag;if(!d||d.pointer!==e.pointerId)return;f.drag=null;const hit=storagePick(e);
  if(d.moved){if(d.from==='tray')f.suppressUntil=performance.now()+180;
-  if(f.selected&&hit&&(hit.kind==='slot'||hit.kind==='content'))storagePlace(hit.slot);
+  if(f.selected&&storageDrop(e)){}
   else if(f.selected&&f.sourceSlot!==null){const r=f.tray.getBoundingClientRect();if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){storageApi().takeItem(f.id,f.room,f.sourceSlot);f.status.textContent='Back in your collection.';f.selected='';f.sourceSlot=null;storageRefresh();}}
   storageDisposeGhost();return;
  }
@@ -388,12 +416,14 @@ function storageOpen(id){const api=storageApi(),item=ED.items.find(x=>x.userData
  const box=ED.R&&ED.R.domElement.parentElement;if(!box)return false;
  const it=(G('ITEMS')||[]).find(x=>x[0]===id),panel=box.closest('.dream-panel');
  const ui=document.createElement('div');ui.className='rk-storage-toolbar';const back=document.createElement('button');back.type='button';back.textContent='← Close & back to room';back.onclick=()=>storageClose();ui.appendChild(back);const title=document.createElement('strong');title.textContent=it?it[2]:'My furniture';ui.appendChild(title);box.appendChild(ui);
- const tray=document.createElement('section');tray.className='rk-storage-tray';tray.setAttribute('aria-label','Small items for open furniture');tray.innerHTML='<p class="rk-storage-help" role="status" aria-live="polite"></p><div class="rk-storage-objects"></div>';box.insertAdjacentElement('afterend',tray);
+ const tray=document.createElement('section');tray.className='rk-storage-tray';tray.setAttribute('aria-label','Small items for open furniture');tray.innerHTML='<p class="rk-storage-help" role="status" aria-live="polite"></p><div class="rk-storage-scroll"><button type="button" class="rk-storage-prev" aria-label="Previous items">‹</button><div class="rk-storage-objects"></div><button type="button" class="rk-storage-next" aria-label="More items">›</button></div>';box.insertAdjacentElement('afterend',tray);
  const focus=new THREE.Vector3(0,ED.H*.3,-.3);
  ED.storage={id,item,room:ED.room,box,panel,ui,tray,list:tray.querySelector('.rk-storage-objects'),status:tray.querySelector('p'),camera:ED.cam.position.clone(),look:focus.clone(),currentLook:focus.clone(),originalCamera:ED.cam.position.clone(),originalLook:focus.clone(),selected:'',sourceSlot:null,ghost:null,drag:null,hidden:ED.items.filter(x=>x!==item).map(x=>[x,x.visible])};
  ED.storage.hidden.forEach(([o])=>o.visible=false);box.classList.add('rk-storage-focus');if(panel)panel.classList.add('rk-storage-active');ED.ring.visible=false;
+ const list=ED.storage.list;tray.querySelector('.rk-storage-prev').onclick=()=>list.scrollBy({left:-Math.max(180,list.clientWidth*.8),behavior:'smooth'});tray.querySelector('.rk-storage-next').onclick=()=>list.scrollBy({left:Math.max(180,list.clientWidth*.8),behavior:'smooth'});
+ list.addEventListener('wheel',e=>{if(list.scrollWidth>list.clientWidth&&Math.abs(e.deltaY)>Math.abs(e.deltaX)){list.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});
  window.RK3.setStorageOpen(item,true);storageRefresh();
- ED.storage.status.textContent=item.userData.storage.profile.kind==='drawers'||item.userData.storage.profile.kind==='vanity'?'Tap a drawer handle to slide it open. Drag small items inside; tap a stored item to take it out.':'Drag a small item onto a glowing shelf space. Tap a stored item to take it out.';
+ ED.storage.status.textContent=item.userData.storage.profile.kind==='drawers'||item.userData.storage.profile.kind==='vanity'?'Swipe options sideways. Drag an item upward into a drawer; tap a drawer handle to open it.':'Swipe options sideways. Drag an item upward onto a shelf, or tap an item then its space.';
  box.scrollIntoView({block:'start',behavior:'smooth'});return true;
 }
 document.addEventListener('pointermove',e=>{if(ED.storage&&ED.storage.drag&&ED.storage.drag.from==='tray')storageMove(e);});

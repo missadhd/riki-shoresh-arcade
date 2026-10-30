@@ -322,3 +322,14 @@ body:has(#app .gamehead) .top .brand{display:none}
 .hub-grid #hubPlay{grid-column:1/-1;min-height:96px;display:grid;grid-template-columns:70px 1fr;column-gap:14px;--clay-x:66.666667%;--clay-y:66.666667%}
 .hub-grid #hubPlay .hub-ic{grid-row:1/3;width:64px;height:64px;margin:0}
 .hub-grid #hubPlay .hub-ic::before{width:64px;height:64px}
+
+/* Browse horizontally; vertical gestures lift an item into the room. */
+.rk-storage-scroll{display:grid;grid-template-columns:36px minmax(0,1fr) 36px;gap:6px;align-items:center}
+.rk-storage-objects{display:flex;flex-wrap:nowrap;min-width:0;max-height:none;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;scroll-snap-type:x proximity;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#cba58d #f3e7d9;padding:4px 3px 10px}
+.rk-storage-objects>button{flex:0 0 92px;touch-action:pan-x;scroll-snap-align:start}
+.rk-storage-prev,.rk-storage-next{width:36px;min-height:64px;border:1px solid #e5cdb6;border-radius:12px;background:#fff5e7;color:#895d44;font:bold 28px system-ui;touch-action:manipulation;cursor:pointer}
+.rk-storage-scroll button:focus-visible{outline:3px solid #bd6d8a;outline-offset:2px}
+/* Keep the open furniture and its item tray together on a phone screen. */
+#app:has(.rk-storage-active) .house-head{display:none!important}
+.rk-storage-active .dream-heading,.rk-storage-active .room-tabs,.rk-storage-active .riki3d-legend,.rk-storage-active .rk3-selection-tools,.rk-storage-active .dream-message,.rk-storage-active .rk3-more{display:none!important}
+.rk3-room.rk-storage-focus{height:clamp(260px,calc(100svh - 350px),560px)}
