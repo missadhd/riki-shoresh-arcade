@@ -1,0 +1,9 @@
+
+/* Touch-friendly drag interaction layer */
+[data-life-item],[data-life-shelf],[data-life-drawer],[data-drawer-object],[data-select],[data-item-slot],[data-slot],[data-extra-choice]{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.drag-float{position:fixed;z-index:999999;pointer-events:none;transform:translate(-50%,-50%) scale(1.15);border-radius:20px;padding:12px 18px;background:#fff1fc;border:3px solid #d778c5;box-shadow:0 12px 30px #56335d66;font-size:28px;max-width:180px;text-align:center}
+.drag-over{outline:4px dashed #e979c6!important;outline-offset:-3px;filter:brightness(1.06)}
+.drag-tip{background:#fff3fc;border:2px solid #e9b4e1;border-radius:14px;padding:12px;text-align:center;font-weight:800;color:#7e347a;margin:12px auto}
+.extra-stage.drop-spot{min-height:180px;border:3px dashed #e5a6d9;border-radius:24px;transition:background .15s}
+.extra-stage.drop-spot.drag-over{background:#ffe7f6}
+@media (prefers-reduced-motion:reduce){.drag-float{transition:none!important}}
