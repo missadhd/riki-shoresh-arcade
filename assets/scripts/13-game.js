@@ -425,8 +425,8 @@ const prevMenu=G('menu');
 if(typeof prevMenu==='function'){window.__tidyMenu=function(){const r=prevMenu.apply(this,arguments);try{organize();}catch(e){}return r;};SET('menu=window.__tidyMenu;');}
 /* "Play inside" now opens the 3D rooms, which hold the same shelves, drawers and storage */
 document.addEventListener('click',e=>{const b=e.target.closest('#livingHouse,#playHouse');if(!b)return;e.preventDefault();e.stopPropagation();const hh=G('houseHome');if(typeof hh==='function')hh();},true);
-/* All scripts are loaded now: re-draw the home menu so every game shows on first open */
-if(!G('game')&&document.querySelector('.games')){const m=G('menu');if(typeof m==='function')m();}
+/* All scripts are loaded now: the Home hub (defined below) takes over the first screen */
+window.__rkMenuReady=true;
 })();
 
 /* Learning layer (Claude, Oct 29): per-root progress, smarter word picking, mastery, hear the Hebrew,
@@ -456,7 +456,7 @@ function cur(){const g=G('game'),s=G('session');if(!TRACK.includes(g)||!s||!Arra
 const prevCorrect=G('correct'),prevIncorrect=G('incorrect');
 if(typeof prevCorrect==='function'){window.__rkCorrect=function(){const c=cur();const r=prevCorrect.apply(this,arguments);
   if(c&&!doneQ.has(c.key)){doneQ.add(c.key);const x=rec(c.id),ok=missedQ.has(c.key)?0:1;x.seen++;if(ok){x.first++;const d=today();if(!x.days.includes(d))x.days.push(d);x.days=x.days.slice(-10);}x.hist.push(ok);x.hist=x.hist.slice(-8);x.last=Date.now();save();}
-  try{celebrateGame(G('game'));}catch(e){}return r;};SET('correct=window.__rkCorrect;');}
+  try{celebrateGame(G('game'));}catch(e){}try{const W=G('W');if(c&&W&&W[c.id])setTimeout(()=>say(W[c.id][0]),250);}catch(e){}return r;};SET('correct=window.__rkCorrect;');}
 if(typeof prevIncorrect==='function'){window.__rkIncorrect=function(){const c=cur();if(c&&!missedQ.has(c.key)){missedQ.add(c.key);rec(c.id).miss++;save();}return prevIncorrect.apply(this,arguments);};SET('incorrect=window.__rkIncorrect;');}
 /* ---- weak roots come up more often in the quiz games ---- */
 const WEIGHT=['detective','bubbles','builder','sort'];
@@ -471,10 +471,14 @@ function hideHints(){const c=cur();const app=document.getElementById('app');if(!
 const canSpeak='speechSynthesis' in window;let heVoice=null;
 function findVoice(){if(!canSpeak)return null;const v=speechSynthesis.getVoices();heVoice=v.find(x=>/^he|^iw/i.test(x.lang))||null;return heVoice;}
 if(canSpeak){findVoice();speechSynthesis.onvoiceschanged=findVoice;}
-function say(text,btn){if(!canSpeak)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='he-IL';if(heVoice||findVoice())u.voice=heVoice;u.rate=.8;speechSynthesis.speak(u);
+/* American (Ashkenazi) reading: a tav that isn't the first letter is read as a soft s (sav), so it goes to the voice as a samech */
+function ashk(t){return String(t).replace(/[\u0591-\u05C7]/g,'').split(/\s+/).map(w=>w.replace(/(?!^)ת/g,'ס')).join(' ');}
+function say(text,btn){if(!canSpeak)return;const sOn=G('soundOn');if(sOn===false&&!btn)return;try{if(btn)speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(ashk(text));u.lang='he-IL';if(heVoice||findVoice())u.voice=heVoice;u.rate=.8;speechSynthesis.speak(u);
   if(btn){btn.classList.add('on');u.onend=()=>btn.classList.remove('on');}if(!heVoice&&speechSynthesis.getVoices().length&&btn&&!btn.dataset.warned){btn.dataset.warned=1;btn.title='This device may not have a Hebrew voice installed';}}catch(e){}}
 const sayBtn=t=>`<button type="button" class="rk-say" data-say="${esc(t)}" aria-label="Hear it">🔊</button>`;
-function addSpeakers(root){if(!canSpeak)return;(root||document).querySelectorAll('.prompt .hebrew,.st-order .st-he,.rk-prog-he').forEach(el=>{if(el.dataset.sayAdded)return;el.dataset.sayAdded=1;const t=el.textContent.trim();if(!/[֐-׿]/.test(t))return;el.insertAdjacentHTML('afterend',sayBtn(t));});}
+function addSpeakers(root){if(!canSpeak)return;(root||document).querySelectorAll('.prompt .hebrew,.st-order .st-he,.rk-prog-he').forEach(el=>{if(el.dataset.sayAdded)return;el.dataset.sayAdded=1;const t=el.textContent.trim();if(!/[֐-׿]/.test(t))return;el.insertAdjacentHTML('afterend',sayBtn(t));if(!el.classList.contains('rk-prog-he'))setTimeout(()=>{if(el.isConnected)say(t);},350);});}
+/* phones only allow speech after the first tap: unlock it silently on the first touch */
+let unlocked=false;document.addEventListener('pointerdown',()=>{if(unlocked||!canSpeak)return;unlocked=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}},true);
 document.addEventListener('click',e=>{const b=e.target.closest('.rk-say');if(!b)return;e.preventDefault();e.stopPropagation();say(b.dataset.say,b);},true);
 
 /* ---- quiz celebrations ---- */
@@ -527,4 +531,49 @@ const app=document.getElementById('app');
 if(app)new MutationObserver(()=>{addSpeakers(app);upgradeSel(app);hideHints();}).observe(app,{childList:true,subtree:true});
 addSpeakers(app);upgradeSel(app);
 window.RikiProgress={pick,mastered,data:()=>P,say,show:progressPage};
+})();
+
+/* Home hub (Claude, Oct 29): the first screen is a few big choices. Shoresh Games opens the full games list. */
+(function(){
+const G=n=>{try{return (0,eval)(n)}catch(e){return undefined}};
+const SET=c=>{try{(0,eval)(c)}catch(e){}};
+const MAKE=['cupcakes','cake','dressup','pets','boutique','claw','aquarium','quest','giftwrap','garden'];
+const NAMES={cupcakes:'Cupcake Café',cake:'Birthday Cake',dressup:'Dress-Up Studio',pets:'Pet Spa',boutique:'Fashion Boutique',claw:'Claw Machine',aquarium:'Aquarium Rescue',quest:'Adventure Missions',giftwrap:'Gift Wrap',garden:'Magic Garden'};
+function hub(){
+  SET("game='';session=null;");const app=document.getElementById('app');if(!app)return;
+  const coins=G('coins')||0;const pick=MAKE[new Date().getDate()%MAKE.length];
+  const tile=(id,icon,title,sub,cls='')=>`<button type="button" class="hub-tile ${cls}" id="${id}"><span class="hub-ic">${icon}</span><b>${title}</b><span>${sub}</span></button>`;
+  app.innerHTML=`<section class="hub"><div class="hub-hi"><h1>Hi Riki! 👋</h1><p>What do you want to do?</p></div>
+   <button type="button" class="hub-today" id="hubToday"><span class="hub-today-tag">⭐ Today's pick</span><b>${NAMES[pick]}</b><span>Tap to play</span></button>
+   <div class="hub-grid">${tile('hubGames','<span class="hub-alef" lang="he">אב</span>','Shoresh Games','Learn Hebrew roots')}${tile('hubSocial','💖','Social Skills','Feelings & friends')}${tile('hubHouse','🏠','My Dollhouse','Decorate your rooms')}${tile('hubShop','🛍️','Shop',`🪙 ${coins} coins to spend`)}</div>
+   <button type="button" class="hub-progress" id="hubProgress">📊 Progress for grown-ups</button></section>`;
+  const $=id=>document.getElementById(id);const tap=()=>{try{const a=G('audio');a&&a('tap');}catch(_){}};
+  $('hubGames').onclick=()=>{tap();const m=G('menu');m&&m();window.scrollTo(0,0);};
+  $('hubSocial').onclick=()=>{tap();const s=G('selHub');s&&s();addOlderSocial();window.scrollTo(0,0);};
+  $('hubHouse').onclick=()=>{tap();const h=G('houseHome');h&&h();window.scrollTo(0,0);};
+  $('hubShop').onclick=()=>{tap();const h=G('houseHome');h&&h();SET("housePage='shop';");const r=G('houseRender');r&&r();window.scrollTo(0,0);};
+  $('hubProgress').onclick=()=>{tap();window.RikiProgress&&window.RikiProgress.show();};
+  $('hubToday').onclick=()=>{tap();window.RikiStudio&&window.RikiStudio.start(pick);};
+  window.scrollTo(0,0);
+}
+/* Two Social Skills sets exist: the newer one opens from the tile; keep the original six games one tap away */
+let oldSel=null;try{const hb=[...document.querySelectorAll('.top .stats button')].find(x=>/Social Skills/.test(x.textContent));if(hb&&typeof hb.onclick==='function')oldSel=hb.onclick;}catch(_){}
+function addOlderSocial(){if(!oldSel||oldSel===G('selHub'))return;const app=document.getElementById('app');if(!app||app.querySelector('#hubOldSel'))return;
+  app.insertAdjacentHTML('beforeend','<section class="panel"><button type="button" class="sel-card hub-oldsel" id="hubOldSel"><span class="sel-emoji">🦋</span><strong>More Social Skills games</strong><p>Plan B Power, Pause &amp; Choose, Friendship Studio, Feelings Detective, Problem-Solving Lab, Calm-Down Lab</p></button></section>');
+  document.getElementById('hubOldSel').onclick=()=>{try{oldSel();}catch(e){}window.scrollTo(0,0);};}
+window.RikiHub=hub;
+/* Games list: just the games (plus the word-set picker), with a way back Home */
+const prevMenu=G('menu');
+if(typeof prevMenu==='function'){window.__hubMenu=function(){const r=prevMenu.apply(this,arguments);try{
+  const app=document.getElementById('app');const gamesPanel=app&&app.querySelector('.games')&&app.querySelector('.games').closest('section');
+  if(app&&gamesPanel){[...app.children].forEach(sec=>{if(sec!==gamesPanel&&!sec.classList.contains('settings'))sec.classList.add('hub-hide');});
+    const h=gamesPanel.querySelector('.sectiontitle');if(h)h.textContent='Shoresh Games';
+    if(!app.querySelector('.hub-back')){gamesPanel.insertAdjacentHTML('beforebegin','<button type="button" class="secondary hub-back" id="hubBack">← Home</button>');document.getElementById('hubBack').onclick=hub;}
+    const set=app.querySelector('.settings');if(set)app.appendChild(set);}
+}catch(e){}return r;};SET('menu=window.__hubMenu;');}
+/* Header: Home, coins, settings. The rest lives on the Home screen. */
+function header(){const stats=document.querySelector('.top .stats');if(!stats||document.getElementById('hubHomeBtn'))return;const b=document.createElement('button');b.className='smallbtn';b.id='hubHomeBtn';b.textContent='🏠 Home';b.onclick=hub;stats.insertBefore(b,stats.firstChild);
+  const brand=document.querySelector('.top .brand');if(brand){brand.style.cursor='pointer';brand.onclick=hub;}}
+header();
+if(!G('game'))hub();
 })();

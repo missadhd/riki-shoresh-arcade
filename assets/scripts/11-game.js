@@ -315,6 +315,7 @@ function edSelect(id,quiet){
   const status=document.getElementById('rk3SelectedStatus');
   if(status){const it=(G('ITEMS')||[]).find(t=>t[0]===id);status.textContent=id?'✨ Selected: '+(it?it[2]:'furniture')+' — drag to move, or tap the floor to place':'✨ Tap furniture to select it, or choose an owned item below';}
   const clear=document.getElementById('rk3ClearSelection');if(clear)clear.hidden=!id;
+  try{rkUpdateBar();}catch(_){}
   if(!quiet&&g){const it=(G('ITEMS')||[]).find(t=>t[0]===id);const isSt=G('isStorage');const store=typeof isSt==='function'&&isSt(id);
     msg('Selected '+(it?it[2]:'furniture')+'. Drag it to move it'+(store?', or tap Open selected storage.':', or tap Remove to put it away.'));}
 }
@@ -370,6 +371,40 @@ if(typeof prevHtml==='function'&&typeof prevBind==='function'){
     h=h.replace(/<p class="riki3d-legend">[\s\S]*?<\/p>/,'<p class="riki3d-legend">Tap something you bought below, then tap the floor to place it. Drag furniture to move it. Drag the empty room to look around.</p>');
     h=h.replace(/<p class="riki3d-legend">[\s\S]*?<\/p>/,`<p class="riki3d-legend">Tap an owned item below, then tap the floor to place it. Tap furniture to select it and drag to move. Drag empty space to look around.</p><div class="rk3-selection-tools" style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0"><strong id="rk3SelectedStatus" role="status" aria-live="polite">✨ Tap furniture to select it, or choose an owned item below</strong><button type="button" class="smallbtn" id="rk3ClearSelection" hidden>✕ Deselect</button></div>`);
     return h;};
+  /* Easier decorating (Claude, Oct 29): tray of owned items right under the room, tap to add,
+     a floating bar for the selected piece, and the extra sections folded away. */
+  const rkOpen={};
+  function rkFreeSpot(room){const pos=(G('dreamPosition')||{})[room]||{};const taken=Object.values(pos);const C=[[50,62],[30,70],[70,70],[40,48],[62,48],[24,82],[76,82],[50,82],[20,56],[80,56]];
+    for(const [x,y] of C){if(!taken.some(p=>Math.hypot((p.x||0)-x,(p.y||0)-y)<14))return {x,y};}return {x:30+Math.random()*40,y:55+Math.random()*25};}
+  window.rkUpdateBar=function(){const bar=document.getElementById('rk3Bar');if(!bar)return;const id=ED.sel;const has=!!id&&ED.items.some(x=>x.userData.id===id);bar.hidden=!has;
+    const isSt=G('isStorage');const o=document.getElementById('rk3BarOpen');if(o)o.hidden=!(has&&typeof isSt==='function'&&isSt(id));
+    const it=(G('ITEMS')||[]).find(t=>t[0]===id);const n=document.getElementById('rk3BarName');if(n)n.textContent=it?it[2]:'';};
+  function rkLayout(box){
+    const panel=box.closest('.dream-panel');if(!panel)return;const room=G('currentRoom')||'bedroom';
+    box.insertAdjacentHTML('beforeend',`<button type="button" class="rk3-front" id="rk3Front" aria-label="Front view">⟲</button><div class="rk3-bar" id="rk3Bar" hidden><span id="rk3BarName"></span><button type="button" id="rk3BarOpen" hidden>🗄️ Open</button><button type="button" id="rk3BarAway">🧺 Put away</button><button type="button" id="rk3BarDone">✓ Done</button></div>`);
+    const $=id=>document.getElementById(id);
+    $('rk3Front').onclick=()=>{ED.azT=0;ED.elT=.5;ED.zoom=1;};
+    $('rk3BarDone').onclick=()=>{edSelect(null,true);};
+    $('rk3BarOpen').onclick=()=>{const sm=G('storageModal');if(ED.sel&&typeof sm==='function')sm(ED.sel);};
+    $('rk3BarAway').onclick=()=>{const id=ED.sel;if(!id)return;const decor=G('decor')||{};const pl=decor[room]||{};Object.keys(pl).forEach(k=>{if(pl[k]===id)delete pl[k];});decor[room]=pl;try{const sv=G('saveHouse');sv&&sv();}catch(_){}ED.sel=null;SET("selectedItem='';");try{const a=G('audio');a&&a('tap');}catch(_){}const hr=G('houseRender');hr&&hr();};
+    /* tray */
+    const inv=panel.querySelector('.dream-inventory');
+    if(inv){const head=inv.previousElementSibling&&inv.previousElementSibling.tagName==='H3'?inv.previousElementSibling:null;const wrap=document.createElement('div');wrap.className='rk3-tray';
+      wrap.innerHTML='<div class="rk3-tray-title">Tap something to put it in your room</div>';box.after(wrap);wrap.appendChild(inv);if(head)head.remove();
+      const placed=Object.values((G('decor')||{})[room]||{});inv.querySelectorAll('[data-dream-inventory]').forEach(b=>{if(placed.includes(b.dataset.dreamInventory))b.classList.add('rk3-in-room');});
+      if(!inv.querySelector('[data-dream-inventory]'))wrap.querySelector('.rk3-tray-title').textContent='Buy furniture in the shop, then it shows up here';
+      inv.addEventListener('click',e=>{const b=e.target.closest('[data-dream-inventory]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();const id=b.dataset.dreamInventory;
+        if(placed.includes(id)){edSelect(id);return;}const p=rkFreeSpot(room);ED.sel=id;ED.internal=true;try{ORIG_PLACE(id,p.x,p.y);}finally{ED.internal=false;}},true);}
+    /* fold the rest away */
+    const kids=[...panel.children];const after=kids.slice(kids.indexOf(box.nextElementSibling)+1);
+    const hide=['riki3d-actions','riki3d-legend','rk3-selection-tools','dream-toolbar'];after.forEach(el=>{if(hide.some(c=>el.classList.contains(c)))el.classList.add('rk3-hidden');});
+    const groups=[];let cur=null;
+    after.forEach(el=>{if(el.classList.contains('rk3-hidden')||el.id==='dreamMessage')return;const t=el.tagName==='H3'?el.textContent:'';
+      if(/treasure/i.test(t)){cur={label:'🧸 Little treasures',els:[]};groups.push(cur);}else if(/decorate|wallpaper|curtain|design/i.test(t)&&!(cur&&cur.label.startsWith('🎨'))){cur={label:'🎨 Walls & curtains',els:[]};groups.push(cur);}
+      if(cur)cur.els.push(el);});
+    groups.forEach(gp=>{const d=document.createElement('details');d.className='rk3-more';if(rkOpen[gp.label])d.open=true;d.innerHTML=`<summary>${gp.label}</summary>`;gp.els[0].before(d);gp.els.forEach(el=>{if(el.tagName==='H3'&&el===gp.els[0])el.remove();else d.appendChild(el);});d.addEventListener('toggle',()=>{rkOpen[gp.label]=d.open;});});
+    rkUpdateBar();
+  }
   const newBind=function(){prevBind.apply(this,arguments);const box=document.getElementById('dreamRoom');if(!box||!box.classList.contains('rk3-room'))return;
     box.onclick=null;
     const $=id=>document.getElementById(id);
@@ -378,7 +413,7 @@ if(typeof prevHtml==='function'&&typeof prevBind==='function'){
     if($('orbitRight'))$('orbitRight').onclick=()=>{ED.azT=cl(ED.azT+.3,-.9,.9);};
     if($('orbitReset'))$('orbitReset').onclick=()=>{ED.azT=0;ED.elT=.5;ED.zoom=1;};
     if($('openSelected'))$('openSelected').onclick=()=>{const id=ED.sel||G('selectedItem');const isSt=G('isStorage'),sm=G('storageModal');if(id&&typeof isSt==='function'&&isSt(id)&&typeof sm==='function')sm(id);else msg('Tap a shelf, vanity or dresser in the room first, then tap Open.');};
-    edMount();};
+    edMount();try{rkLayout(box);}catch(err){console.warn('decor layout',err);}};
   window.__rk3Html=newHtml;window.__rk3Bind=newBind;
   SET('decorateHtml=window.__rk3Html;bindDecor=window.__rk3Bind;dreamHtml=window.__rk3Html;dreamBind=window.__rk3Bind;');
   try{if(G('game')==='house'&&G('housePage')==='decorate'&&document.getElementById('dreamRoom')){const hr=G('houseRender');hr&&hr();}}catch(_){}
