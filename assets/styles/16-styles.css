@@ -132,3 +132,51 @@
 .rk-prog-num{font-size:12px;font-weight:800;color:#8a6577;font-variant-numeric:tabular-nums;white-space:nowrap}
 @media (max-width:420px){.rk-prog-list li{grid-template-columns:auto 1fr auto;grid-template-areas:"he mean say" "bar bar num"}.rk-prog-he{grid-area:he}.rk-prog-mean{grid-area:mean}.rk-prog-list .rk-say{grid-area:say}.rk-bar{grid-area:bar}.rk-prog-num{grid-area:num}}
 @media (prefers-reduced-motion:reduce){.rk-launch,.rk-stamp,.rk-hop,.rk-say.on{animation:none}}
+
+/* Home hub, simpler header, easier decorating (Claude, Oct 29) */
+.top .stats>button:not(#hubHomeBtn):not(#settingsToggle):not(#sound):not(#fullscreen):not(#musicToggle),.top #streak{display:none!important}
+.top #hubHomeBtn{background:#e2457a!important;color:#fff!important;border-color:#e2457a!important}
+.hub-hide{display:none!important}
+.hub{display:flex;flex-direction:column;gap:14px;padding-block:6px 10px}
+.hub-hi h1{margin:0;font-family:"Baloo 2","Trebuchet MS",system-ui,sans-serif;font-size:clamp(30px,8vw,40px);color:#4a2338;line-height:1.05}
+.hub-hi p{margin:2px 0 0;font-weight:800;color:#8a6577;font-size:1.05rem}
+.hub-today{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:0;border-radius:24px;padding:16px 18px;background:linear-gradient(135deg,#e2457a,#f58fb2);color:#fff;box-shadow:0 6px 0 #b92e5e;cursor:pointer}
+.hub-today b{font-family:"Baloo 2","Trebuchet MS",system-ui,sans-serif;font-size:1.6rem;line-height:1.1}
+.hub-today span{font-weight:800;opacity:.92}
+.hub-today-tag{font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:#ffffff33;border-radius:999px;padding:2px 10px}
+.hub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.hub-tile{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:#fff;border:2px solid #f3d6dc;border-radius:24px;padding:16px 14px;box-shadow:0 6px 0 #f3d6dc;min-height:150px;cursor:pointer;color:#4a2338}
+.hub-tile:active,.hub-today:active{transform:translateY(3px)}
+.hub-ic{font-size:44px;line-height:1;margin-bottom:6px}
+.hub-tile b{font-family:"Baloo 2","Trebuchet MS",system-ui,sans-serif;font-size:1.25rem;line-height:1.1}
+.hub-tile span:last-child{font-size:13px;font-weight:800;color:#8a6577}
+.hub-progress{align-self:center;background:none;border:0;color:#8a6577;font-weight:800;text-decoration:underline;padding:8px;cursor:pointer}
+.hub-back{margin:4px 0 10px!important}
+/* decorating */
+.rk3-hidden{display:none!important}
+.rk3-front{position:absolute;right:10px;top:10px;z-index:3;width:40px;height:40px;border-radius:50%;border:0;background:#ffffffe6;font-size:20px;box-shadow:0 2px 8px #0002;cursor:pointer}
+.rk3-bar{position:absolute;left:10px;right:10px;bottom:10px;z-index:3;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#ffffffee;border-radius:18px;padding:8px 10px;box-shadow:0 6px 18px -6px #4a233866}
+.rk3-bar[hidden]{display:none!important}
+.rk3-bar span{flex:1;min-width:0;font-weight:900;color:#4a2338;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rk3-bar button{border:0;border-radius:999px;padding:9px 12px;font-weight:900;font-size:14px;background:#ffe3ea;color:#4a2338;cursor:pointer}
+.rk3-bar #rk3BarDone{background:#e2457a;color:#fff}
+.rk3-bar button[hidden]{display:none}
+.rk3-tray{margin:10px 0 6px}
+.rk3-tray-title{font-weight:900;color:#4a2338;margin:0 2px 6px;font-size:15px}
+.rk3-tray .dream-inventory{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;gap:10px!important;padding:4px 2px 10px!important;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.rk3-tray .dream-inventory>*{flex:0 0 96px!important;width:96px!important;scroll-snap-align:start}
+.rk3-tray [data-dream-inventory]{position:relative;border:2px solid #f3d6dc!important;border-radius:18px!important;background:#fff!important;padding:6px!important;min-height:0!important;font-size:12px!important;font-weight:800!important;line-height:1.15;color:#4a2338!important}
+.rk3-tray [data-dream-inventory] .furniture-svg,.rk3-tray [data-dream-inventory] img{width:100%!important;height:70px!important;object-fit:contain}
+.rk3-tray .rk3-in-room{border-color:#5cc6a8!important}
+.rk3-tray .rk3-in-room::after{content:"✓";position:absolute;top:4px;right:6px;width:20px;height:20px;border-radius:50%;background:#5cc6a8;color:#fff;font-size:12px;display:grid;place-items:center}
+.rk3-more{background:#fff;border:2px solid #f3d6dc;border-radius:18px;padding:0 12px;margin:10px 0}
+.rk3-more>summary{cursor:pointer;font-family:"Baloo 2","Trebuchet MS",system-ui,sans-serif;font-weight:800;font-size:1.1rem;padding:12px 0;color:#4a2338;list-style:none}
+.rk3-more>summary::-webkit-details-marker{display:none}
+.rk3-more>summary::after{content:"▾";float:right;transition:transform .2s}
+.rk3-more[open]>summary::after{transform:rotate(180deg)}
+.rk3-more[open]{padding-bottom:12px}
+.hub-alef{display:inline-grid;place-items:center;width:52px;height:52px;border-radius:14px;background:linear-gradient(#fbe7c6,#efcf9a);box-shadow:0 4px 0 #c9a06a;color:#5a3a20;font-family:"Frank Ruhl Libre","David","Arial Hebrew",serif;font-weight:900;font-size:28px;direction:rtl}
+#app:has(.rk3-room) #backArcade{display:none!important}
+#app:has(.rk3-room) .house-nav{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px!important}
+#app:has(.rk3-room) .house-nav button{padding:9px 6px!important;font-size:13px!important}
+.hub-tile .hub-alef{font-size:30px!important;line-height:1}
