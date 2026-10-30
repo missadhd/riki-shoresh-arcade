@@ -572,7 +572,7 @@ if(typeof prevMenu==='function'){window.__hubMenu=function(){const r=prevMenu.ap
     const set=app.querySelector('.settings');if(set)app.appendChild(set);}
 }catch(e){}return r;};SET('menu=window.__hubMenu;');}
 /* Header: Home, coins, settings. The rest lives on the Home screen. */
-function header(){const stats=document.querySelector('.top .stats');if(!stats||document.getElementById('hubHomeBtn'))return;const b=document.createElement('button');b.className='smallbtn';b.id='hubHomeBtn';b.textContent='🏠 Home';b.onclick=hub;stats.insertBefore(b,stats.firstChild);
+function header(){const stats=document.querySelector('.top .stats');if(!stats||document.getElementById('hubHomeBtn'))return;const sb=[...stats.querySelectorAll('button')].find(x=>/Social Skills/.test(x.textContent));if(sb)sb.id=sb.id||'hubSocialBtn';const b=document.createElement('button');b.className='smallbtn';b.id='hubHomeBtn';b.textContent='🏠 Home';b.onclick=hub;stats.insertBefore(b,stats.firstChild);
   const brand=document.querySelector('.top .brand');if(brand){brand.style.cursor='pointer';brand.onclick=hub;}}
 header();
 if(!G('game'))hub();

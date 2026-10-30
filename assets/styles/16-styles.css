@@ -134,7 +134,7 @@
 @media (prefers-reduced-motion:reduce){.rk-launch,.rk-stamp,.rk-hop,.rk-say.on{animation:none}}
 
 /* Home hub, simpler header, easier decorating (Claude, Oct 29) */
-.top .stats>button:not(#hubHomeBtn):not(#rkShopShortcut):not(#settingsToggle):not(#sound):not(#fullscreen):not(#musicToggle),.top #streak{display:none!important}
+.top .stats>button:not(#hubHomeBtn):not(#hubSocialBtn):not(#rkShopShortcut):not(#settingsToggle):not(#sound):not(#fullscreen):not(#musicToggle),.top #streak{display:none!important}
 .top #hubHomeBtn{background:#e2457a!important;color:#fff!important;border-color:#e2457a!important}
 .hub-hide{display:none!important}
 .hub{display:flex;flex-direction:column;gap:14px;padding-block:6px 10px}
@@ -155,7 +155,7 @@
 /* decorating */
 .rk3-hidden{display:none!important}
 .rk3-front{position:absolute;right:10px;top:10px;z-index:3;width:40px;height:40px;border-radius:50%;border:0;background:#ffffffe6;font-size:20px;box-shadow:0 2px 8px #0002;cursor:pointer}
-.rk3-bar{position:absolute;left:10px;right:10px;bottom:10px;z-index:3;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#ffffffee;border-radius:18px;padding:8px 10px;box-shadow:0 6px 18px -6px #4a233866}
+.rk3-bar{position:relative;margin:8px 0 0;z-index:3;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#ffffffee;border-radius:18px;padding:8px 10px;box-shadow:0 6px 18px -6px #4a233866}
 .rk3-bar[hidden]{display:none!important}
 .rk3-bar span{flex:1;min-width:0;font-weight:900;color:#4a2338;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rk3-bar button{border:0;border-radius:999px;padding:9px 12px;font-weight:900;font-size:14px;background:#ffe3ea;color:#4a2338;cursor:pointer}
@@ -180,3 +180,8 @@
 #app:has(.rk3-room) .house-nav{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px!important}
 #app:has(.rk3-room) .house-nav button{padding:9px 6px!important;font-size:13px!important}
 .hub-tile .hub-alef{font-size:30px!important;line-height:1}
+
+/* 3D decorating bar: name on its own line, buttons wrap */
+.rk3-bar #rk3BarName{flex:1 0 100%;white-space:normal}
+.rk3-bar.preview{background:#fff7d6ee}
+.rk3-bar #rk3BarPlace{background:#5cc6a8;color:#fff}
