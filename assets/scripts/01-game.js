@@ -590,6 +590,19 @@ const RIKI_BUILD_STEPS=[
  ['Solve a wobble',['🔧 Fix it together','😤 Blame your friend','🚪 Walk away'],'Problems are easier when we work together.']
 ];
 let rikiTeam=null;
+
+function rikiBuildVisual(parts){
+ const n=parts.length,project=parts[0]||'🏡';
+ const roof=project==='🌉'?'M55 108Q180 30 305 108':project==='🗼'?'M125 105L180 30 235 105':'M70 103L180 22 290 103';
+ let shapes='<rect x="15" y="172" width="330" height="8" rx="4" fill="#87bd8f"/><circle cx="38" cy="52" r="22" fill="#ffedb0"/>';
+ if(n>0)shapes+='<path d="'+roof+'" fill="'+(project==='🏡'?'#f5a0b3':'none')+'" stroke="#bc7aa4" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>';
+ if(n>1)shapes+='<rect x="83" y="108" width="194" height="65" rx="9" fill="#d5b8ff" stroke="#9673c8" stroke-width="7"/><path d="M83 135H277M145 108V173M210 108V173" stroke="#ffffff99" stroke-width="5"/>';
+ if(n>2)shapes+='<rect x="161" y="126" width="38" height="47" rx="7" fill="#f6ca86" stroke="#ad7d54" stroke-width="5"/><circle cx="189" cy="152" r="3" fill="#8c5d44"/><rect x="105" y="120" width="30" height="25" rx="5" fill="#b9eafa"/><rect x="223" y="120" width="30" height="25" rx="5" fill="#b9eafa"/>';
+ if(n>3)shapes+='<path d="M180 8L187 27 207 28 192 40 198 60 180 49 162 60 168 40 153 28 173 27Z" fill="#ffe58e"/><circle cx="49" cy="114" r="7" fill="#ffd99a"/><circle cx="313" cy="81" r="9" fill="#ffb9d5"/>';
+ return '<div class="riki-build-art" role="img" aria-label="Building progress: '+n+' of 4 steps complete"><svg viewBox="0 0 360 190" xmlns="http://www.w3.org/2000/svg"><rect width="360" height="190" rx="20" fill="#d8efff"/><path d="M0 150Q90 120 180 148T360 145V190H0" fill="#b5dfad"/>'+shapes+'</svg><div class="riki-build-progress">'+(n?'Your project is growing!':'Pick a project to begin!')+'</div></div>';
+}
+(function(){const style=document.createElement('style');style.textContent='.riki-build-art{max-width:480px;margin:10px auto;text-align:center;background:#e5f6ff;border:4px solid white;border-radius:23px;overflow:hidden;box-shadow:0 7px 18px #725c9b33}.riki-build-art svg{display:block;width:100%;height:auto}.riki-build-art svg>path,.riki-build-art svg>rect:not(:first-child){animation:rikiBuildAppear .5s ease-out both;transform-origin:bottom}@keyframes rikiBuildAppear{from{opacity:0;transform:translateY(-12px) scale(.92)}to{opacity:1;transform:none}}.riki-build-progress{padding:8px;background:#fff8d6;font-weight:700;color:#644c7c}@media(prefers-reduced-motion:reduce){.riki-build-art *{animation:none!important}}';document.head.appendChild(style)})();
+
 function rikiTeamStart(){game='sel';session=null;rikiTeam={step:0,parts:[],paid:false};rikiTeamDraw()}
 function rikiTeamDraw(){
  const a=rikiTeam;if(a.step===RIKI_BUILD_STEPS.length){if(!a.paid){a.paid=true;award(20)}app.innerHTML='<section class="panel riki-clay-stage"><h2>🎉 You built it together!</h2><div style="font-size:80px">🏡🌟</div><p>Planning, sharing, listening, and repairing are teamwork skills. You earned 20 coins!</p><button class="primary" id="rikiTeamAgain">Build again</button><button class="secondary" id="rikiTeamBack">Social Skills</button></section>';$('#rikiTeamAgain').onclick=rikiTeamStart;$('#rikiTeamBack').onclick=selHub;return}
