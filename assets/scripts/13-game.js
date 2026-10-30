@@ -251,7 +251,7 @@ const IDS=Object.keys(GAMES);
 let S=null;
 function words(){const W=G('W')||[];const idsFn=G('ids');const pool=typeof idsFn==='function'?idsFn():W.map((_,i)=>i);return {W,pool};}
 function studioWebGLAvailable(){
-  if(!window.THREE || typeof window.THREE.WebGLRenderer!=='function')return false;
+  /* The 3D library is lazy-loaded by K.loadThree; do not treat its absence at menu time as lack of WebGL. */
   try{const canvas=document.createElement('canvas');const gl=canvas.getContext('webgl2')||canvas.getContext('webgl')||canvas.getContext('experimental-webgl');return !!gl;}catch(_){return false;}
 }
 function startStudio(id){
@@ -261,7 +261,7 @@ function startStudio(id){
   SET(`game=${JSON.stringify(id)};round=(typeof round==='number'?round+1:1);`);
   const order=shuffle(pool).slice(0,def.steps.length);
   S={id,def,order,at:0,score:0,missed:[],tries:0,picks:[]};
-  SET(`session=window.__stSession;`);window.__stSession={order,at:0,score:0,missed:[],done:false};SET('session=window.__stSession;');
+  window.__stSession={order,at:0,score:0,missed:[],done:false};SET('session=window.__stSession;');
   K.loadThree(()=>{newScene(def);renderStep();},()=>{const app=document.getElementById('app');if(app)app.innerHTML='<section class="panel"><p>This game needs an internet connection to load its 3D pictures.</p></section>';});
   return true;
 }
