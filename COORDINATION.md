@@ -4,7 +4,6 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
-| ChatGPT | `chatgpt/pages-deploy-main` | `.github/workflows/pages.yml`, `COORDINATION.md` | Draft |
 
 ## Map of the code
 
