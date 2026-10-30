@@ -91,9 +91,12 @@ function curtainFor(room){
 
 /* ================= materials & shapes ================= */
 const matCache={};
-function mat(c,rough=.75,metal=0,extra){const k=c+rough+metal+(extra?JSON.stringify(Object.keys(extra)):'');if(!extra&&matCache[k])return matCache[k];
+function mat(c,rough=.75,metal=0,extra){
+  // Matte clay on opaque toy surfaces; keep eyes, glass, water and lights crisp.
+  if(rough>=.2&&metal<.5&&!(extra&&(extra.transparent||extra.emissive))){rough=Math.max(.78,rough);}
+  const k=c+rough+metal+(extra?JSON.stringify(Object.keys(extra)):'');if(!extra&&matCache[k])return matCache[k];
   const m=new THREE.MeshStandardMaterial(Object.assign({color:new THREE.Color(c).convertSRGBToLinear(),roughness:rough,metalness:metal},extra||{}));if(!extra)matCache[k]=m;return m;}
-const fabric=c=>mat(c,.95),gloss=c=>mat(c,.22),wood=(c='#b9824f')=>mat('#ffffff',.6,0,{map:woodGrain(c)}),metalM=(c='#d8b46a')=>mat(c,.3,.85);
+const fabric=c=>mat(c,.95),gloss=c=>mat(c,.22),wood=(c='#b9824f')=>mat(c,.88),metalM=(c='#d8b46a')=>mat(c,.65,.28);
 const geoCache={};
 function rbox(w,h,d,r){const k=[w,h,d,r].join();if(geoCache[k])return geoCache[k];r=Math.min(r,w/2-.001,h/2-.001,d/2-.001);
   const s=new THREE.Shape(),x=-w/2+r,y=-h/2+r,W=w-2*r,H=h-2*r;s.moveTo(x,y);s.lineTo(x+W,y);s.lineTo(x+W,y+H);s.lineTo(x,y+H);s.lineTo(x,y);
@@ -104,7 +107,7 @@ const BX=(g,w,h,d,m,x,y,z)=>add(g,new THREE.BoxGeometry(w,h,d),m,x,y,z);
 const CY=(g,rt,rb,h,m,x,y,z,seg=24)=>add(g,new THREE.CylinderGeometry(rt,rb,h,seg),m,x,y,z);
 const SP=(g,r,m,x,y,z,sx=1,sy=1,sz=1)=>{const o=add(g,new THREE.SphereGeometry(r,24,18),m,x,y,z);o.scale.set(sx,sy,sz);return o;};
 const CO=(g,r,h,m,x,y,z)=>add(g,new THREE.ConeGeometry(r,h,20),m,x,y,z);
-const eye=()=>gloss('#2a1622');
+const eye=()=>mat('#2a1622',.12);
 
 /* ================= furniture models ================= */
 function legs4(g,w,d,h,m,inset=.06,r=.03){[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>CY(g,r,r*.75,h,m,a*(w/2-inset),h/2,b*(d/2-inset),12));}
@@ -538,3 +541,4 @@ if(app)new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(fit,120);}
 document.addEventListener('click',()=>{setTimeout(()=>{const n=document.querySelector('#app .st-claw-question,#app #next,#app #spinAgain,#app #comicNext:not([hidden])');if(n&&n.offsetParent){const r=n.getBoundingClientRect();if(r.bottom>innerHeight||r.top<0)n.scrollIntoView({block:'end',behavior:'smooth'});}},900);},true);
 window.RikiFit=fit;
 })();
+

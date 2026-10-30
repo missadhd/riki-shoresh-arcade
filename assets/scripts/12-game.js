@@ -40,7 +40,7 @@ const ITEMS=G('ITEMS');if(Array.isArray(ITEMS))NEW.forEach(it=>{if(!ITEMS.some(x
 
 /* ---------- cute helpers ---------- */
 const C={pink:'#f7a0bd',hot:'#e2457a',mint:'#8ed6c4',sky:'#8fc6e8',lilac:'#c8a2ff',sun:'#ffd25e',cream:'#fff4e6',white:'#fdfbfb',peach:'#ffb48a',gold:'#f2c94c',choc:'#8a5a35',red:'#ef5a6f',green:'#5fb06a',navy:'#4b4a8f'};
-const toy=c=>mat(c,.42);
+const toy=c=>mat(c,.84);
 function face(g,x,y,z,s=1){[-1,1].forEach(k=>{SP(g,.034*s,eye(),x+k*.075*s,y,z);SP(g,.011*s,mat('#ffffff',.1),x+k*.075*s+.012*s,y+.014*s,z+.028*s);SP(g,.03*s,mat('#ff9fb8',.9),x+k*.12*s,y-.045*s,z-.006*s,1,.6,.4);});
   const m=add(g,new THREE.TorusGeometry(.04*s,.011*s,8,16,Math.PI),eye(),x,y-.045*s,z+.004);m.rotation.z=Math.PI;}
 function heartShape(r){const s=new THREE.Shape();s.moveTo(0,-r);s.bezierCurveTo(-r*1.1,-r*.2,-r*1.1,r*.85,0,r*.35);s.bezierCurveTo(r*1.1,r*.85,r*1.1,-r*.2,0,-r);return s;}
@@ -297,10 +297,10 @@ const thumbs={},queued=new Set(),queue=[];let TR=null,running=false,threeFailed=
 function thumbRig(){
   if(TR)return TR;const cv=document.createElement('canvas');cv.width=cv.height=320;
   const R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true,preserveDrawingBuffer:true});R.setPixelRatio(1);R.setSize(320,320,false);R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.12;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.setClearColor(0x000000,0);
-  const s=new THREE.Scene();s.add(new THREE.HemisphereLight(0xffffff,0xffd9e4,.75));
+  const s=new THREE.Scene();s.add(new THREE.HemisphereLight(0xfffaf3,0xe7c9bc,.95));
   const key=new THREE.DirectionalLight(0xfff3e6,1.15);key.position.set(3,6,5);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.radius=6;key.shadow.bias=-.0008;key.shadow.normalBias=.02;const c=key.shadow.camera;c.left=-3;c.right=3;c.top=3;c.bottom=-3;c.far=20;s.add(key);
-  const rim=new THREE.DirectionalLight(0xffc4dd,.55);rim.position.set(-4,3,-4);s.add(rim);const fill=new THREE.DirectionalLight(0xdfeaff,.3);fill.position.set(-4,2,4);s.add(fill);
-  const ground=new THREE.Mesh(new THREE.PlaneGeometry(12,12),new THREE.ShadowMaterial({opacity:.22}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;s.add(ground);
+  const rim=new THREE.DirectionalLight(0xffeadc,.4);rim.position.set(-4,3,-4);s.add(rim);const fill=new THREE.DirectionalLight(0xe5f4ed,.45);fill.position.set(-4,2,4);s.add(fill);
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(12,12),new THREE.ShadowMaterial({opacity:.16}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;s.add(ground);
   const cam=new THREE.PerspectiveCamera(26,1,.05,60);TR={R,s,cam,ground,key};return TR;
 }
 function renderThumb(id){
@@ -585,3 +585,4 @@ document.addEventListener('click',e=>{
 },true);
 window.RikiClaw={start,plush:PLUSH,mini:MINI,buildPlush};
 })();
+
