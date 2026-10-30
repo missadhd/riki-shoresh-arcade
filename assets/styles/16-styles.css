@@ -134,7 +134,7 @@
 @media (prefers-reduced-motion:reduce){.rk-launch,.rk-stamp,.rk-hop,.rk-say.on{animation:none}}
 
 /* Home hub, simpler header, easier decorating (Claude, Oct 29) */
-.top .stats>button:not(#hubHomeBtn):not(#settingsToggle):not(#sound):not(#fullscreen):not(#musicToggle),.top #streak{display:none!important}
+.top .stats>button:not(#hubHomeBtn):not(#rkShopShortcut):not(#settingsToggle):not(#sound):not(#fullscreen):not(#musicToggle),.top #streak{display:none!important}
 .top #hubHomeBtn{background:#e2457a!important;color:#fff!important;border-color:#e2457a!important}
 .hub-hide{display:none!important}
 .hub{display:flex;flex-direction:column;gap:14px;padding-block:6px 10px}
