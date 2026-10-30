@@ -260,3 +260,76 @@ body:has(#app .gamehead) .top .brand{display:none}
 .cm-ans.good{color:#fff;background:#e2457a!important;box-shadow:0 6px 0 #b92e5e!important;animation:qpPop .35s}
 .cm-hint{margin:0;background:#fff7d6;border-radius:14px;padding:8px 12px;font-weight:800;color:#6a4b2a}
 @media (prefers-reduced-motion:reduce){.cm-grab,.cm-coin,.cm-mystery,.cm-banner,.cm-burst i{animation:none!important}}
+
+
+/* Clay art preview: four equal home cards, compact illustrations and matching game art. */
+.hub-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:stretch;grid-auto-rows:1fr}
+.hub-grid .hub-tile{grid-column:auto;min-width:0;min-height:172px;padding:14px;gap:5px;overflow:hidden}
+.hub-grid .hub-tile b{font-size:clamp(17px,4.6vw,20px);line-height:1.2;margin:0}
+.hub-grid .hub-tile>span:last-child{font-size:12px;line-height:1.35}
+.hub-grid .hub-ic{display:grid;place-items:center;width:100%;height:80px;flex:none;font-size:0!important;margin:0 0 5px;background:none}
+.hub-grid .hub-ic>*{display:none!important}
+.hub-grid .hub-ic::before{content:"";display:block;width:80px;height:80px;background-image:url('../images/clay/icons.webp');background-size:400% 400%;background-position:var(--clay-x,0%) var(--clay-y,0%);background-repeat:no-repeat}
+#hubSocial{--clay-x:33.333333%}#hubShop{--clay-x:66.666667%}
+#hubHouse .hub-ic::before{background-image:url('../images/clay/dollhouse.webp');background-size:contain;background-position:center}
+/* Fixed art slots keep titles and descriptions aligned, even on a narrow phone. */
+.games .gamecard .emoji{display:grid!important;place-items:center;width:100%!important;height:88px!important;aspect-ratio:auto!important;margin:0 0 6px!important;font-size:0!important;background:#fff7f2!important;border-radius:16px}
+.games .gamecard .emoji img{display:none!important}
+.games .gamecard .emoji::before{content:"";display:block;width:80px;height:80px;background-image:url('../images/clay/icons.webp');background-size:400% 400%;background-position:var(--clay-x,0%) var(--clay-y,0%);background-repeat:no-repeat}
+.shop-item,.interior-product{border-radius:22px!important;background:linear-gradient(155deg,#fffdf9,#fff5f0)!important;border-color:#efd8ce!important;box-shadow:0 5px 0 #ead3c7!important}
+.shop-item .pic{border-radius:17px;background:radial-gradient(ellipse at 50% 30%,#fffefa,#f9ece2);padding:6px;overflow:hidden}
+.shop-item .pic .rk3-thumb{filter:drop-shadow(0 5px 4px #865d4720)}
+.shop-item .name{line-height:1.3;overflow-wrap:break-word}
+.shop-item button:focus-visible,.hub-tile:focus-visible,.gamecard:focus-visible{outline:3px solid #8a4b6a;outline-offset:4px}
+@media(max-width:360px){.hub-grid{gap:10px}.hub-grid .hub-tile{padding:12px;min-height:168px}.hub-grid .hub-tile b{font-size:17px}.hub-grid .hub-ic{height:72px}.hub-grid .hub-ic::before{width:72px;height:72px}}
+.games .gamecard[data-game="detective"],.games .gamecard[data-extra="detective"],.games .gamecard[data-creative="detective"],.games .gamecard[data-special="detective"]{--clay-x:100.000000%;--clay-y:0.000000%;}
+.games .gamecard[data-game="bubbles"],.games .gamecard[data-extra="bubbles"],.games .gamecard[data-creative="bubbles"],.games .gamecard[data-special="bubbles"]{--clay-x:0.000000%;--clay-y:33.333333%;}
+.games .gamecard[data-game="builder"],.games .gamecard[data-extra="builder"],.games .gamecard[data-creative="builder"],.games .gamecard[data-special="builder"]{--clay-x:33.333333%;--clay-y:33.333333%;}
+.games .gamecard[data-game="memory"],.games .gamecard[data-extra="memory"],.games .gamecard[data-creative="memory"],.games .gamecard[data-special="memory"]{--clay-x:66.666667%;--clay-y:33.333333%;}
+.games .gamecard[data-game="show"],.games .gamecard[data-extra="show"],.games .gamecard[data-creative="show"],.games .gamecard[data-special="show"]{--clay-x:100.000000%;--clay-y:33.333333%;}
+.games .gamecard[data-game="pairs"],.games .gamecard[data-extra="pairs"],.games .gamecard[data-creative="pairs"],.games .gamecard[data-special="pairs"]{--clay-x:66.666667%;--clay-y:33.333333%;}
+.games .gamecard[data-game="sort"],.games .gamecard[data-extra="sort"],.games .gamecard[data-creative="sort"],.games .gamecard[data-special="sort"]{--clay-x:33.333333%;--clay-y:33.333333%;}
+.games .gamecard[data-game="wheel"],.games .gamecard[data-extra="wheel"],.games .gamecard[data-creative="wheel"],.games .gamecard[data-special="wheel"]{--clay-x:100.000000%;--clay-y:33.333333%;}
+.games .gamecard[data-game="cupcakes"],.games .gamecard[data-extra="cupcakes"],.games .gamecard[data-creative="cupcakes"],.games .gamecard[data-special="cupcakes"]{--clay-x:0.000000%;--clay-y:66.666667%;}
+.games .gamecard[data-game="cake"],.games .gamecard[data-extra="cake"],.games .gamecard[data-creative="cake"],.games .gamecard[data-special="cake"]{--clay-x:33.333333%;--clay-y:66.666667%;}
+.games .gamecard[data-game="dressup"],.games .gamecard[data-extra="dressup"],.games .gamecard[data-creative="dressup"],.games .gamecard[data-special="dressup"]{--clay-x:66.666667%;--clay-y:66.666667%;}
+.games .gamecard[data-game="pets"],.games .gamecard[data-extra="pets"],.games .gamecard[data-creative="pets"],.games .gamecard[data-special="pets"]{--clay-x:100.000000%;--clay-y:66.666667%;}
+.games .gamecard[data-game="boutique"],.games .gamecard[data-extra="boutique"],.games .gamecard[data-creative="boutique"],.games .gamecard[data-special="boutique"]{--clay-x:66.666667%;--clay-y:66.666667%;}
+.games .gamecard[data-game="claw"],.games .gamecard[data-extra="claw"],.games .gamecard[data-creative="claw"],.games .gamecard[data-special="claw"]{--clay-x:0.000000%;--clay-y:100.000000%;}
+.games .gamecard[data-game="aquarium"],.games .gamecard[data-extra="aquarium"],.games .gamecard[data-creative="aquarium"],.games .gamecard[data-special="aquarium"]{--clay-x:33.333333%;--clay-y:100.000000%;}
+.games .gamecard[data-game="quest"],.games .gamecard[data-extra="quest"],.games .gamecard[data-creative="quest"],.games .gamecard[data-special="quest"]{--clay-x:100.000000%;--clay-y:0.000000%;}
+.games .gamecard[data-game="giftwrap"],.games .gamecard[data-extra="giftwrap"],.games .gamecard[data-creative="giftwrap"],.games .gamecard[data-special="giftwrap"]{--clay-x:66.666667%;--clay-y:100.000000%;}
+.games .gamecard[data-game="garden"],.games .gamecard[data-extra="garden"],.games .gamecard[data-creative="garden"],.games .gamecard[data-special="garden"]{--clay-x:100.000000%;--clay-y:100.000000%;}
+
+/* In-room furniture play: retain the room canvas and zoom into the selected piece. */
+.rk3-room.rk-storage-focus{height:clamp(390px,69dvh,650px);touch-action:none;scroll-margin-top:110px}
+.rk-storage-toolbar{position:absolute;z-index:5;inset:10px 10px auto;display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none}
+.rk-storage-toolbar button,.rk-storage-toolbar strong{background:#fffaf0ed;border:2px solid #e8d5c0;border-radius:14px;padding:9px 12px;font:800 13px/1.2 system-ui;color:#654333;pointer-events:auto}
+.rk-storage-toolbar strong{max-width:44%;text-align:right}
+.rk-storage-tray{background:#fffaf3;border:2px solid #efdcc9;border-radius:22px;padding:12px;margin:10px 0}
+.rk-storage-help{margin:0 0 10px;font-size:14px;line-height:1.4;font-weight:800;color:#674637}
+.rk-storage-objects{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;max-height:220px;overflow-y:auto;padding:3px}
+.rk-storage-objects>button{min-width:0;min-height:94px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;border:2px solid #ecdac8;border-radius:15px;padding:6px;color:#674637;touch-action:none;user-select:none;-webkit-user-select:none}
+.rk-storage-objects>button.active{border-color:#bd6d8a;background:#fff0f3;box-shadow:0 0 0 2px #edb8c9}
+.rk-storage-objects .furniture-svg,.rk-storage-objects .rk3-thumb{width:100%!important;height:64px!important;object-fit:contain;pointer-events:none}
+.rk-storage-objects small{font:700 11px/1.2 system-ui;overflow-wrap:break-word;pointer-events:none}
+.rk-storage-objects>p{grid-column:1/-1;font-size:14px}
+.rk-storage-active .rk3-bar,.rk-storage-active .rk3-tray,.rk-storage-active .rk3-front,.rk-storage-active .riki3d-hud{display:none!important}
+.rk-storage-toolbar button:focus-visible,.rk-storage-objects button:focus-visible{outline:3px solid #bd6d8a;outline-offset:2px}
+
+/* Keep the four main home choices aligned; retain the newer dolls activity beneath them. */
+.hub-grid{grid-auto-rows:auto}
+.hub-grid #hubPlay{grid-column:1/-1;min-height:96px;display:grid;grid-template-columns:70px 1fr;column-gap:14px;--clay-x:66.666667%;--clay-y:66.666667%}
+.hub-grid #hubPlay .hub-ic{grid-row:1/3;width:64px;height:64px;margin:0}
+.hub-grid #hubPlay .hub-ic::before{width:64px;height:64px}
+
+/* Browse horizontally; vertical gestures lift an item into the room. */
+.rk-storage-scroll{display:grid;grid-template-columns:36px minmax(0,1fr) 36px;gap:6px;align-items:center}
+.rk-storage-objects{display:flex;flex-wrap:nowrap;min-width:0;max-height:none;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;scroll-snap-type:x proximity;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#cba58d #f3e7d9;padding:4px 3px 10px}
+.rk-storage-objects>button{flex:0 0 92px;touch-action:pan-x;scroll-snap-align:start}
+.rk-storage-prev,.rk-storage-next{width:36px;min-height:64px;border:1px solid #e5cdb6;border-radius:12px;background:#fff5e7;color:#895d44;font:bold 28px system-ui;touch-action:manipulation;cursor:pointer}
+.rk-storage-scroll button:focus-visible{outline:3px solid #bd6d8a;outline-offset:2px}
+/* Keep the open furniture and its item tray together on a phone screen. */
+#app:has(.rk-storage-active) .house-head{display:none!important}
+.rk-storage-active .dream-heading,.rk-storage-active .room-tabs,.rk-storage-active .riki3d-legend,.rk-storage-active .rk3-selection-tools,.rk-storage-active .dream-message,.rk-storage-active .rk3-more{display:none!important}
+.rk3-room.rk-storage-focus{height:clamp(260px,calc(100svh - 350px),560px)}
