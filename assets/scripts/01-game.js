@@ -144,7 +144,7 @@ function questHTML(){const l=level(),p=adventureXP%80;const islands=[['🌷','Fl
 const priorAward=award;
 award=function(n){priorAward(n);adventureXP+=Math.max(1,Math.round(n));try{localStorage.setItem(XP_KEY,adventureXP)}catch{};if(adventureXP%80<Math.max(1,Math.round(n)))celebrate()};
 const menuWithGames=menu;
-menu=function(){menuWithGames();const hero=document.querySelector('.hero');if(hero){hero.insertAdjacentHTML('afterend',questHTML());const p=hero.querySelector('p');if(p)p.textContent='Choose your adventure, earn coins, collect XP, and decorate your dreamhouse!'}if(musicPrefs.on&&musicContext)startMusic()};
+menu=function(){menuWithGames();const hero=document.querySelector('.hero');if(hero){/* Adventure panel hidden; XP tracking and saved progress remain active. */const p=hero.querySelector('p');if(p)p.textContent='Choose your adventure, earn coins, collect XP, and decorate your dreamhouse!'}if(musicPrefs.on&&musicContext)startMusic()};
 const priorFrame=frame;
 frame=function(title,body,progress=''){priorFrame(title,body,progress);const head=document.querySelector('.gamehead');if(head)head.insertAdjacentHTML('afterend',`<div class="quest-hint" data-live-coins-summary style="text-align:center">🌟 Level ${level()} · 🎵 ${musicPrefs.on?'Gentle music on':'Turn on gentle music above'} · 🪙 ${coins} coins</div>`)};
 
