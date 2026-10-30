@@ -1045,6 +1045,41 @@ const SKCSS=`.sk-head{display:flex;justify-content:space-between;align-items:cen
 .gx-row{display:flex;flex-wrap:wrap;gap:6px}.gx{border:0;border-radius:999px;padding:8px 12px;background:#fff;font-weight:900;font-size:13px;color:#4a2338;box-shadow:0 0 0 2px #f3d6dc;cursor:pointer}`;
 if(!document.getElementById('skCss')){const st=document.createElement('style');st.id='skCss';st.textContent=SKCSS;document.head.appendChild(st);}
 
+/* Topic menu (Claude, Oct 30): big topic tiles; each opens every game for that topic. */
+const CATS=[
+ {id:'calm',ic:'💗',name:'Feelings & Calming',d:'Name feelings, cool down',c:'#ffb3d1',games:[['volcano','🌋','Cool the Volcano'],['scale','📏','Feelings Scale'],['feelmatch','🃏','Feelings Match'],['feelsort','💗','Feelings Sorting'],['sort','🕵️','Feelings Detective'],['emotion','🌬️','Emotion Lab'],['calmplan','📝','My Calm Plan']]},
+ {id:'talk',ic:'🎙️',name:'Tone of Voice & Talking',d:'Sound friendly, chat with friends',c:'#c9b6ff',games:[['tone','🎙️','Tone of Voice'],['say','💬','Say It Better'],['talk','🗨️','Build the Chat']]},
+ {id:'no',ic:'🙅',name:'Hearing No & Listening',d:'Take a no, follow directions',c:'#8fd3ff',games:[['listen','👂','Listen & Do'],['cps','🤝','Let’s Work It Out']]},
+ {id:'wait',ic:'⏳',name:'Waiting & Stopping',d:'Wait your turn, stop and think',c:'#a6e3a1',games:[['waitfor','🧁','Wait For It'],['says','🙋','Riki Says'],['switch','🔀','Switch It!']]},
+ {id:'accident',ic:'🔍',name:'Accident or On Purpose?',d:'Look for clues before you react',c:'#ffd38a',games:[['accident','🔍','Clue Detective'],['sizesort','🐘','Size Sorter'],['detective','🔎','Social Detective'],['mystery','🕵️‍♀️','Friendship Mystery']]},
+ {id:'friends',ic:'💖',name:'Friends & Playing Fair',d:'Be kind, share, win and lose well',c:'#ffc2dc',games:[['swipe','💖','Kind or Oops?'],['sport','🏆','Good Sport'],['teambuild','🧱','Teamwork Builder'],['team','🧑‍🤝‍🧑','Teamwork Challenge']]},
+ {id:'brain',ic:'🧠',name:'Brain Games',d:'Remember, plan, switch gears',c:'#b9e6ff',games:[['mem','🛒','Memory Shopper'],['rush','⏰','Beat the Clock'],['comic','🎬','Story Order']]},
+ {id:'arcade',ic:'🎪',name:'Skill Arcade',d:'Pop, grab, race, bonk the best answer',c:'#ffe08a',games:Object.entries(ARC_GAMES).map(([k,[e,n]])=>['arc:'+k,e,n])}];
+const CAT=Object.fromEntries(CATS.map(c=>[c.id,c]));
+CATS.forEach(c=>c.games.forEach(g=>{if(!g[0].startsWith('arc:')&&!GAME_UNIT[g[0]]&&UNIT[c.id])GAME_UNIT[g[0]]=c.id;}));
+const playCatGame=(id,cat)=>{audio('tap');if(id.startsWith('arc:'))drawArc(id.slice(4),cat&&UNIT[cat]?cat:null);else runGame(id);window.scrollTo(0,0);};
+function drawCat(cid){const c=CAT[cid];if(!c)return newHub();zStop();zCur='';lastUnit=cid;game='sel';const isArc=cid==='arcade';
+ app.innerHTML=`<section class="panel sk" style="--zc:${c.c}"><div class="gamehead"><button class="secondary" id="ctBack">← Social Skills</button><strong>${c.ic} ${c.name}</strong><span class="pill">🪙 ${coins}</span></div>
+  <div class="sk-grid">${c.games.map(([id,e,n])=>{const st=zSave.stars[id]||0;return `<button class="sk-g" data-cg="${id}" type="button" style="--c:${c.c}"><b>${e}</b><strong>${n}</strong>${st?`<i>⭐${st}</i>`:''}</button>`;}).join('')}</div>
+  ${!isArc&&UNIT[cid]?`<h3 class="fm-h">🎪 Arcade with ${c.name.split(' ')[0].toLowerCase()} questions</h3><div class="ct-arc">${Object.entries(ARC_GAMES).map(([k,[e,n]])=>`<button type="button" class="ct-a" data-ca="${k}"><b>${e}</b>${n}</button>`).join('')}</div><button class="ct-watch" id="ctWatch" type="button">🎬 Watch a story about this</button>`:''}</section>`;
+ $id('ctBack').onclick=()=>{audio('tap');newHub();};
+ document.querySelectorAll('[data-cg]').forEach(b=>b.onclick=()=>playCatGame(b.dataset.cg,isArc?null:cid));
+ document.querySelectorAll('[data-ca]').forEach(b=>b.onclick=()=>{audio('tap');drawArc(b.dataset.ca,cid);window.scrollTo(0,0);});
+ const w=$id('ctWatch');if(w)w.onclick=()=>{audio('tap');drawWatch(cid);window.scrollTo(0,0);};window.scrollTo(0,0);}
+drawUnit=function(id){CAT[id]?drawCat(id):newHub();};
+newHub=function(){zStop();zCur='';lastUnit=null;game='sel';const got=zSave.album.got.length;
+ app.innerHTML=`<section class="panel sk"><div class="sk-head"><h1>💖 Social Skills</h1><button class="secondary" id="backHebrewNew">🎮 Hebrew</button></div>
+  <div class="sk-top"><button class="sk-big" id="scBig" type="button"><b>🌟</b><span><strong>Riki’s Big Day</strong><small>3 games in one story</small></span></button><button class="sk-alb" id="scAlb" type="button"><b>📒</b><small>${got}/48</small></button></div>
+  <p class="ct-pick">What do you want to work on?</p>
+  <div class="sk-grid">${CATS.map(c=>`<button class="sk-g ct-tile" data-cat="${c.id}" type="button" style="--c:${c.c}"><b>${c.ic}</b><strong>${c.name}</strong><small>${c.d}</small><em>${c.games.length} games</em></button>`).join('')}</div>
+  <button class="sk-grown" id="scGrown" type="button">👩‍🏫 Grown-ups</button></section>`;
+ $id('backHebrewNew').onclick=menu;$id('scBig').onclick=()=>{audio('tap');drawBigDay();window.scrollTo(0,0);};$id('scAlb').onclick=()=>{audio('tap');drawAlbum();window.scrollTo(0,0);};
+ document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{audio('tap');drawCat(b.dataset.cat);});$id('scGrown').onclick=()=>{audio('tap');grownGate(()=>grownups());};window.scrollTo(0,0);};
+const CTCSS=`.ct-pick{margin:4px 0 8px;font-weight:900;color:#4a2338;font-size:16px}.ct-tile em{font-style:normal;font-size:11px;font-weight:900;background:#fff;border-radius:999px;padding:2px 8px;margin-top:4px}
+.ct-arc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.ct-a{border:0;border-radius:16px;padding:8px 4px;background:#fff;font-weight:900;font-size:12px;color:#4a2338;display:flex;flex-direction:column;align-items:center;box-shadow:0 3px 0 color-mix(in srgb,var(--zc) 70%,#a36),0 0 0 2px color-mix(in srgb,var(--zc) 40%,#fff);cursor:pointer}.ct-a b{font-size:26px}
+.ct-watch{display:block;width:100%;margin-top:12px;border:0;border-radius:18px;padding:12px;font-weight:900;font-size:15px;color:#4a2338;background:color-mix(in srgb,var(--zc) 30%,#fff);cursor:pointer}`;
+if(!document.getElementById('ctCss')){const st=document.createElement('style');st.id='ctCss';st.textContent=CTCSS;document.head.appendChild(st);}
+
 window.RikiSocial={state:()=>({boardPick,good:boardPick!==null?scenes[boardPick].good:null,pieces:talks[dialogueStep%talks.length].pieces,sortAnswer:sortCases[sortIndex%sortCases.length][1],sortIndex,planStep,zone:zSave,zCur})};
 selHub=newHub;
 })();
