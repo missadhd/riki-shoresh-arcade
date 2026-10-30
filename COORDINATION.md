@@ -4,7 +4,6 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
-| ChatGPT | chatgpt/restore-social-parent-access | assets/scripts/01-game.js; COORDINATION.md (claim only) | Draft #64: restore navigation |
 
 ## Map of the code
 
