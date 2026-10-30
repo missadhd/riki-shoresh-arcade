@@ -4,6 +4,7 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
+| ChatGPT | `chatgpt/clean-wave-cache` | `preview-layered-riki.html`, `assets/characters/riki-layered/arm-right*.webp`, `assets/characters/riki-layered/hand-right*.webp`, `assets/characters/riki-layered/rig.json`, `COORDINATION.md` | Publishing cleaned wave layers under fresh filenames |
 
 ## Map of the code
 
