@@ -4,6 +4,7 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
+| ChatGPT | `chatgpt/browser-tooling-setup` | `COORDINATION.md`, `package.json`, `playwright.config.mjs`, `tests/smoke.spec.mjs`, `.github/workflows/browser-tests.yml`, `docs/AI-TOOLS-SETUP.md` | Draft PR #139; setup in progress |
 
 ## Map of the code
 
