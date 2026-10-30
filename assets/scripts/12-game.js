@@ -40,7 +40,7 @@ const ITEMS=G('ITEMS');if(Array.isArray(ITEMS))NEW.forEach(it=>{if(!ITEMS.some(x
 
 /* ---------- cute helpers ---------- */
 const C={pink:'#f7a0bd',hot:'#e2457a',mint:'#8ed6c4',sky:'#8fc6e8',lilac:'#c8a2ff',sun:'#ffd25e',cream:'#fff4e6',white:'#fdfbfb',peach:'#ffb48a',gold:'#f2c94c',choc:'#8a5a35',red:'#ef5a6f',green:'#5fb06a',navy:'#4b4a8f'};
-const toy=c=>mat(c,.42);
+const toy=c=>mat(c,.84);
 function face(g,x,y,z,s=1){[-1,1].forEach(k=>{SP(g,.034*s,eye(),x+k*.075*s,y,z);SP(g,.011*s,mat('#ffffff',.1),x+k*.075*s+.012*s,y+.014*s,z+.028*s);SP(g,.03*s,mat('#ff9fb8',.9),x+k*.12*s,y-.045*s,z-.006*s,1,.6,.4);});
   const m=add(g,new THREE.TorusGeometry(.04*s,.011*s,8,16,Math.PI),eye(),x,y-.045*s,z+.004);m.rotation.z=Math.PI;}
 function heartShape(r){const s=new THREE.Shape();s.moveTo(0,-r);s.bezierCurveTo(-r*1.1,-r*.2,-r*1.1,r*.85,0,r*.35);s.bezierCurveTo(r*1.1,r*.85,r*1.1,-r*.2,0,-r);return s;}
@@ -49,7 +49,7 @@ function moonShape(r){const s=new THREE.Shape();s.absarc(0,0,r,Math.PI*.15,Math.
 function ext(g,shape,depth,m,x,y,z,bev=.03){const geo=new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:true,bevelSize:bev,bevelThickness:bev,bevelSegments:3,curveSegments:16});geo.center();return add(g,geo,m,x,y,z);}
 const puff=(g,x,y,z,s,c)=>[[0,0,0,1],[-.6,-.15,0,.75],[.6,-.15,0,.75],[-.3,.3,0,.7],[.3,.3,0,.7]].forEach(([a,b,cz,k])=>SP(g,.2*s*k,fabric(c||C.white),x+a*.22*s,y+b*.22*s,z+cz));
 function balloon(g,x,y,z,c,s=1){SP(g,.13*s,gloss(c),x,y,z,1,1.18,1);CO(g,.025*s,.04*s,gloss(c),x,y-.16*s,z).rotation.x=Math.PI;CY(g,.004,.004,y-.05,mat('#ffffff',.6),x,(y-.16*s)/2,z,4);}
-function books(g,x,y,z,w,cols){let px=x-w/2,i=0;while(px<x+w/2-.05){const bw=.05+((i*37)%5)/100,bh=.2+((i*53)%9)/60;BX(g,bw,bh,.18,mat(cols[i%cols.length],.6),px+bw/2,y+bh/2,z);px+=bw+.006;i++;}}
+function books(g,x,y,z,w,cols){const placeholder=new THREE.Group();placeholder.userData.stockBooks=true;g.add(placeholder);g=placeholder;let px=x-w/2,i=0;while(px<x+w/2-.05){const bw=.05+((i*37)%5)/100,bh=.2+((i*53)%9)/60;BX(g,bw,bh,.18,mat(cols[i%cols.length],.6),px+bw/2,y+bh/2,z);px+=bw+.006;i++;}}
 function drawers(g,w,h,d,n,c,knob,x=0,y=0,z=0){RB(g,w,h,d,.05,toy(c),x,y+h/2+.06,z);const dh=(h-.08)/n;for(let i=0;i<n;i++){RB(g,w-.1,dh-.05,.04,.02,toy(shadeHex(c,1.06)),x,y+.1+dh*i+dh/2,z+d/2);SP(g,.035,knob||metalM(),x,y+.1+dh*i+dh/2,z+d/2+.04);}legs4(g,w,d,.07,wood('#c08a5a'),.08,.03);}
 function mirrorPlate(g,shape,r,frameC,x,y,z){const f=ext(g,shape,.05,metalM(frameC||C.gold),x,y,z,.02);const gl=ext(g,shape,.01,mat('#dff3ff',.05,.6),x,y,z+.035,.0);gl.scale.set(.86,.86,1);return f;}
 function cushion(g,w,d,c,x,y,z){RB(g,w,.12,d,.05,fabric(c),x,y,z);}
@@ -196,7 +196,7 @@ M.piano=g=>B.piano(g);
 
 /* ---------- kitchen ---------- */
 M.fridge=g=>B.fridge(g);M.stove=g=>B.stove(g);
-M.fridgeretro=g=>{RB(g,.78,1.7,.66,.22,gloss('#9fe0cf'),0,.86,0);BX(g,.7,.012,.02,mat('#6fb8a6',.4),0,1.18,.34);RB(g,.05,.3,.06,.02,metalM('#dfe6ea'),.28,1.4,.36);RB(g,.05,.3,.06,.02,metalM('#dfe6ea'),.28,.9,.36);legs4(g,.6,.5,.1,metalM('#dfe6ea'),.04,.03);g.children.slice(-4).forEach(o=>o.position.y-=.0);};
+M.fridgeretro=g=>B.fridge(g,'#9fe0cf');
 M.ovenheart=g=>{RB(g,.85,.86,.64,.05,toy('#fbe0ea'),0,.43,0);BX(g,.83,.02,.6,gloss('#4a2338'),0,.87,0);ext(g,heartShape(.2),.02,mat('#ffb48a',.1,0,{emissive:new THREE.Color('#ff8a3d'),emissiveIntensity:.6}),0,.43,.33,.01);[-.3,-.1,.1,.3].forEach(x=>CY(g,.03,.03,.03,gloss(C.hot),x,.76,.33,12).rotation.x=Math.PI/2);};
 M.sink=g=>{RB(g,1.0,.85,.55,.03,toy('#cfe8f7'),0,.43,0);BX(g,1.05,.05,.6,mat('#f4f2f0',.25),0,.88,0);BX(g,.5,.04,.32,metalM('#c5ccd0'),0,.9,.03);CY(g,.02,.02,.25,metalM('#dfe6ea'),0,1.02,-.18,10);const sp=CY(g,.018,.018,.18,metalM('#dfe6ea'),0,1.13,-.1,10);sp.rotation.x=Math.PI/2;[-.25,.25].forEach(x=>RB(g,.42,.65,.03,.02,toy('#e2f2fb'),x,.43,.28));};
 M.mixer=g=>{RB(g,.36,.08,.24,.03,gloss(C.pink),0,.04,0);RB(g,.1,.45,.14,.05,gloss(C.pink),-.12,.28,0);RB(g,.42,.16,.2,.08,gloss(C.pink),0,.55,0);CY(g,.14,.1,.18,metalM('#dfe6ea'),.06,.18,0);};
@@ -297,10 +297,10 @@ const thumbs={},queued=new Set(),queue=[];let TR=null,running=false,threeFailed=
 function thumbRig(){
   if(TR)return TR;const cv=document.createElement('canvas');cv.width=cv.height=320;
   const R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true,preserveDrawingBuffer:true});R.setPixelRatio(1);R.setSize(320,320,false);R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.12;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.setClearColor(0x000000,0);
-  const s=new THREE.Scene();s.add(new THREE.HemisphereLight(0xffffff,0xffd9e4,.75));
+  const s=new THREE.Scene();s.add(new THREE.HemisphereLight(0xfffaf3,0xe7c9bc,.95));
   const key=new THREE.DirectionalLight(0xfff3e6,1.15);key.position.set(3,6,5);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.radius=6;key.shadow.bias=-.0008;key.shadow.normalBias=.02;const c=key.shadow.camera;c.left=-3;c.right=3;c.top=3;c.bottom=-3;c.far=20;s.add(key);
-  const rim=new THREE.DirectionalLight(0xffc4dd,.55);rim.position.set(-4,3,-4);s.add(rim);const fill=new THREE.DirectionalLight(0xdfeaff,.3);fill.position.set(-4,2,4);s.add(fill);
-  const ground=new THREE.Mesh(new THREE.PlaneGeometry(12,12),new THREE.ShadowMaterial({opacity:.22}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;s.add(ground);
+  const rim=new THREE.DirectionalLight(0xffeadc,.4);rim.position.set(-4,3,-4);s.add(rim);const fill=new THREE.DirectionalLight(0xe5f4ed,.45);fill.position.set(-4,2,4);s.add(fill);
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(12,12),new THREE.ShadowMaterial({opacity:.16}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;s.add(ground);
   const cam=new THREE.PerspectiveCamera(26,1,.05,60);TR={R,s,cam,ground,key};return TR;
 }
 function renderThumb(id){
@@ -584,4 +584,189 @@ document.addEventListener('click',e=>{
   if(!webgl())return;e.stopImmediatePropagation();e.preventDefault();try{const a=G('audio');a&&a('tap');}catch(_){}start();window.scrollTo(0,0);
 },true);
 window.RikiClaw={start,plush:PLUSH,mini:MINI,buildPlush};
+})();
+
+
+/* Articulated furniture: real interiors, sliding drawers, hinged doors and shelf positions. */
+(function(){
+const K=window.RK3;if(!K)return;
+const {RB,BX,SP,CY,mat}=K;
+const G=n=>{try{return (0,eval)(n);}catch(_){}};
+const isStorage=id=>/^(fridge|shelf|dresser|vanity)|^(wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox)$/.test(id);
+function profile(id){
+ if(/^fridge/.test(id))return {kind:'fridge',w:.78,h:1.75,d:.66,rows:3,cols:3};
+ if(/^dresser|^nightstand/.test(id))return {kind:'drawers',w:id==='nightstand'?.5:.9,h:id==='nightstand'?.6:.95,d:.52,rows:id==='nightstand'?2:3,cols:id==='nightstand'?2:3};
+ if(/^vanity|^desk$/.test(id))return {kind:'vanity',w:1,h:1.65,d:.5,rows:2,cols:2};
+ if(id==='shelfpineapple')return {kind:'cabinet',w:.9,h:1.4,d:.55,rows:3,cols:3};
+ if(id==='toybox')return {kind:'chest',w:1.05,h:.55,d:.6,rows:1,cols:3};
+ if(id==='bathcabinet')return {kind:'cabinet',w:.85,h:1.1,d:.48,rows:3,cols:3};
+ if(id==='wardrobe')return {kind:'cabinet',w:1.05,h:1.8,d:.6,rows:3,cols:3};
+ if(id==='cupboard')return {kind:'cabinet',w:1.2,h:1.6,d:.55,rows:3,cols:3};
+ if(id==='tvcabinet')return {kind:'cabinet',w:1.3,h:.65,d:.5,rows:2,cols:3};
+ return {kind:'shelf',w:1.1,h:1.5,d:.4,rows:3,cols:3};
+}
+function color(id){return /mint|retro/.test(id)?'#a8d8c6':/gold/.test(id)?'#f2daa0':/cloud|pearl|wood/.test(id)?'#f8eddd':/moon|star/.test(id)?'#d3c5e9':'#f2c3d1';}
+function tagPart(group,index,parts,kind,closed,opened){group.userData.storagePart=index;parts.push({group,kind,closed,opened,target:closed});}
+function slot(state,parent,x,y,z,part=-1){const pad=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.009,24),new THREE.MeshBasicMaterial({color:0xe9bf72,transparent:true,opacity:0,depthWrite:false}));pad.position.set(x,y+.006,z);pad.userData.storageSlot=state.slots.length;pad.visible=false;parent.add(pad);const target=new THREE.Mesh(new THREE.SphereGeometry(.105,12,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));target.position.set(x,y+.08,z);target.userData.storageSlot=state.slots.length;target.visible=false;parent.add(target);state.slots.push({target,parent,position:new THREE.Vector3(x,y,z),pad,part,content:null,item:null});return state.slots[state.slots.length-1];}
+function caseShell(g,w,h,d,c,y=0){const m=mat(c,.9),inner=mat('#fff5e7',.94);RB(g,w,h,.055,.02,m,0,y+h/2,-d/2+.025);[-1,1].forEach(k=>RB(g,.055,h,d,.02,m,k*(w/2-.025),y+h/2,0));[0,h].forEach(v=>RB(g,w,.055,d,.02,m,0,y+v,0));return inner;}
+function rows(state,parent,w,d,ys,part=-1,cx=0){ys.forEach(y=>{for(let col=0;col<state.profile.cols;col++)slot(state,parent,cx+(col-(state.profile.cols-1)/2)*(w/state.profile.cols),y,d*.12,part).spaceW=w/state.profile.cols-.02;});}
+function drawerUnit(g,state,w,h,d,n,c,x=0,y=0,cols=state.profile.cols){
+ caseShell(g,w,h,d,c,y);const dh=h/n;
+ for(let i=0;i<n;i++){
+  const part=new THREE.Group();part.position.set(x,y+i*dh,0);g.add(part);const index=state.parts.length;
+  const m=mat(c,.88),inner=mat('#f8e5ce',.92);
+  RB(part,w-.05,dh-.025,.045,.015,m,0,dh/2,d/2+.025);SP(part,.032,mat('#dec187',.8),0,dh/2,d/2+.065);
+  RB(part,w-.11,.025,d-.08,.01,inner,0,.028,0);[-1,1].forEach(k=>RB(part,.025,dh-.06,d-.08,.009,inner,k*(w/2-.065),dh/2,0));
+  tagPart(part,index,state.parts,'drawer',0,d*.7);
+  for(let col=0;col<cols;col++){const space=slot(state,part,(col-(cols-1)/2)*(w-.16)/cols,.046,.03,index);space.spaceW=(w-.16)/cols-.015;space.spaceH=dh-.08;}
+ }
+}
+function doorUnit(g,state,w,h,d,c,y=0){
+ const inner=caseShell(g,w,h,d,c,y);const rowH=h/state.profile.rows;
+ for(let i=0;i<state.profile.rows;i++){const sy=y+.07+i*rowH;if(i)RB(g,w-.1,.025,d-.08,.008,inner,0,sy-.025,0);rows(state,g,w-.13,d,[sy]);}
+ [-1,1].forEach(side=>{const hinge=new THREE.Group();hinge.position.set(side*w/2,y,d/2+.035);g.add(hinge);const index=state.parts.length;const center=-side*w/4;
+ RB(hinge,w/2-.015,h-.035,.05,.018,mat(c,.86),center,h/2,0);SP(hinge,.032,mat('#dec187',.8),-side*(w/2-.07),h*.52,.05);tagPart(hinge,index,state.parts,'door',0,side*Math.PI*.56);
+ });
+}
+function disposeContents(o){o.traverse(n=>{if(n.geometry&&!n.geometry.userData.rikiShared)n.geometry.dispose();});}
+K.releaseStorageModel=disposeContents;
+K.storageProfile=id=>isStorage(id)?profile(id):null;
+K.prepareStorage=function(g,it){
+ const id=it[0];if(!isStorage(id)||g.userData.storage)return;
+ const p=profile(id),state={profile:p,parts:[],slots:[],id,focused:false};g.userData.storage=state;
+ if(p.kind==='fridge'){
+  const door=g.userData.fridgeDoor;if(door)tagPart(door,0,state.parts,'door',0,Math.PI*.57);
+  rows(state,g,.59,.44,[.09,.51,.95]);
+ }else if(p.kind==='shelf'){
+  // Remove only the model's placeholder books; owned books are hydrated below.
+  const remove=[];g.traverse(o=>{if(o.userData.stockBooks)remove.push(o);});remove.forEach(o=>o.parent.remove(o));
+  let ys=[.07,.55,1.03],width=.9,cx=0,z=.02;
+  if(id==='shelfmoon'){ys=[.53,.98,1.43];width=.45;cx=-.15;z=.34;ys.forEach(y=>BX(g,.54,.025,.35,mat('#e4cde1',.9),-.15,y-.025,.29));}
+  if(id==='shelfhouse'){g.children.filter(o=>o.geometry&&o.geometry.type==='SphereGeometry'&&o.position.y<.3).forEach(o=>g.remove(o));ys=[.06,.35,.65];width=.8;BX(g,.87,.025,.32,mat('#f4dec7',.9),0,.32,0);}
+  if(id==='shelfrainbow'){ys=[.13,.4,.67];width=.68;z=.43;ys.forEach(y=>BX(g,.78,.025,.34,mat('#f4dec7',.9),0,y-.025,.38));}
+  if(id==='shelfcastle'){ys=[.43,.93,1.43];width=.46;z=.43;BX(g,.56,.025,.12,mat('#f4dec7',.9),0,1.4,.4);}
+  if(id==='shelfladder'){ys=[.32,.77,1.22];width=.72;z=.25;ys.forEach(y=>BX(g,.82,.025,.45,mat('#f4dec7',.9),0,y-.025,.1));}
+  if(id==='shelftree'){[ [.42,.49],[.62,-.35],[1.02,.35] ].forEach(([y,x])=>{for(let col=0;col<3;col++)slot(state,g,x+(col-1)*.15,y,.04).spaceW=.13;});}
+  else ys.forEach(y=>{for(let col=0;col<3;col++)slot(state,g,cx+(col-1)*width/3,y,z).spaceW=width/3-.02;});
+ }else{
+  // Retain each item's color and recognizable ornament, with a hollow usable body.
+  const old=[...g.children];old.forEach(o=>g.remove(o));const c=color(id);
+  if(p.kind==='chest'){caseShell(g,p.w,p.h,p.d,c);const top=g.children.find(o=>o.position.y===p.h);if(top)g.remove(top);const lid=new THREE.Group();lid.position.set(0,p.h,-p.d/2);g.add(lid);RB(lid,p.w,.055,p.d,.02,mat(c,.88),0,0,p.d/2);SP(lid,.035,mat('#dec187',.8),0,-.02,p.d);tagPart(lid,0,state.parts,'lid',0,-Math.PI*.6);rows(state,g,p.w-.13,p.d,[.06]);}
+  else if(p.kind==='drawers')drawerUnit(g,state,p.w,p.h,p.d,p.rows,c);
+  else if(p.kind==='vanity'){
+   const cabinet=new THREE.Group();cabinet.position.x=-.26;g.add(cabinet);drawerUnit(cabinet,state,.44,.7,.45,2,c,0,0,2);
+   RB(g,1,.07,.52,.025,mat(c,.9),0,.75,0);CY(g,.025,.035,.72,mat('#dec187',.9),.43,.36,.14,12);CY(g,.025,.035,.72,mat('#dec187',.9),.43,.36,-.14,12);
+   SP(g,.34,mat('#dec187',.8),0,1.17,-.18,1,1.2,.13);SP(g,.3,mat('#dfedf0',.07,.4),0,1.17,-.12,1,1.2,.05);
+  }else doorUnit(g,state,p.w,p.h,p.d,c);
+  if(id==='tvcabinet'){RB(g,.85,.55,.08,.04,mat('#524351',.85),0,.98,-.04);RB(g,.74,.43,.015,.025,mat('#b9d6dc',.2),0,.98,.012);}
+  if(id==='shelfpineapple')for(let i=0;i<5;i++){const leaf=SP(g,.16,mat('#96c49a',.9),(i-2)*.07,p.h+.2,0,.35,1.5,.7);leaf.rotation.z=(i-2)*.25;}
+  if(id==='wardrobe')SP(g,.16,mat('#f8dfba',.9),0,p.h+.1,0,2.5,.5,.8);
+ }
+};
+K.animateStorage=function(g){const s=g.userData.storage;if(!s)return;for(const p of s.parts){const key=p.kind==='drawer'?'position':'rotation',axis=p.kind==='drawer'?'z':p.kind==='lid'?'x':'y';p.group[key][axis]+=(p.target-p.group[key][axis])*.18;}for(const slot of s.slots){const part=s.parts[slot.part];slot.pad.visible=s.focused&&(!part||Math.abs(part.target-part.closed)>.01);slot.target.visible=slot.pad.visible;}};
+K.toggleStoragePart=function(g,index){const s=g.userData.storage,p=s&&s.parts[index];if(!p)return false;
+ const open=Math.abs(p.target-p.closed)<.01;
+ if(p.kind==='drawer')s.parts.filter(x=>x.kind==='drawer').forEach(x=>x.target=x.closed);
+ p.target=open?p.opened:p.closed;return true;
+};
+K.setStorageOpen=function(g,on){const s=g.userData.storage;if(!s)return;s.focused=on;s.parts.forEach((p,i)=>p.target=on&&(p.kind!=='drawer'||i===0)?p.opened:p.closed);s.slots.forEach(x=>{x.pad.visible=on&&(x.part<0||x.part===0);x.target.visible=x.pad.visible;});};
+K.hydrateStorage=function(g,room){const s=g.userData.storage;if(!s)return;const contents=(G('dreamStorage')||{})[room+':'+s.id]||[];
+ s.slots.forEach((slot,i)=>{const id=contents[i];if(slot.item===id)return;if(slot.content){slot.parent.remove(slot.content);disposeContents(slot.content);slot.content=null;}slot.item=id;
+  const it=(G('ITEMS')||[]).find(x=>x[0]===id);if(!it||isStorage(id))return;
+  const content=K.makeItem(it);content.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(content),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
+  const factor=Math.min((slot.spaceW||.22)/Math.max(size.x,.01),(slot.spaceH||.26)/Math.max(size.y,.01),.22/Math.max(size.z,.01));content.scale.setScalar(factor);content.position.copy(slot.position);content.position.x-=center.x*factor;content.position.y-=box.min.y*factor;content.position.z-=center.z*factor;
+  content.userData.storedSlot=i;slot.parent.add(content);slot.content=content;
+ });
+};
+})();
+
+/* Interactive fridge: existing item IDs and room:item storage arrays remain compatible. */
+(function(){
+const G=n=>{try{return (0,eval)(n);}catch(_){return undefined;}};
+const SET=s=>{try{(0,eval)(s);}catch(_){}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const K=window.RK3;
+const groceries=[
+ ['milkcarton','🥛','Milk carton',8,'kitchen','Fridge Food'],
+ ['eggcarton','🥚','Box of eggs',9,'kitchen','Fridge Food'],
+ ['applesbasket','🍎','Basket of apples',10,'kitchen','Fridge Food'],
+ ['cheeseplate','🧀','Cheese plate',8,'kitchen','Fridge Food'],
+ ['juicebottle','🧃','Orange juice bottle',8,'kitchen','Fridge Food']
+];
+const items=G('ITEMS')||[];
+groceries.forEach(it=>{if(!items.some(x=>x[0]===it[0]))items.push(it);});
+const foodIds=new Set([...groceries.map(x=>x[0]),'cupcake','cakeplate','cake','birthdaycake','partycake','fruitbowl','waffles','donuttower','icecreamtower']);
+const isFridge=id=>id==='fridge'||id==='fridgeretro';
+const isFood=id=>foodIds.has(id);
+const isOwned=id=>(G('owned')||[]).includes(id);
+const isPlaced=(id,room)=>Object.values((G('decor')||{})[room]||{}).includes(id);
+const storageType=id=>/^(fridge|shelf|dresser|vanity)|^(wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox)$/.test(id);
+const usable=(id,room)=>storageType(id)&&isOwned(id)&&isPlaced(id,room);
+const capacityFor=id=>{const p=K&&K.storageProfile?K.storageProfile(id):null;return p?p.rows*p.cols:9;};
+const isSmall=item=>{const it=items.find(x=>x[0]===item),fn=G('itemType');return !!(it&&typeof fn==='function'&&['Toys','Miniatures','Claw prizes','Fridge Food'].includes(fn(it)));};
+const eligible=(id,item)=>isFridge(id)?isFood(item):storageType(id)&&!storageType(item)&&(isFood(item)||isSmall(item)||['soap','towels','toothbrush','rubberduck','doll','blocks','puzzle','crafts','puppet','trainset'].includes(item)||(G('SMALL_IDS')||[]).includes(item)||/^(claw|mini|book|perfume|makeup|jewel|trophy|teacup|plantmini)/.test(item));
+function contents(id,room){const a=(G('dreamStorage')||{})[room+':'+id];return Array.isArray(a)?a:[];}
+function storeItem(id,room,food,slot){
+ if(!usable(id,room)||!eligible(id,food)||!isOwned(food)||!items.some(x=>x[0]===food)||!Number.isInteger(slot)||slot<0||slot>=capacityFor(id))return false;
+ const storage=G('dreamStorage');if(!storage)return false;
+ const arr=contents(id,room),origin=arr.indexOf(food),occupant=arr[slot];
+ if(occupant===food)return true;
+ if(occupant){if(origin<0||!isOwned(occupant)||!eligible(id,occupant))return false;arr[origin]=occupant;arr[slot]=food;const save=G('dreamSave');if(save)save();return true;}
+ // Move this owned item; do not duplicate it or replace occupied shelves.
+ for(const arr of Object.values(storage))if(Array.isArray(arr))arr.forEach((x,i)=>{if(x===food)delete arr[i];});
+ const key=room+':'+id;if(!Array.isArray(storage[key]))storage[key]=[];
+ storage[key][slot]=food;const save=G('dreamSave');if(save)save();return true;
+}
+function takeItem(id,room,slot){
+ if(!usable(id,room)||!Number.isInteger(slot)||slot<0||slot>=capacityFor(id))return false;
+ const arr=contents(id,room);if(!arr[slot])return false;
+ delete arr[slot];const save=G('dreamSave');if(save)save();return true;
+}
+const previousStorage=G('isStorage');
+window.__rkIsStorage=id=>storageType(id)||(typeof previousStorage==='function'&&previousStorage(id));
+SET('isStorage=window.__rkIsStorage;');
+const previousType=G('itemType');
+window.__rkFridgeType=it=>isFridge(it[0])?'Fridges':isFood(it[0])?'Fridge Food':it[0]==='tea'?'Tables':previousType(it);
+SET('itemType=window.__rkFridgeType;');
+const categories=G('CATEGORIES');
+if(categories){categories.kitchen=[...new Set(['Fridges',...(categories.kitchen||[]),'Fridge Food'])];}
+/* An existing category lock only recognized the basic fridge. Allow either fridge. */
+const previousShop=G('shopHtml');
+window.__rkFridgeShop=function(){
+ let html=previousShop.apply(this,arguments);
+ if(isOwned('fridgeretro')&&!isOwned('fridge'))html=html.replace('disabled aria-label="Fridge Food unlocks after buying a fridge"','').replace('🔒 Fridge Food','Fridge Food').replace(/<p class="house-help">🧊 Buy a fridge[^<]*<\/p>/,'');
+ return html;
+};
+SET('shopHtml=window.__rkFridgeShop;');
+if(K){
+ const {RB,CY,SP,CO,mat}=K;
+ K.MODEL.milkcarton=g=>{const white=mat('#fff8e9',.85),mint=mat('#9ed9c2',.85);RB(g,.42,.62,.33,.035,white,0,.34,0);const roof=RB(g,.42,.17,.33,.025,mint,0,.72,0);roof.rotation.z=.12;RB(g,.32,.2,.015,.015,mint,0,.34,.175);SP(g,.05,white,.07,.74,.11);};
+ K.MODEL.eggcarton=g=>{RB(g,.65,.12,.42,.04,mat('#d5b59c',.9),0,.08,0);for(let i=0;i<6;i++)SP(g,.09,mat(i%2?'#fff1db':'#e9cba8',.9),(i%3-1)*.19,.19,(i<3?-.1:.1),.8,1.2,.8);};
+ K.MODEL.applesbasket=g=>{CY(g,.27,.21,.2,mat('#d4aa7e',.9),0,.12,0,24);[[-.1,.25,.04],[.1,.26,.03],[0,.3,-.1]].forEach(([x,y,z])=>{SP(g,.12,mat('#ed8d91',.85),x,y,z);CY(g,.008,.008,.065,mat('#906647',.9),x,y+.13,z,6);SP(g,.035,mat('#94c99b',.85),x+.035,y+.13,z,1.4,.35,.7);});};
+ K.MODEL.cheeseplate=g=>{CY(g,.3,.29,.035,mat('#fff8ed',.9),0,.03,0,32);const shape=new THREE.Shape();shape.moveTo(-.2,-.16);shape.lineTo(.21,-.16);shape.lineTo(-.2,.18);shape.closePath();const c=K.ext(g,shape,.12,mat('#f2cf7d',.85),0,.13,0,.02);c.rotation.x=-Math.PI/2;[[-.08,-.02],[.01,.09]].forEach(([x,z])=>SP(g,.025,mat('#d9b45f',.9),x,.21,z,1,.15,1));};
+ K.MODEL.juicebottle=g=>{CY(g,.14,.15,.45,mat('#ffc38a',.85),0,.25,0,24);CY(g,.08,.11,.12,mat('#ffd7aa',.85),0,.53,0,20);CY(g,.09,.09,.06,mat('#99cdb0',.85),0,.62,0,20);RB(g,.2,.17,.018,.025,mat('#fff7e5',.9),0,.28,.145);SP(g,.055,mat('#eeb271',.85),0,.28,.16,1,1,.18);};
+}
+/* Correct grocery silhouettes remain available when 3D cannot load. */
+function grocerySvg(it){
+ const id=it[0],cream='#fff4dd',mint='#9ed9c2',peach='#ffc38a';
+ const drawings={
+ milkcarton:`<path d="M36 35L48 19H88L102 35V112H36Z" fill="${cream}" stroke="#dfd0ba" stroke-width="3"/><path d="M36 35H102L88 19H48Z" fill="${mint}"/><rect x="44" y="58" width="49" height="33" rx="6" fill="${mint}"/><circle cx="88" cy="30" r="6" fill="#fffaf1"/>`,
+ eggcarton:'<rect x="16" y="61" width="108" height="43" rx="12" fill="#d5b59c"/>'+[32,69,106].map(x=>`<ellipse cx="${x}" cy="64" rx="14" ry="23" fill="#fff1db" stroke="#dfc6a6" stroke-width="2"/>`).join(''),
+ applesbasket:'<path d="M24 66H116L104 114H36Z" fill="#d4aa7e"/>'+[[45,60],[90,59],[68,44]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="20" fill="#ed8d91"/><path d="M${x} ${y-17}v-10" stroke="#906647" stroke-width="4"/><ellipse cx="${x+8}" cy="${y-25}" rx="10" ry="5" fill="#94c99b"/>`).join(''),
+ cheeseplate:'<ellipse cx="70" cy="105" rx="57" ry="14" fill="#fff4dd" stroke="#ddd1b8" stroke-width="3"/><path d="M32 90V56L103 33V84Z" fill="#f2cf7d" stroke="#d9b45f" stroke-width="3"/><path d="M32 56L66 35L103 33" fill="#ffe6a0"/>'+[[48,69],[76,61],[86,78]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="5" fill="#d9b45f"/>`).join(''),
+ juicebottle:`<path d="M51 30H89V43Q105 49 105 65V110H35V65Q35 49 51 43Z" fill="${peach}" stroke="#e4ab77" stroke-width="3"/><rect x="49" y="16" width="42" height="18" rx="5" fill="${mint}"/><rect x="40" y="63" width="60" height="33" rx="6" fill="${cream}"/><circle cx="70" cy="79" r="11" fill="#eeb271"/>`
+ };
+ return `<svg class="furniture-svg" viewBox="0 0 140 140" role="img" aria-label="${esc(it[2])}"><ellipse cx="70" cy="120" rx="53" ry="9" fill="#71513a18"/>${drawings[id]||''}</svg>`;
+}
+for(const fn of ['furnitureArt','dreamFurnitureArt']){
+ const previous=G(fn);if(typeof previous!=='function')continue;
+ window['__rkGrocery_'+fn]=function(it){const html=previous.apply(this,arguments);if(!it||!groceries.some(x=>x[0]===it[0])||/rk3-thumb/.test(html))return html;return `<span class="rk3-art" data-rk3-id="${it[0]}">${grocerySvg(it)}</span>`;};
+ SET(fn+'=window.__rkGrocery_'+fn+';');
+}
+/* Every supported storage item opens in its actual room, never in a separate dialog. */
+function openStorage(id){return !!(K&&K.openStorage&&K.openStorage(id));}
+const previousModal=G('storageModal');
+window.__rkFridgeModal=function(id){return storageType(id)?openStorage(id):previousModal.apply(this,arguments);};
+SET('storageModal=window.__rkFridgeModal;');
+window.RikiFurnitureInteractions={isFridge,isFood,isStorage:storageType,isEligible:eligible,capacityFor,storeItem,takeItem,storeFood:storeItem,takeFood:takeItem,contents,openStorage,openFridge:openStorage};
 })();
