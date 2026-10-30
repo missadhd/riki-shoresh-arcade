@@ -308,9 +308,19 @@ async function choose(b){
     busy=true;b.classList.add('good');
     await applyPiece(step,variants[i]);
     const reveal=document.getElementById('stHint');
-    if(reveal){reveal.hidden=false;reveal.innerHTML=`🎁 <b>${esc(variants[i].name)}</b> — <b lang="he" class="st-he">${esc(W[id][0])}</b> means <b>${esc(W[id][1])}</b>. ${esc(W[id][2]||'')}`;}
-    S.picks.push(variants[i].name);S.at++;if(window.__stSession)window.__stSession.at=S.at;
-    setTimeout(()=>{busy=false;if(S.at>=S.def.steps.length)finishStudio();else renderStep();},2400);
+    if(reveal){reveal.hidden=false;reveal.innerHTML=`🎁 <b>${esc(variants[i].name)}</b> — <b lang="he" class="st-he">${esc(W[id][0])}</b>. ${esc(W[id][2]||'')}`;}
+    S.picks.push(variants[i].name);
+    const question=document.createElement('div');question.className='st-claw-question';
+    question.innerHTML=`<p><b lang="he" class="st-he">${esc(W[id][0])}</b> — What does this shoresh mean?</p>`+
+      shuffle([id,...shuffle(words().pool.filter(x=>x!==id)).slice(0,2)]).map(cid=>`<button type="button" class="st-claw-answer" data-root="${cid}">${esc(W[cid][1])}</button>`).join('');
+    const hint=document.getElementById('stHint');if(hint){hint.after(question);}
+    question.querySelectorAll('.st-claw-answer').forEach(answer=>answer.addEventListener('click',()=>{
+      if(+answer.dataset.root!==id){answer.disabled=true;answer.textContent+=' — try again';return;}
+      question.remove();try{const cor=G('correct');cor&&cor(3);}catch(_){}
+      S.score+=3;if(window.__stSession)window.__stSession.score=S.score;
+      S.at++;if(window.__stSession)window.__stSession.at=S.at;
+      setTimeout(()=>{busy=false;if(S.at>=S.def.steps.length)finishStudio();else renderStep();},700);
+    }));
     return;
   }
   if(choiceIds[i]!==id){b.classList.add('bad');S.cur.first=false;try{const inc=G('incorrect');inc&&inc();}catch(_){}
