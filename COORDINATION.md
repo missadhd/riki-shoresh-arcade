@@ -6,6 +6,8 @@ Add a row when you open your draft PR and remove it in the same PR when you fini
 | Who | Branch | Files | Status |
 |---|---|---|
 
+| ChatGPT | chatgpt/natural-dolls-learning-review | assets/scripts/01-game.js, assets/scripts/07-game.js, assets/scripts/13-game.js, assets/styles/16-styles.css, index.html, COORDINATION.md | Natural cartoon dolls and learning logic review |
+
 ## Map of the code
 
 - `assets/scripts/01-game.js` — core: word list `W`, menu, quiz games, header, Social Skills, old 2D "Play inside" house
