@@ -49,7 +49,7 @@ function moonShape(r){const s=new THREE.Shape();s.absarc(0,0,r,Math.PI*.15,Math.
 function ext(g,shape,depth,m,x,y,z,bev=.03){const geo=new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:true,bevelSize:bev,bevelThickness:bev,bevelSegments:3,curveSegments:16});geo.center();return add(g,geo,m,x,y,z);}
 const puff=(g,x,y,z,s,c)=>[[0,0,0,1],[-.6,-.15,0,.75],[.6,-.15,0,.75],[-.3,.3,0,.7],[.3,.3,0,.7]].forEach(([a,b,cz,k])=>SP(g,.2*s*k,fabric(c||C.white),x+a*.22*s,y+b*.22*s,z+cz));
 function balloon(g,x,y,z,c,s=1){SP(g,.13*s,gloss(c),x,y,z,1,1.18,1);CO(g,.025*s,.04*s,gloss(c),x,y-.16*s,z).rotation.x=Math.PI;CY(g,.004,.004,y-.05,mat('#ffffff',.6),x,(y-.16*s)/2,z,4);}
-function books(g,x,y,z,w,cols){let px=x-w/2,i=0;while(px<x+w/2-.05){const bw=.05+((i*37)%5)/100,bh=.2+((i*53)%9)/60;BX(g,bw,bh,.18,mat(cols[i%cols.length],.6),px+bw/2,y+bh/2,z);px+=bw+.006;i++;}}
+function books(g,x,y,z,w,cols){const placeholder=new THREE.Group();placeholder.userData.stockBooks=true;g.add(placeholder);g=placeholder;let px=x-w/2,i=0;while(px<x+w/2-.05){const bw=.05+((i*37)%5)/100,bh=.2+((i*53)%9)/60;BX(g,bw,bh,.18,mat(cols[i%cols.length],.6),px+bw/2,y+bh/2,z);px+=bw+.006;i++;}}
 function drawers(g,w,h,d,n,c,knob,x=0,y=0,z=0){RB(g,w,h,d,.05,toy(c),x,y+h/2+.06,z);const dh=(h-.08)/n;for(let i=0;i<n;i++){RB(g,w-.1,dh-.05,.04,.02,toy(shadeHex(c,1.06)),x,y+.1+dh*i+dh/2,z+d/2);SP(g,.035,knob||metalM(),x,y+.1+dh*i+dh/2,z+d/2+.04);}legs4(g,w,d,.07,wood('#c08a5a'),.08,.03);}
 function mirrorPlate(g,shape,r,frameC,x,y,z){const f=ext(g,shape,.05,metalM(frameC||C.gold),x,y,z,.02);const gl=ext(g,shape,.01,mat('#dff3ff',.05,.6),x,y,z+.035,.0);gl.scale.set(.86,.86,1);return f;}
 function cushion(g,w,d,c,x,y,z){RB(g,w,.12,d,.05,fabric(c),x,y,z);}
@@ -587,6 +587,99 @@ window.RikiClaw={start,plush:PLUSH,mini:MINI,buildPlush};
 })();
 
 
+/* Articulated furniture: real interiors, sliding drawers, hinged doors and shelf positions. */
+(function(){
+const K=window.RK3;if(!K)return;
+const {RB,BX,SP,CY,mat}=K;
+const G=n=>{try{return (0,eval)(n);}catch(_){}};
+const isStorage=id=>/^(fridge|shelf|dresser|vanity)|^(wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox)$/.test(id);
+function profile(id){
+ if(/^fridge/.test(id))return {kind:'fridge',w:.78,h:1.75,d:.66,rows:3,cols:3};
+ if(/^dresser|^nightstand/.test(id))return {kind:'drawers',w:id==='nightstand'?.5:.9,h:id==='nightstand'?.6:.95,d:.52,rows:id==='nightstand'?2:3,cols:id==='nightstand'?2:3};
+ if(/^vanity|^desk$/.test(id))return {kind:'vanity',w:1,h:1.65,d:.5,rows:2,cols:2};
+ if(id==='shelfpineapple')return {kind:'cabinet',w:.9,h:1.4,d:.55,rows:3,cols:3};
+ if(id==='toybox')return {kind:'chest',w:1.05,h:.55,d:.6,rows:1,cols:3};
+ if(id==='bathcabinet')return {kind:'cabinet',w:.85,h:1.1,d:.48,rows:3,cols:3};
+ if(id==='wardrobe')return {kind:'cabinet',w:1.05,h:1.8,d:.6,rows:3,cols:3};
+ if(id==='cupboard')return {kind:'cabinet',w:1.2,h:1.6,d:.55,rows:3,cols:3};
+ if(id==='tvcabinet')return {kind:'cabinet',w:1.3,h:.65,d:.5,rows:2,cols:3};
+ return {kind:'shelf',w:1.1,h:1.5,d:.4,rows:3,cols:3};
+}
+function color(id){return /mint|retro/.test(id)?'#a8d8c6':/gold/.test(id)?'#f2daa0':/cloud|pearl|wood/.test(id)?'#f8eddd':/moon|star/.test(id)?'#d3c5e9':'#f2c3d1';}
+function tagPart(group,index,parts,kind,closed,opened){group.userData.storagePart=index;parts.push({group,kind,closed,opened,target:closed});}
+function slot(state,parent,x,y,z,part=-1){const pad=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.009,24),new THREE.MeshBasicMaterial({color:0xe9bf72,transparent:true,opacity:0,depthWrite:false}));pad.position.set(x,y+.006,z);pad.userData.storageSlot=state.slots.length;pad.visible=false;parent.add(pad);const target=new THREE.Mesh(new THREE.SphereGeometry(.105,12,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));target.position.set(x,y+.08,z);target.userData.storageSlot=state.slots.length;target.visible=false;parent.add(target);state.slots.push({target,parent,position:new THREE.Vector3(x,y,z),pad,part,content:null,item:null});return state.slots[state.slots.length-1];}
+function caseShell(g,w,h,d,c,y=0){const m=mat(c,.9),inner=mat('#fff5e7',.94);RB(g,w,h,.055,.02,m,0,y+h/2,-d/2+.025);[-1,1].forEach(k=>RB(g,.055,h,d,.02,m,k*(w/2-.025),y+h/2,0));[0,h].forEach(v=>RB(g,w,.055,d,.02,m,0,y+v,0));return inner;}
+function rows(state,parent,w,d,ys,part=-1,cx=0){ys.forEach(y=>{for(let col=0;col<state.profile.cols;col++)slot(state,parent,cx+(col-(state.profile.cols-1)/2)*(w/state.profile.cols),y,d*.12,part).spaceW=w/state.profile.cols-.02;});}
+function drawerUnit(g,state,w,h,d,n,c,x=0,y=0,cols=state.profile.cols){
+ caseShell(g,w,h,d,c,y);const dh=h/n;
+ for(let i=0;i<n;i++){
+  const part=new THREE.Group();part.position.set(x,y+i*dh,0);g.add(part);const index=state.parts.length;
+  const m=mat(c,.88),inner=mat('#f8e5ce',.92);
+  RB(part,w-.05,dh-.025,.045,.015,m,0,dh/2,d/2+.025);SP(part,.032,mat('#dec187',.8),0,dh/2,d/2+.065);
+  RB(part,w-.11,.025,d-.08,.01,inner,0,.028,0);[-1,1].forEach(k=>RB(part,.025,dh-.06,d-.08,.009,inner,k*(w/2-.065),dh/2,0));
+  tagPart(part,index,state.parts,'drawer',0,d*.7);
+  for(let col=0;col<cols;col++){const space=slot(state,part,(col-(cols-1)/2)*(w-.16)/cols,.046,.03,index);space.spaceW=(w-.16)/cols-.015;space.spaceH=dh-.08;}
+ }
+}
+function doorUnit(g,state,w,h,d,c,y=0){
+ const inner=caseShell(g,w,h,d,c,y);const rowH=h/state.profile.rows;
+ for(let i=0;i<state.profile.rows;i++){const sy=y+.07+i*rowH;if(i)RB(g,w-.1,.025,d-.08,.008,inner,0,sy-.025,0);rows(state,g,w-.13,d,[sy]);}
+ [-1,1].forEach(side=>{const hinge=new THREE.Group();hinge.position.set(side*w/2,y,d/2+.035);g.add(hinge);const index=state.parts.length;const center=-side*w/4;
+ RB(hinge,w/2-.015,h-.035,.05,.018,mat(c,.86),center,h/2,0);SP(hinge,.032,mat('#dec187',.8),-side*(w/2-.07),h*.52,.05);tagPart(hinge,index,state.parts,'door',0,side*Math.PI*.56);
+ });
+}
+function disposeContents(o){o.traverse(n=>{if(n.geometry&&!n.geometry.userData.rikiShared)n.geometry.dispose();});}
+K.releaseStorageModel=disposeContents;
+K.storageProfile=id=>isStorage(id)?profile(id):null;
+K.prepareStorage=function(g,it){
+ const id=it[0];if(!isStorage(id)||g.userData.storage)return;
+ const p=profile(id),state={profile:p,parts:[],slots:[],id,focused:false};g.userData.storage=state;
+ if(p.kind==='fridge'){
+  const door=g.userData.fridgeDoor;if(door)tagPart(door,0,state.parts,'door',0,Math.PI*.57);
+  rows(state,g,.59,.44,[.09,.51,.95]);
+ }else if(p.kind==='shelf'){
+  // Remove only the model's placeholder books; owned books are hydrated below.
+  const remove=[];g.traverse(o=>{if(o.userData.stockBooks)remove.push(o);});remove.forEach(o=>o.parent.remove(o));
+  let ys=[.07,.55,1.03],width=.9,cx=0,z=.02;
+  if(id==='shelfmoon'){ys=[.53,.98,1.43];width=.45;cx=-.15;z=.34;ys.forEach(y=>BX(g,.54,.025,.35,mat('#e4cde1',.9),-.15,y-.025,.29));}
+  if(id==='shelfhouse'){g.children.filter(o=>o.geometry&&o.geometry.type==='SphereGeometry'&&o.position.y<.3).forEach(o=>g.remove(o));ys=[.06,.35,.65];width=.8;BX(g,.87,.025,.32,mat('#f4dec7',.9),0,.32,0);}
+  if(id==='shelfrainbow'){ys=[.13,.4,.67];width=.68;z=.43;ys.forEach(y=>BX(g,.78,.025,.34,mat('#f4dec7',.9),0,y-.025,.38));}
+  if(id==='shelfcastle'){ys=[.43,.93,1.43];width=.46;z=.43;BX(g,.56,.025,.12,mat('#f4dec7',.9),0,1.4,.4);}
+  if(id==='shelfladder'){ys=[.32,.77,1.22];width=.72;z=.25;ys.forEach(y=>BX(g,.82,.025,.45,mat('#f4dec7',.9),0,y-.025,.1));}
+  if(id==='shelftree'){[ [.42,.49],[.62,-.35],[1.02,.35] ].forEach(([y,x])=>{for(let col=0;col<3;col++)slot(state,g,x+(col-1)*.15,y,.04).spaceW=.13;});}
+  else ys.forEach(y=>{for(let col=0;col<3;col++)slot(state,g,cx+(col-1)*width/3,y,z).spaceW=width/3-.02;});
+ }else{
+  // Retain each item's color and recognizable ornament, with a hollow usable body.
+  const old=[...g.children];old.forEach(o=>g.remove(o));const c=color(id);
+  if(p.kind==='chest'){caseShell(g,p.w,p.h,p.d,c);const top=g.children.find(o=>o.position.y===p.h);if(top)g.remove(top);const lid=new THREE.Group();lid.position.set(0,p.h,-p.d/2);g.add(lid);RB(lid,p.w,.055,p.d,.02,mat(c,.88),0,0,p.d/2);SP(lid,.035,mat('#dec187',.8),0,-.02,p.d);tagPart(lid,0,state.parts,'lid',0,-Math.PI*.6);rows(state,g,p.w-.13,p.d,[.06]);}
+  else if(p.kind==='drawers')drawerUnit(g,state,p.w,p.h,p.d,p.rows,c);
+  else if(p.kind==='vanity'){
+   const cabinet=new THREE.Group();cabinet.position.x=-.26;g.add(cabinet);drawerUnit(cabinet,state,.44,.7,.45,2,c,0,0,2);
+   RB(g,1,.07,.52,.025,mat(c,.9),0,.75,0);CY(g,.025,.035,.72,mat('#dec187',.9),.43,.36,.14,12);CY(g,.025,.035,.72,mat('#dec187',.9),.43,.36,-.14,12);
+   SP(g,.34,mat('#dec187',.8),0,1.17,-.18,1,1.2,.13);SP(g,.3,mat('#dfedf0',.07,.4),0,1.17,-.12,1,1.2,.05);
+  }else doorUnit(g,state,p.w,p.h,p.d,c);
+  if(id==='tvcabinet'){RB(g,.85,.55,.08,.04,mat('#524351',.85),0,.98,-.04);RB(g,.74,.43,.015,.025,mat('#b9d6dc',.2),0,.98,.012);}
+  if(id==='shelfpineapple')for(let i=0;i<5;i++){const leaf=SP(g,.16,mat('#96c49a',.9),(i-2)*.07,p.h+.2,0,.35,1.5,.7);leaf.rotation.z=(i-2)*.25;}
+  if(id==='wardrobe')SP(g,.16,mat('#f8dfba',.9),0,p.h+.1,0,2.5,.5,.8);
+ }
+};
+K.animateStorage=function(g){const s=g.userData.storage;if(!s)return;for(const p of s.parts){const key=p.kind==='drawer'?'position':'rotation',axis=p.kind==='drawer'?'z':p.kind==='lid'?'x':'y';p.group[key][axis]+=(p.target-p.group[key][axis])*.18;}for(const slot of s.slots){const part=s.parts[slot.part];slot.pad.visible=s.focused&&(!part||Math.abs(part.target-part.closed)>.01);slot.target.visible=slot.pad.visible;}};
+K.toggleStoragePart=function(g,index){const s=g.userData.storage,p=s&&s.parts[index];if(!p)return false;
+ const open=Math.abs(p.target-p.closed)<.01;
+ if(p.kind==='drawer')s.parts.filter(x=>x.kind==='drawer').forEach(x=>x.target=x.closed);
+ p.target=open?p.opened:p.closed;return true;
+};
+K.setStorageOpen=function(g,on){const s=g.userData.storage;if(!s)return;s.focused=on;s.parts.forEach((p,i)=>p.target=on&&(p.kind!=='drawer'||i===0)?p.opened:p.closed);s.slots.forEach(x=>{x.pad.visible=on&&(x.part<0||x.part===0);x.target.visible=x.pad.visible;});};
+K.hydrateStorage=function(g,room){const s=g.userData.storage;if(!s)return;const contents=(G('dreamStorage')||{})[room+':'+s.id]||[];
+ s.slots.forEach((slot,i)=>{const id=contents[i];if(slot.item===id)return;if(slot.content){slot.parent.remove(slot.content);disposeContents(slot.content);slot.content=null;}slot.item=id;
+  const it=(G('ITEMS')||[]).find(x=>x[0]===id);if(!it||isStorage(id))return;
+  const content=K.makeItem(it);content.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(content),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
+  const factor=Math.min((slot.spaceW||.22)/Math.max(size.x,.01),(slot.spaceH||.26)/Math.max(size.y,.01),.22/Math.max(size.z,.01));content.scale.setScalar(factor);content.position.copy(slot.position);content.position.x-=center.x*factor;content.position.y-=box.min.y*factor;content.position.z-=center.z*factor;
+  content.userData.storedSlot=i;slot.parent.add(content);slot.content=content;
+ });
+};
+})();
+
 /* Interactive fridge: existing item IDs and room:item storage arrays remain compatible. */
 (function(){
 const G=n=>{try{return (0,eval)(n);}catch(_){return undefined;}};
@@ -607,24 +700,27 @@ const isFridge=id=>id==='fridge'||id==='fridgeretro';
 const isFood=id=>foodIds.has(id);
 const isOwned=id=>(G('owned')||[]).includes(id);
 const isPlaced=(id,room)=>Object.values((G('decor')||{})[room]||{}).includes(id);
-const usable=(id,room)=>isFridge(id)&&isOwned(id)&&isPlaced(id,room);
-const capacity=9;
+const storageType=id=>/^(fridge|shelf|dresser|vanity)|^(wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox)$/.test(id);
+const usable=(id,room)=>storageType(id)&&isOwned(id)&&isPlaced(id,room);
+const capacityFor=id=>{const p=K&&K.storageProfile?K.storageProfile(id):null;return p?p.rows*p.cols:9;};
+const isSmall=item=>{const it=items.find(x=>x[0]===item),fn=G('itemType');return !!(it&&typeof fn==='function'&&['Toys','Miniatures','Claw prizes','Fridge Food'].includes(fn(it)));};
+const eligible=(id,item)=>isFridge(id)?isFood(item):storageType(id)&&!storageType(item)&&(isFood(item)||isSmall(item)||['soap','towels','toothbrush','rubberduck','doll','blocks','puzzle','crafts','puppet','trainset'].includes(item)||(G('SMALL_IDS')||[]).includes(item)||/^(claw|mini|book|perfume|makeup|jewel|trophy|teacup|plantmini)/.test(item));
 function contents(id,room){const a=(G('dreamStorage')||{})[room+':'+id];return Array.isArray(a)?a:[];}
-function storeFood(id,room,food,slot){
- if(!usable(id,room)||!isFood(food)||!isOwned(food)||!Number.isInteger(slot)||slot<0||slot>=capacity)return false;
+function storeItem(id,room,food,slot){
+ if(!usable(id,room)||!eligible(id,food)||!isOwned(food)||!items.some(x=>x[0]===food)||!Number.isInteger(slot)||slot<0||slot>=capacityFor(id))return false;
  const storage=G('dreamStorage');if(!storage||contents(id,room)[slot])return false;
  // Move this owned item; do not duplicate it or replace occupied shelves.
  for(const arr of Object.values(storage))if(Array.isArray(arr))arr.forEach((x,i)=>{if(x===food)delete arr[i];});
  const key=room+':'+id;if(!Array.isArray(storage[key]))storage[key]=[];
  storage[key][slot]=food;const save=G('dreamSave');if(save)save();return true;
 }
-function takeFood(id,room,slot){
- if(!usable(id,room)||!Number.isInteger(slot)||slot<0||slot>=capacity)return false;
+function takeItem(id,room,slot){
+ if(!usable(id,room)||!Number.isInteger(slot)||slot<0||slot>=capacityFor(id))return false;
  const arr=contents(id,room);if(!arr[slot])return false;
  delete arr[slot];const save=G('dreamSave');if(save)save();return true;
 }
 const previousStorage=G('isStorage');
-window.__rkIsStorage=id=>isFridge(id)||/^(shelf|dresser|vanity)|^(wardrobe|cupboard|tvcabinet|nightstand)$/.test(id)||(typeof previousStorage==='function'&&previousStorage(id));
+window.__rkIsStorage=id=>storageType(id)||(typeof previousStorage==='function'&&previousStorage(id));
 SET('isStorage=window.__rkIsStorage;');
 const previousType=G('itemType');
 window.__rkFridgeType=it=>isFridge(it[0])?'Fridges':isFood(it[0])?'Fridge Food':it[0]==='tea'?'Tables':previousType(it);
@@ -664,34 +760,10 @@ for(const fn of ['furnitureArt','dreamFurnitureArt']){
  window['__rkGrocery_'+fn]=function(it){const html=previous.apply(this,arguments);if(!it||!groceries.some(x=>x[0]===it[0])||/rk3-thumb/.test(html))return html;return `<span class="rk3-art" data-rk3-id="${it[0]}">${grocerySvg(it)}</span>`;};
  SET(fn+'=window.__rkGrocery_'+fn+';');
 }
-let closeCurrent=null;
-function openFridge(id){
- const room=G('currentRoom');if(!usable(id,room))return false;
- if(closeCurrent)closeCurrent();
- const it=items.find(x=>x[0]===id),previousFocus=document.activeElement;
- const overlay=document.createElement('div');overlay.className='storage-overlay rk-fridge-overlay';
- const dialog=document.createElement('section');dialog.className='storage-dialog rk-fridge-dialog';dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-labelledby','rkFridgeTitle');
- overlay.appendChild(dialog);document.body.appendChild(overlay);
- let selected='',status='The fridge is open. Choose food, then an empty shelf space.';
- const name=food=>items.find(x=>x[0]===food)?.[2]||'Stored item';
- const art=food=>{const it=items.find(x=>x[0]===food);const fn=G('furnitureArt');return it&&fn?fn(it):'🍽️';};
- const close=()=>{overlay.remove();document.removeEventListener('keydown',keys);if(K&&K.setFridgeOpen)K.setFridgeOpen(id,false);closeCurrent=null;if(previousFocus&&previousFocus.isConnected)previousFocus.focus();};
- function keys(e){if(e.key==='Escape'){e.preventDefault();close();}else if(e.key==='Tab'){const all=[...dialog.querySelectorAll('button:not(:disabled)')];const first=all[0],last=all[all.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}
- function paint(focus){
-  const arr=contents(id,room),available=items.filter(x=>isFood(x[0])&&isOwned(x[0])&&!arr.includes(x[0]));
-  dialog.innerHTML=`<button type="button" class="close-storage" id="rkCloseFridge">Close fridge ✕</button><h2 id="rkFridgeTitle">${esc(it?.[2]||'My fridge')}</h2><p>Put purchased food on a shelf. Tap stored food to take it out.</p><div class="rk-fridge-interior" aria-label="Open fridge shelves">${Array.from({length:capacity},(_,i)=>`<button type="button" class="rk-fridge-slot" data-fridge-slot="${i}" aria-label="${arr[i]?'Take out '+esc(name(arr[i])):'Empty shelf space '+(i+1)}">${arr[i]?art(arr[i]):'<span aria-hidden="true">＋</span>'}<small>${arr[i]?esc(name(arr[i])):'Empty'}</small></button>`).join('')}</div><p class="rk-fridge-status" role="status" aria-live="polite">${esc(status)}</p><h3>My food</h3><div class="rk-fridge-food">${available.length?available.map(x=>`<button type="button" data-fridge-food="${x[0]}" class="${selected===x[0]?'active':''}" aria-pressed="${selected===x[0]}">${art(x[0])}<small>${esc(x[2])}</small></button>`).join(''):'<p>Your purchased food is on the shelves, or waiting in the shop.</p>'}</div><button type="button" class="secondary" id="rkFridgeFoodShop">Shop for food →</button>`;
-  dialog.querySelector('#rkCloseFridge').onclick=close;
-  dialog.querySelectorAll('[data-fridge-food]').forEach(b=>b.onclick=()=>{selected=b.dataset.fridgeFood;status='Selected '+name(selected)+'. Tap an empty shelf space.';paint('[data-fridge-food="'+selected+'"]');});
-  dialog.querySelectorAll('[data-fridge-slot]').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.fridgeSlot),food=contents(id,room)[n];if(food){takeFood(id,room,n);status=name(food)+' is back in your collection.';}else if(selected){if(storeFood(id,room,selected,n)){status=name(selected)+' is on the shelf.';selected='';}else status='That food could not be placed.';}else status='Choose some food below first.';paint('[data-fridge-slot="'+n+'"]');});
-  dialog.querySelector('#rkFridgeFoodShop').onclick=()=>{close();SET("shopRoom='kitchen';shopType='Fridge Food';housePage='shop';");const render=G('houseRender');if(render)render();};
-  if(focus)dialog.querySelector(focus)?.focus();
- }
- closeCurrent=close;overlay.addEventListener('click',e=>{if(e.target===overlay)close();});document.addEventListener('keydown',keys);
- if(K&&K.setFridgeOpen)K.setFridgeOpen(id,true);
- paint('#rkCloseFridge');return true;
-}
+/* Every supported storage item opens in its actual room, never in a separate dialog. */
+function openStorage(id){return !!(K&&K.openStorage&&K.openStorage(id));}
 const previousModal=G('storageModal');
-window.__rkFridgeModal=function(id){return isFridge(id)?openFridge(id):previousModal.apply(this,arguments);};
+window.__rkFridgeModal=function(id){return storageType(id)?openStorage(id):previousModal.apply(this,arguments);};
 SET('storageModal=window.__rkFridgeModal;');
-window.RikiFurnitureInteractions={isFridge,isFood,storeFood,takeFood,contents,openFridge};
+window.RikiFurnitureInteractions={isFridge,isFood,isStorage:storageType,isEligible:eligible,capacityFor,storeItem,takeItem,storeFood:storeItem,takeFood:takeItem,contents,openStorage,openFridge:openStorage};
 })();

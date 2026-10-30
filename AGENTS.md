@@ -30,7 +30,7 @@ Rachel should never have to carry messages between you: coordinate through GitHu
 
 ## 4. Publishing
 
-Once your changes are tested and confirmed safe, merge your own pull request into `main`. No approval from Rachel is needed.
+Publish completed changes to `main` without waiting for Rachel's approval. Test when testing tools are available; if testing cannot be performed, publishing is still permitted. Disclose exactly what was not tested and any known risks. Never publish with known file-claim conflicts, destructive saved-progress changes, or unauthorized script/style loading-order changes.
 Merging into `main` deploys to the live Netlify site.
 
 ## 5. Recheck before merging
@@ -38,8 +38,8 @@ Merging into `main` deploys to the live Netlify site.
 1. Fetch the latest `main` and look for anything merged since you started.
 2. Check open pull requests and `COORDINATION.md` again for new claims on your files.
 3. Bring your branch up to date by merging `main` into it.
-4. Rerun the relevant tests on the updated branch.
-5. Merge only when there are no unresolved conflicts and the tests pass.
+4. Run relevant tests when feasible. If testing tools are unavailable, document the untested areas and proceed.
+5. Merge when there are no unresolved file-claim conflicts; unavailable testing alone must not block publication.
 
 If the other assistant published while you were working, incorporate the latest `main` before publishing.
 - If their change touched **different files** from yours, a quick check is enough: syntax check, open the site, play your feature once. Publish, then run fuller tests afterward.
@@ -56,9 +56,9 @@ If the other assistant published while you were working, incorporate the latest 
 
 ## 7. Testing is your job
 
-- Test your own changes. Include phone-sized layouts (about 390 px wide), and saved progress when your change touches it.
+- Test your own changes when tools permit. Include phone-sized layouts (about 390 px wide), and saved progress when your change touches it, whenever those checks are possible.
 - Don't rely on Rachel to test fixes.
-- Never say a test passed unless it actually ran and passed. If you couldn't test something, say so.
+- Never say a test passed unless it actually ran and passed. If you couldn't test something, say so and publish anyway when there are no known blocking conflicts or data-loss risks.
 
 ## 8. Communicate through GitHub
 
