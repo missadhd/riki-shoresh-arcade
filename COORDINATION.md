@@ -5,6 +5,7 @@ Add a row when you open your draft PR and remove it in the same PR when you fini
 
 | Who | Branch | Files | Status |
 |---|---|---|
+| ChatGPT | chatgpt/clay-graphics-preview | assets/scripts/11-game.js; assets/scripts/12-game.js; assets/styles/16-styles.css; assets/images/clay/*; previews/clay-preview.html; COORDINATION.md — preview only |
 
 ## Map of the code
 
