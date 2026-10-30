@@ -510,7 +510,7 @@ const missedQ=new Set(),doneQ=new Set();
 function cur(){const g=G('game'),s=G('session');if(!TRACK.includes(g)||!s||!Array.isArray(s.order))return null;const id=s.order[s.at];if(id===undefined)return null;return {id,key:g+'|'+(G('round')||0)+'|'+s.at+'|'+id};}
 const prevCorrect=G('correct'),prevIncorrect=G('incorrect');
 if(typeof prevCorrect==='function'){window.__rkCorrect=function(){const c=cur();const r=prevCorrect.apply(this,arguments);
-  if(c&&!doneQ.has(c.key)){doneQ.add(c.key);const x=rec(c.id),ok=missedQ.has(c.key)?0:1;x.seen++;if(ok){x.first++;const d=today();if(!x.days.includes(d))x.days.push(d);x.days=x.days.slice(-10);}x.hist.push(ok);x.hist=x.hist.slice(-8);x.last=Date.now();save();}
+  if(c&&!doneQ.has(c.key)){doneQ.add(c.key);const x=rec(c.id),ok=missedQ.has(c.key)?0:1;x.seen++;if(ok){x.first++;const d=today();if(!x.days.includes(d))x.days.push(d);x.days=x.days.slice(-10);}x.hist.push(ok);x.hist=x.hist.slice(-8);x.last=Date.now();try{const L=P._log||(P._log={});const d=today();const e=L[d]||(L[d]={n:0,f:0,w:[]});e.n++;if(ok)e.f++;if(!e.w.includes(c.id))e.w.push(c.id);Object.keys(L).sort().slice(0,-60).forEach(k=>delete L[k]);}catch(_){}save();}
   try{celebrateGame(G('game'));}catch(e){}try{const W=G('W');if(c&&W&&W[c.id])setTimeout(()=>say(W[c.id][0]),250);}catch(e){}return r;};SET('correct=window.__rkCorrect;');}
 if(typeof prevIncorrect==='function'){window.__rkIncorrect=function(){const c=cur();if(c&&!missedQ.has(c.key)){missedQ.add(c.key);rec(c.id).miss++;save();}return prevIncorrect.apply(this,arguments);};SET('incorrect=window.__rkIncorrect;');}
 /* ---- weak roots come up more often in the quiz games ---- */
@@ -553,20 +553,26 @@ function addSpeakers(root){if(!canSpeak)return;(root||document).querySelectorAll
 let unlocked=false;document.addEventListener('pointerdown',()=>{if(unlocked||!canSpeak)return;unlocked=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}},true);
 document.addEventListener('click',e=>{const b=e.target.closest('.rk-say');if(!b)return;e.preventDefault();e.stopPropagation();say(b.dataset.say,b);},true);
 
-/* Keep a single browser-history stop for arcade screens, but never trap users at home. */
+/* Phone Back button (Claude, Oct 29; replaces the #24 block): Back closes any open overlay,
+   otherwise goes to the Home screen. On Home, Back asks once ("press Back again to leave")
+   so the site is never left by accident. */
 (function(){
- let armed=false;
- const home=()=>{const a=document.getElementById('app');return !!(a&&a.querySelector('.hero h1'));};
- const arm=()=>{
-  if(home())return;
-  if(armed)return;
-  try{history.pushState({rikiArcade:true},'',location.href);armed=true;}catch(_){}
- };
- document.addEventListener('click',()=>setTimeout(arm,0),true);
+ const onHub=()=>!!document.querySelector('#app .hub');
+ const push=()=>{try{history.pushState({riki:1},'',location.href);}catch(_){}};
+ push();
+ let leaveArmed=false,toastT=0;
+ function toast(msg){let t=document.getElementById('rkBackToast');if(!t){t=document.createElement('div');t.id='rkBackToast';t.setAttribute('role','status');t.style.cssText='position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#4a2338;color:#fff;padding:10px 18px;border-radius:999px;font-weight:800;z-index:100000;transition:opacity .3s';document.body.appendChild(t);}
+   t.textContent=msg;t.style.opacity='1';clearTimeout(toastT);toastT=setTimeout(()=>{t.style.opacity='0';},1800);}
+ function closeOverlay(){
+   const wh=document.querySelector('.wh3d:not([hidden])');if(wh){const c=wh.querySelector('[data-close]');if(c){c.click();return true;}}
+   const st=document.querySelector('.storage-overlay');if(st){const c=st.querySelector('#closeStorage,.close-storage');if(c)c.click();else st.remove();return true;}
+   const pv=document.getElementById('rkShopPreview');if(pv){pv.remove();return true;}
+   return false;}
  window.addEventListener('popstate',()=>{
-  if(!armed)return;
-  armed=false;
-  if(!home()){const m=G('menu');if(typeof m==='function')m();}
+   if(closeOverlay()){push();return;}
+   if(!onHub()){try{speechSynthesis.cancel();}catch(_){}const h=window.RikiHub||G('menu');if(typeof h==='function')h();window.scrollTo(0,0);leaveArmed=false;push();return;}
+   if(leaveArmed){history.back();return;}
+   leaveArmed=true;toast('Press Back again to leave');setTimeout(()=>{leaveArmed=false;},2200);push();
  });
 })();
 /* ---- quiz celebrations ---- */
@@ -601,16 +607,46 @@ function upgradeSel(root){(root||document).querySelectorAll('.sel-scene .sel-ill
   const seed=[...txt].reduce((a,c)=>a+c.codePointAt(0),0);const K=window.RK3;if(!K)return;K.loadThree(()=>{const u=sceneImg(txt,seed);if(u&&el.isConnected){el.innerHTML=`<img class="rk-sel-img" src="${u}" alt="${esc(txt)}">`;}},()=>{});});}
 
 /* ---- Progress screen ---- */
+function weekSummary(W){
+  const L=P._log||{};const days=[];for(let i=6;i>=0;i--){const d=new Date(Date.now()-i*864e5).toISOString().slice(0,10);days.push([d,L[d]]);}
+  const played=days.filter(x=>x[1]);const n=played.reduce((a,x)=>a+x[1].n,0),f=played.reduce((a,x)=>a+x[1].f,0);const words=new Set(played.flatMap(x=>x[1].w));
+  const prev=[];for(let i=13;i>=7;i--){const d=new Date(Date.now()-i*864e5).toISOString().slice(0,10);if(L[d])prev.push(L[d]);}const pn=prev.reduce((a,x)=>a+x.n,0),pf=prev.reduce((a,x)=>a+x.f,0);
+  const better=[...words].filter(id=>{const r=P[id];return r&&r.hist.length>=3&&r.hist.slice(-3).every(x=>x===1)&&r.miss>0;}).slice(0,6);
+  const shaky=[...words].filter(id=>{const r=P[id];return r&&r.seen>=2&&r.first/r.seen<.6;}).slice(0,6);
+  const chip=id=>`<span class="rk-chip"><b lang="he">${esc(W[id][0])}</b> ${esc(W[id][1])}</span>`;
+  const bars=days.map(([d,e])=>{const h=e?Math.min(100,12+e.n*4):4;return `<span class="rk-day" title="${d}"><i style="height:${h}%;${e?'':'background:#f3d6dc'}"></i><small>${'SMTWTFS'[new Date(d+'T12:00').getDay()]}</small></span>`;}).join('');
+  if(!played.length)return `<div class="rk-week"><h3>This week</h3><p class="subtle">No word games played in the last 7 days yet.</p></div>`;
+  const trend=pn?(Math.round(f/n*100)-Math.round(pf/pn*100)):null;
+  return `<div class="rk-week"><h3>This week</h3><div class="rk-days">${bars}</div>
+    <p><b>${played.length}</b> day${played.length===1?'':'s'} played · <b>${words.size}</b> words · <b>${Math.round(f/n*100)}%</b> right on first try${trend!==null?` (${trend>=0?'▲':'▼'} ${Math.abs(trend)} from last week)`:''}</p>
+    ${better.length?`<p class="rk-wl">🌱 Getting stronger</p><div class="rk-chips">${better.map(chip).join('')}</div>`:''}
+    ${shaky.length?`<p class="rk-wl">🧩 Still tricky</p><div class="rk-chips">${shaky.map(chip).join('')}</div>`:''}</div>`;}
+/* Move progress from another copy of the site (e.g. the old Netlify link) with a code */
+const XFER_KEYS=['rickyCoins','rickyHouseInventoryV1','rickyHouseDecorV1','rickyHouseWallsV1','rickyDreamStorageV2','rickyDreamPetsV2','rickyDreamPositionsV2','rickyRoomInteriorsV3','rickyTinyOwnedV1','rickyTinyPlacedV1','rickyAdventureXPV1','rickySpatialMusicV1','riki3dOrbit','rikiReal3dAz','rikiRootProgressV1','rikiDreamRotationV1','rikiClawPlushV1'];
+function exportCode(){const o={};XFER_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)o[k]=v;});return 'RIKI1:'+btoa(unescape(encodeURIComponent(JSON.stringify(o))));}
+function importCode(code){const m=String(code).trim().match(/^RIKI1:([A-Za-z0-9+/=]+)$/);if(!m)return 'That code doesn’t look right. It should start with RIKI1:';let o;try{o=JSON.parse(decodeURIComponent(escape(atob(m[1]))));}catch(e){return 'That code is damaged. Copy it again.';}
+  const bak=exportCode();try{localStorage.setItem('rikiBackupBeforeImport',bak);}catch(e){}
+  const mergeList=(a,b)=>{try{const x=JSON.parse(a||'[]'),y=JSON.parse(b||'[]');if(Array.isArray(x)&&Array.isArray(y))return JSON.stringify([...new Set([...x,...y])]);}catch(e){}return b;};
+  Object.entries(o).forEach(([k,v])=>{if(!XFER_KEYS.includes(k))return;const cur=localStorage.getItem(k);
+    if(k==='rickyCoins'){localStorage.setItem(k,String(Math.max(+cur||0,+v||0)));return;}
+    if(k==='rickyHouseInventoryV1'||k==='rickyTinyOwnedV1'){localStorage.setItem(k,mergeList(cur,v));return;}
+    if(cur===null||cur==='{}'||cur==='[]')localStorage.setItem(k,v);});
+  return '';}
 function progressPage(){
   const W=G('W')||[];const fr=G('frame');if(typeof fr!=='function')return;SET("game='progress';session=null;");
-  const rows=W.map((w,i)=>({i,w,r:P[i]})).filter(x=>x.r&&x.r.seen);const totalSeen=rows.reduce((a,x)=>a+x.r.seen,0),totalFirst=rows.reduce((a,x)=>a+x.r.first,0);
+  const rows=W.map((w,i)=>({i,w,r:P[i]})).filter(x=>x.r&&x.r.seen);const week=weekSummary(W);const totalSeen=rows.reduce((a,x)=>a+x.r.seen,0),totalFirst=rows.reduce((a,x)=>a+x.r.first,0);
   const mcount=rows.filter(x=>mastered(x.i)).length;rows.sort((a,b)=>(a.r.first/a.r.seen)-(b.r.first/b.r.seen)||b.r.miss-a.r.miss);
   const bar=p=>`<span class="rk-bar"><i style="width:${Math.round(p*100)}%"></i></span>`;
   const list=rows.length?rows.map(x=>{const p=x.r.first/x.r.seen;return `<li><span class="rk-prog-he" lang="he">${esc(x.w[0])}</span><span class="rk-prog-mean">${esc(x.w[1])}${mastered(x.i)?' ⭐':''}</span>${bar(p)}<span class="rk-prog-num">${Math.round(p*100)}% · ${x.r.seen}</span></li>`;}).join(''):'<p class="subtle">Play a few word games and her progress will show up here.</p>';
   fr('📊 Riki\'s Progress',`<div class="rk-prog"><div class="rk-tiles"><div><b>${rows.length}</b><span>words practiced</span></div><div><b>${mcount}</b><span>mastered ⭐</span></div><div><b>${totalSeen?Math.round(totalFirst/totalSeen*100):0}%</b><span>right on first try</span></div></div>
    <p class="subtle">Hardest words are at the top. "Mastered" means right on the first try 3 times in a row, on at least 2 different days. Tricky words come up more often in the games, and mastered words get 4 choices and no hints.</p>
-   <ul class="rk-prog-list">${list}</ul><div class="row"><button class="primary" id="rkPractice">🔎 Practice the tricky words</button></div><p class="subtle">Saved on this device only.</p></div>`);
-  addSpeakers(document.getElementById('app'));const b=document.getElementById('rkPractice');if(b)b.onclick=()=>{const st=G('start');st&&st('detective');};}
+   ${week}<ul class="rk-prog-list">${list}</ul><div class="row"><button class="primary" id="rkPractice">🔎 Practice the tricky words</button></div><p class="subtle">Saved on this device only.</p>
+   <details class="rk-xfer"><summary>Move progress to another phone or link</summary>
+     <p class="subtle">On the old copy, copy this code. On the new copy, paste it below. Coins keep the higher amount; furniture and pets are added, nothing is deleted.</p>
+     <textarea id="rkXOut" readonly rows="3"></textarea><button class="secondary" id="rkXCopy">📋 Copy my code</button>
+     <textarea id="rkXIn" rows="3" placeholder="Paste a RIKI1: code here"></textarea><button class="primary" id="rkXGo">Bring it here</button><p class="subtle" id="rkXMsg"></p>
+   </details></div>`);
+  addSpeakers(document.getElementById('app'));try{const out=document.getElementById('rkXOut');out.value=exportCode();document.getElementById('rkXCopy').onclick=()=>{out.select();(navigator.clipboard?navigator.clipboard.writeText(out.value):Promise.reject()).then(()=>{document.getElementById('rkXMsg').textContent='Copied!';}).catch(()=>{document.getElementById('rkXMsg').textContent='Selected — use your phone’s Copy.';});};document.getElementById('rkXGo').onclick=()=>{const err=importCode(document.getElementById('rkXIn').value);const msg=document.getElementById('rkXMsg');if(err){msg.textContent=err;return;}msg.textContent='Done! Reloading…';setTimeout(()=>location.reload(),700);};}catch(_){}const b=document.getElementById('rkPractice');if(b)b.onclick=()=>{const st=G('start');st&&st('detective');};}
 function addProgressButton(){const stats=document.querySelector('.top .stats');if(!stats||document.getElementById('rkProgressBtn'))return;const b=document.createElement('button');b.className='smallbtn';b.id='rkProgressBtn';b.textContent='📊 Progress';b.onclick=progressPage;const set=document.getElementById('settingsToggle');stats.insertBefore(b,set||null);}
 addProgressButton();
 
@@ -618,7 +654,18 @@ addProgressButton();
 const app=document.getElementById('app');
 if(app)new MutationObserver(()=>{addSpeakers(app);upgradeSel(app);hideHints();}).observe(app,{childList:true,subtree:true});
 addSpeakers(app);upgradeSel(app);
-window.RikiProgress={pick,mastered,data:()=>P,say,show:progressPage};
+const prevOpts=G('optionsFor');
+if(typeof prevOpts==='function'){window.__rkOpts=function(id,n,rev){if(G('game')==='bubbles'&&mastered(id))n=Math.max(n||3,4);return prevOpts.call(this,id,n,rev);};SET('optionsFor=window.__rkOpts;');}
+/* English read aloud: the English meaning in quiz prompts and studio orders is spoken automatically */
+function sayEn(t){if(!canSpeak||G('soundOn')===false)return;try{const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.95;speechSynthesis.speak(u);}catch(e){}}
+function speakEnglish(root){(root||document).querySelectorAll('.prompt .meaning,.st-order .st-bub b,.wheel-question h2,.show-spotlight h2').forEach(el=>{if(el.dataset.enSaid)return;el.dataset.enSaid=1;const t=el.textContent.trim();if(!t||/[֐-׿]/.test(t))return;setTimeout(()=>{if(el.isConnected)sayEn(t);},350);});}
+if(app)new MutationObserver(()=>speakEnglish(app)).observe(app,{childList:true,subtree:true});
+document.addEventListener('click',e=>{const b=e.target.closest('#app .option:not(.he),#app .bubble,#app .match-btn,#app .cm-ans,#app .st-card span:not(.st-he)');if(!b)return;const t=(b.matches('.st-card span')?b:b).textContent.trim();if(t&&!/[֐-׿]/.test(t)&&t.length<40){try{speechSynthesis.cancel();}catch(_){}sayEn(t);}},true);
+(function(){if(document.getElementById('rkWeekCss'))return;const st=document.createElement('style');st.id='rkWeekCss';st.textContent=`.rk-week{background:#fff;border:2px solid #f3d6dc;border-radius:18px;padding:12px 14px}.rk-week h3{margin:0 0 6px;font-family:"Baloo 2",system-ui,sans-serif}.rk-week p{margin:6px 0;font-weight:700}
+.rk-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;height:70px;align-items:end}.rk-day{display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;gap:2px}.rk-day i{display:block;width:70%;background:#e2457a;border-radius:6px 6px 2px 2px}.rk-day small{font-size:10px;font-weight:800;color:#8a6577}
+.rk-wl{font-weight:900!important;margin-top:10px!important}.rk-chips{display:flex;flex-wrap:wrap;gap:6px}.rk-chip{background:#ffe3ea;border-radius:999px;padding:4px 10px;font-weight:800;font-size:13px}.rk-chip b{font-family:"Frank Ruhl Libre","David",serif;font-size:16px;color:#b92e5e}
+.rk-xfer{background:#fff;border:2px solid #f3d6dc;border-radius:18px;padding:8px 12px}.rk-xfer summary{font-weight:900;cursor:pointer;padding:4px 0}.rk-xfer textarea{width:100%;border-radius:12px;border:2px solid #f3d6dc;padding:8px;font:12px monospace;margin:6px 0}`;document.head.appendChild(st);})();
+window.RikiProgress={pick,mastered,data:()=>P,say,show:progressPage,exportCode,importCode};
 })();
 
 /* Home hub (Claude, Oct 29): the first screen is a few big choices. Shoresh Games opens the full games list. */
@@ -637,7 +684,7 @@ function hub(){
    <button type="button" class="hub-progress" id="hubProgress">📊 Progress for grown-ups</button></section>`;
   const $=id=>document.getElementById(id);const tap=()=>{try{const a=G('audio');a&&a('tap');}catch(_){}};
   $('hubGames').onclick=()=>{tap();const m=G('menu');m&&m();window.scrollTo(0,0);};
-  $('hubSocial').onclick=()=>{tap();const s=G('selHub');s&&s();addOlderSocial();window.scrollTo(0,0);};
+  $('hubSocial').onclick=()=>{tap();const s=G('selHub');s&&s();window.scrollTo(0,0);};
   $('hubHouse').onclick=()=>{tap();const h=G('houseHome');h&&h();window.scrollTo(0,0);};
   $('hubShop').onclick=()=>{tap();const h=G('houseHome');h&&h();SET("housePage='shop';");const r=G('houseRender');r&&r();window.scrollTo(0,0);};
   $('hubProgress').onclick=()=>{tap();window.RikiProgress&&window.RikiProgress.show();};
@@ -660,7 +707,7 @@ if(typeof prevMenu==='function'){window.__hubMenu=function(){const r=prevMenu.ap
     const set=app.querySelector('.settings');if(set)app.appendChild(set);}
 }catch(e){}return r;};SET('menu=window.__hubMenu;');}
 /* Header: Home, coins, settings. The rest lives on the Home screen. */
-function header(){const stats=document.querySelector('.top .stats');if(!stats||document.getElementById('hubHomeBtn'))return;const sb=[...stats.querySelectorAll('button')].find(x=>/Social Skills/.test(x.textContent));if(sb)sb.id=sb.id||'hubSocialBtn';const b=document.createElement('button');b.className='smallbtn';b.id='hubHomeBtn';b.textContent='🏠 Home';b.onclick=hub;stats.insertBefore(b,stats.firstChild);
+function header(){const stats=document.querySelector('.top .stats');if(!stats||document.getElementById('hubHomeBtn'))return;const sb=[...stats.querySelectorAll('button')].find(x=>/Social Skills/.test(x.textContent));if(sb){sb.id=sb.id||'hubSocialBtn';sb.onclick=()=>{const h=G('selHub');h&&h();window.scrollTo(0,0);};}const b=document.createElement('button');b.className='smallbtn';b.id='hubHomeBtn';b.textContent='🏠 Home';b.onclick=hub;stats.insertBefore(b,stats.firstChild);
   const brand=document.querySelector('.top .brand');if(brand){brand.style.cursor='pointer';brand.onclick=hub;}}
 header();
 if(!G('game'))hub();
