@@ -136,7 +136,7 @@
         "right-leg"
       ],
       "steps": 4,
-      "note": "Alternating legs and body rise-and-fall; no whole-stage side glide."
+      "note": "Four alternating foot lifts and body rise-and-fall; legs remain separated with no sideways glide."
     },
     "jump": {
       "durationMs": 850,
@@ -178,6 +178,6 @@
     },
     "durationMs": 1600,
     "steps": 4,
-    "note": "Opposing hip rotations and foot lifts create four real steps; feathered hip overlay hides the joint throughout the cycle."
+    "note": "Alternating vertical foot lifts with slight outward angles prevent the legs from crossing; feathered hip overlay hides the joint."
   }
 }
