@@ -1,0 +1,11 @@
+
+.top{position:sticky;top:0;z-index:100;background:linear-gradient(120deg,#fff5fffa,#f3eafff5);backdrop-filter:blur(14px)}
+.stats{display:flex;flex-wrap:wrap;gap:7px;align-items:center}.stats .music-panel{display:none!important}
+#gamesShortcut{background:#7854d8!important;color:white!important;border-color:#7854d8!important;box-shadow:0 4px 12px #7854d84d;font-weight:900}
+#soundSettings[hidden]{display:none!important}.sound-settings{position:absolute;right:12px;top:calc(100% - 2px);background:white;border:2px solid #e7dafa;box-shadow:0 16px 38px #56387c35;border-radius:18px;padding:14px;display:flex;gap:9px;flex-wrap:wrap;max-width:min(92vw,420px)}
+#soundSettings .music-panel{display:flex!important;flex-wrap:wrap;align-items:center;gap:10px;padding:5px;box-shadow:none!important;background:transparent!important}
+.interior-product button[data-interior-buy]{background:linear-gradient(140deg,#9164e8,#6e47ce)!important;color:white!important;border:0!important;border-radius:24px!important;padding:12px 22px!important;box-shadow:0 5px 0 #5934a2!important;font-weight:900!important}
+.interior-product button[data-interior-buy]:disabled{background:#ded7ea!important;color:#5f5370!important;box-shadow:none!important}
+.interior-preview .sample-wall{overflow:hidden;position:relative}.sample-pattern{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(3,1fr)}.sample-pattern .wall-pattern-art{position:absolute;width:100%;height:100%;object-fit:cover}
+.interior-swatch{overflow:hidden;position:relative}.interior-swatch .wall-pattern-art{width:100%;height:100%}.curtain-swatch{display:block;width:100%;height:100%;border-radius:30% 30% 8% 8%}
+@media(max-width:680px){.top{padding:10px!important}.brand{font-size:clamp(17px,4.6vw,25px)!important}.stats{gap:6px!important}.stats .pill{padding:7px!important}.stats .smallbtn{font-size:12px!important;padding:9px 10px!important}.house-nav{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}.house-nav button{font-size:14px!important;padding:10px 5px!important}.house-head{padding:18px 12px!important}.house-head h1{font-size:clamp(25px,6vw,36px)!important}}
