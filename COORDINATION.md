@@ -4,6 +4,7 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
+| ChatGPT | `chatgpt/riki-real-wave-even-earrings` | `preview-layered-riki.html`, `assets/characters/riki-layered/*`, `COORDINATION.md` | Building real covered wave and visually aligning earrings |
 
 ## Map of the code
 
