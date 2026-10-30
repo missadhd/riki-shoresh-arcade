@@ -221,3 +221,42 @@ body:has(#app .gamehead) .top .brand{display:none}
 #app .st-claw-question p{flex:1 0 100%;margin:0;text-align:center;font-weight:800}
 #app .st-claw-answer{flex:1 1 30%;min-width:96px;padding:12px 8px;border-radius:16px;border:2px solid #f3d6dc;background:#fff;box-shadow:0 4px 0 #f3d6dc;font-weight:900;font-size:15px;color:#4a2338;cursor:pointer}
 #app .st-claw-answer:disabled{opacity:.5}
+
+/* Claw Arcade (Claude, Oct 29) */
+.cm{display:flex;flex-direction:column;gap:10px}
+.cm-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:800;color:#8a6577;font-size:13px}
+.cm-dots{display:flex;gap:6px}.cm-dots i{width:12px;height:12px;border-radius:50%;background:#f3d6dc}.cm-dots i.on{background:#5cc6a8}.cm-dots i.now{background:#e2457a;transform:scale(1.2)}
+.cm-stage{position:relative;height:clamp(250px,calc(100svh - 430px),460px);border-radius:26px;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#ffe8f1 55%,#f2d6ea 100%);border:3px solid #fff;box-shadow:0 14px 30px -14px #e2457a66;touch-action:manipulation}
+.cm-stage canvas{display:block;width:100%;height:100%}
+.cm-banner{position:absolute;left:10px;right:10px;top:10px;z-index:2;background:#ffffffee;border-radius:18px;padding:10px 14px;text-align:center;box-shadow:0 6px 18px -8px #4a233866;animation:cmIn .45s cubic-bezier(.3,1.6,.5,1)}
+.cm-banner b{display:block;font-family:"Baloo 2","Trebuchet MS",system-ui,sans-serif;font-size:1.3rem;line-height:1.15;color:#4a2338}
+.cm-banner span{display:block;font-weight:800;color:#8a6577;font-size:14px}
+.cm-banner.rare{background:linear-gradient(135deg,#fff3c4,#ffd6ec,#d9ccff);border:2px solid #f2c94c}
+.cm-banner.gold{background:linear-gradient(135deg,#fff3c4,#ffe08a);border:2px solid #f2c94c}
+.cm-rare{display:inline-block!important;font-size:12px!important;letter-spacing:.1em;color:#b8860b!important;background:#fff;border-radius:999px;padding:1px 10px;margin-bottom:2px}
+@keyframes cmIn{from{transform:translateY(-14px) scale(.9);opacity:0}}
+.cm-burst{position:absolute;left:50%;top:55%;pointer-events:none}
+.cm-burst i{position:absolute;width:11px;height:11px;border-radius:50%;animation:cmFly .95s ease-out forwards}
+@keyframes cmFly{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+.cm-panel{display:flex;flex-direction:column;gap:10px;min-height:90px}
+.cm-big{width:100%;border:0;border-radius:24px;padding:20px 12px;font-family:"Baloo 2","Trebuchet MS",system-ui,sans-serif;font-size:clamp(24px,7vw,32px);font-weight:800;color:#fff;cursor:pointer;letter-spacing:.02em}
+.cm-grab{background:linear-gradient(135deg,#e2457a,#ff7aa8);box-shadow:0 7px 0 #b92e5e;animation:cmPulse 1.4s ease-in-out infinite}
+.cm-coin{background:linear-gradient(135deg,#f2b632,#ffd25e);color:#5a3a00;box-shadow:0 7px 0 #c98f12;animation:cmPulse 1.4s ease-in-out infinite}
+.cm-mystery{background:linear-gradient(135deg,#7b5cd6,#c8a2ff);box-shadow:0 7px 0 #5534a6;animation:cmPulse 1.4s ease-in-out infinite}
+.cm-house{background:linear-gradient(135deg,#3fb393,#7fd8bf);box-shadow:0 7px 0 #2a8c70}
+.cm-big:active{transform:translateY(4px);box-shadow:0 3px 0 #0003}
+.cm-big:disabled{animation:none;opacity:.75}
+@keyframes cmPulse{50%{transform:scale(1.03)}}
+.cm-small{align-self:center;border:2px solid #f3d6dc;background:#fff;border-radius:999px;padding:10px 18px;font-weight:900;color:#4a2338;cursor:pointer}
+.cm-end{display:flex;flex-direction:column;gap:10px}
+#app .cm-q{padding:10px 14px!important}
+#app .cm-q .hebrew{font-size:clamp(40px,11vw,60px)!important;line-height:1.1}
+.cm-answers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.cm-answers.four{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cm-ans{border:0;border-radius:20px;padding:16px 6px;min-height:76px;font-weight:900;font-size:clamp(15px,4.4vw,19px);line-height:1.15;color:#2a1d2a;cursor:pointer;overflow-wrap:anywhere}
+.cm-ans.c0{background:#7cc4f2;box-shadow:0 6px 0 #4f97c6}.cm-ans.c1{background:#ffb648;box-shadow:0 6px 0 #d48a1c}.cm-ans.c2{background:#5cc6a8;box-shadow:0 6px 0 #3c9c82}.cm-ans.c3{background:#b28af0;box-shadow:0 6px 0 #8460c8}
+.cm-ans:active{transform:translateY(3px)}
+.cm-ans.bad{opacity:.4;animation:stShake .4s}
+.cm-ans.good{color:#fff;background:#e2457a!important;box-shadow:0 6px 0 #b92e5e!important;animation:qpPop .35s}
+.cm-hint{margin:0;background:#fff7d6;border-radius:14px;padding:8px 12px;font-weight:800;color:#6a4b2a}
+@media (prefers-reduced-motion:reduce){.cm-grab,.cm-coin,.cm-mystery,.cm-banner,.cm-burst i{animation:none!important}}
