@@ -248,6 +248,10 @@ function roomShell(g,id,W,D,H,opts={}){
 }
 function pctToLocal(p,W,D){const fx=(cl(+p.x||50,8,92)-8)/84,fz=(cl(+p.y||70,26,86)-26)/60;return [(fx-.5)*(W-1.3),-(D-1.3)/2+fz*(D-1.3)];}
 function localToPct(X,Z,W,D){return {x:8+((X/(W-1.3))+.5)*84,y:26+((Z+(D-1.3)/2)/(D-1.3))*60};}
+/* Rotation is shared with the 2D room: key 'rikiDreamRotationV1', { 'room:itemId': degrees } in 45-degree steps */
+const RK_ROT_KEY='rikiDreamRotationV1';
+function rkRot(){try{return JSON.parse(localStorage.getItem(RK_ROT_KEY)||'{}')||{};}catch(e){return {};}}
+function rkRotSave(r){try{localStorage.setItem(RK_ROT_KEY,JSON.stringify(r));}catch(e){}}
 function fillItems(group,room,W,D,S){
   while(group.children.length)group.remove(group.children[0]);
   const owned=G('owned')||[],ITEMS=G('ITEMS')||[],decor=G('decor')||{},pos=G('dreamPosition')||{},SL=G('SLOTS')||[];
@@ -256,7 +260,7 @@ function fillItems(group,room,W,D,S){
     if(!owned.includes(id))return;const it=ITEMS.find(x=>x[0]===id);if(!it)return;
     const p=positions[id]||SL[Number(slot)]||{x:45,y:72};const [X,Z]=pctToLocal(p,W,D);
     const g=makeItem(it);g.scale.setScalar(S);g.userData.id=id;
-    if(g.userData.onWall){g.position.set(X,1.55,-D/2+.06);}else{g.position.set(X,0,Z);if(room!=='garden')g.rotation.y=X<-(W/3)?.45:X>W/3?-.45:0;}
+    if(g.userData.onWall){g.position.set(X,1.55,-D/2+.06);}else{g.position.set(X,0,Z);if(room!=='garden')g.rotation.y=X<-(W/3)?.45:X>W/3?-.45:0;const rd=rkRot()[room+':'+id];if(rd!==undefined&&rd!==null&&rd!=='')g.rotation.y=-Number(rd)*Math.PI/180;}
     g.userData.base=g.position.y;g.userData.phase=rnd()*6;group.add(g);out.push(g);
   });
   return out;
@@ -280,6 +284,7 @@ try{ED.az=ED.azT=cl(Number(localStorage.getItem('rikiReal3dAz')||0),-.9,.9);}cat
 let lastPtr=null;['pointermove','pointerdown','pointerup'].forEach(t=>document.addEventListener(t,e=>{lastPtr={x:e.clientX,y:e.clientY};},true));
 function msg(t){const m=document.getElementById('dreamMessage');if(m)m.textContent=t;}
 function edBuild(room){
+  ED.preview=null;ED.moveMode=false;
   const s=new THREE.Scene();ED.scene=s;ED.room=room;const [W,D,H]=ROOM_SIZE[room]||ROOM_SIZE.bedroom;ED.W=W;ED.D=D;ED.H=H;
   if(room==='garden'){s.background=null;}
   lights(s,Math.max(W,D),1024);
@@ -303,7 +308,7 @@ function edLoop(){
   requestAnimationFrame(edLoop);
   ED.az+=(ED.azT-ED.az)*.12;ED.el+=(ED.elT-ED.el)*.12;edCamera();
   const t=performance.now()/1000;animateItems(ED.items,t);
-  if(ED.ring.visible){ED.ring.material.opacity=.55+Math.sin(t*4)*.3;const g=ED.items.find(x=>x.userData.id===ED.sel);if(g&&!g.userData.onWall)ED.ring.position.set(g.position.x,.02,g.position.z);}
+  if(ED.ring.visible){ED.ring.material.opacity=.55+Math.sin(t*4)*.3;const g=ED.preview?ED.preview.group:ED.items.find(x=>x.userData.id===ED.sel);if(g&&!g.userData.onWall)ED.ring.position.set(g.position.x,.02,g.position.z);}
   ED.R.render(ED.scene,ED.cam);
 }
 function ndc(e){const r=ED.R.domElement.getBoundingClientRect();return new THREE.Vector2(((e.x-r.left)/r.width)*2-1,-((e.y-r.top)/r.height)*2+1);}
@@ -321,7 +326,7 @@ function edSelect(id,quiet){
 }
 function place(id,X,Z){const p=localToPct(X,Z,ED.W,ED.D);ED.internal=true;try{ORIG_PLACE(id,p.x,p.y);}finally{ED.internal=false;}}
 function edPointers(cv){
-  cv.addEventListener('pointerdown',e=>{const pt={x:e.clientX,y:e.clientY};const it=hitItem(pt);ED.drag={sx:e.clientX,sy:e.clientY,lx:e.clientX,ly:e.clientY,item:it,moved:false,id:e.pointerId};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
+  cv.addEventListener('pointerdown',e=>{const pt={x:e.clientX,y:e.clientY};let it=hitItem(pt);if(ED.preview){it=null;ED.ray.setFromCamera(ndc(pt),ED.cam);if(ED.ray.intersectObject(ED.preview.group,true).length)it=ED.preview.group;}ED.drag={sx:e.clientX,sy:e.clientY,lx:e.clientX,ly:e.clientY,item:it,moved:false,id:e.pointerId};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
   cv.addEventListener('pointermove',e=>{const d=ED.drag;if(!d||d.id!==e.pointerId)return;if(!d.moved&&Math.hypot(e.clientX-d.sx,e.clientY-d.sy)>8){d.moved=true;if(d.item){edSelect(d.item.userData.id,true);}}
     if(!d.moved)return;
     if(d.item&&!d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v){d.item.position.x=v.x;d.item.position.z=v.z;}}
@@ -329,8 +334,10 @@ function edPointers(cv){
     else{ED.azT=cl(ED.azT-(e.clientX-d.lx)*.006,-.9,.9);ED.elT=cl(ED.elT+(e.clientY-d.ly)*.004,.12,.9);ED.az=ED.azT;ED.el=ED.elT;}
     d.lx=e.clientX;d.ly=e.clientY;});
   const up=e=>{const d=ED.drag;if(!d||d.id!==e.pointerId)return;ED.drag=null;
+    if(ED.preview){if(!d.moved&&!d.item){const v=hitFloor({x:e.clientX,y:e.clientY});if(v&&!ED.preview.group.userData.onWall){ED.preview.group.position.x=v.x;ED.preview.group.position.z=v.z;}else if(v)ED.preview.group.position.x=v.x;}return;}
     if(d.item&&d.moved){const g=d.item;place(g.userData.id,g.position.x,g.userData.onWall?ED.D/2:g.position.z);return;}
     if(d.item&&!d.moved){edSelect(d.item.userData.id);try{const a=G('audio');a&&a('tap');}catch(_){}return;}
+    if(!d.moved&&ED.moveMode&&ED.sel){const v=hitFloor({x:e.clientX,y:e.clientY});ED.moveMode=false;if(v){place(ED.sel,v.x,v.z);return;}}
     if(!d.moved){const sel=G('selectedItem');const owned=G('owned')||[];
       if(sel&&owned.includes(sel)){const v=hitFloor({x:e.clientX,y:e.clientY});if(v){place(sel,v.x,v.z);return;}}
       ED.sel=null;ED.ring.visible=false;return;}
@@ -376,25 +383,40 @@ if(typeof prevHtml==='function'&&typeof prevBind==='function'){
   const rkOpen={};
   function rkFreeSpot(room){const pos=(G('dreamPosition')||{})[room]||{};const taken=Object.values(pos);const C=[[50,62],[30,70],[70,70],[40,48],[62,48],[24,82],[76,82],[50,82],[20,56],[80,56]];
     for(const [x,y] of C){if(!taken.some(p=>Math.hypot((p.x||0)-x,(p.y||0)-y)<14))return {x,y};}return {x:30+Math.random()*40,y:55+Math.random()*25};}
-  window.rkUpdateBar=function(){const bar=document.getElementById('rk3Bar');if(!bar)return;const id=ED.sel;const has=!!id&&ED.items.some(x=>x.userData.id===id);bar.hidden=!has;
-    const isSt=G('isStorage');const o=document.getElementById('rk3BarOpen');if(o)o.hidden=!(has&&typeof isSt==='function'&&isSt(id));
-    const it=(G('ITEMS')||[]).find(t=>t[0]===id);const n=document.getElementById('rk3BarName');if(n)n.textContent=it?it[2]:'';};
+  window.rkUpdateBar=function(){const bar=document.getElementById('rk3Bar');if(!bar)return;const pv=ED.preview;const id=pv?pv.id:ED.sel;const has=pv||(!!id&&ED.items.some(x=>x.userData.id===id));bar.hidden=!has;bar.classList.toggle('preview',!!pv);
+    const isSt=G('isStorage');const show=(k,on)=>{const e=document.getElementById(k);if(e)e.hidden=!on;};const g=pv?pv.group:ED.items.find(x=>x.userData.id===id);const wall=!!(g&&g.userData.onWall);
+    show('rk3BarPlace',!!pv);show('rk3BarCancel',!!pv);show('rk3BarRotate',has&&!wall);show('rk3BarMove',has&&!pv);show('rk3BarOpen',has&&!pv&&typeof isSt==='function'&&isSt(id));show('rk3BarAway',has&&!pv);show('rk3BarDone',has&&!pv);
+    const it=(G('ITEMS')||[]).find(t=>t[0]===id);const n=document.getElementById('rk3BarName');if(n)n.textContent=pv?'Drag it or tap the floor, then Place':ED.moveMode?'Tap the floor where it should go':(it?it[2]:'');if(ED.ring)ED.ring.visible=!!has&&!wall;};
+  function rkPreview(id,room){
+    rkCancelPreview(true);const it=(G('ITEMS')||[]).find(t=>t[0]===id);if(!it||!ED.scene)return;const g=makeItem(it);g.scale.setScalar(1.35);g.userData.id=id;g.userData.ghost=1;
+    g.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;o.material.opacity=.6;o.castShadow=false;}});
+    const p=rkFreeSpot(room);const [X,Z]=pctToLocal(p,ED.W,ED.D);if(g.userData.onWall)g.position.set(X,1.55,-ED.D/2+.06);else g.position.set(X,0,Z);
+    ED.scene.add(g);ED.preview={id,group:g,deg:0};ED.sel=null;rkUpdateBar();try{const a=G('audio');a&&a('tap');}catch(_){}
+    const box=document.getElementById('dreamRoom');if(box){const r=box.getBoundingClientRect();if(r.top<0||r.bottom>innerHeight)box.scrollIntoView({block:'center',behavior:'smooth'});}}
+  function rkCancelPreview(quiet){if(ED.preview){if(ED.scene)ED.scene.remove(ED.preview.group);ED.preview=null;}if(!quiet)rkUpdateBar();}
   function rkLayout(box){
     const panel=box.closest('.dream-panel');if(!panel)return;const room=G('currentRoom')||'bedroom';
-    box.insertAdjacentHTML('beforeend',`<button type="button" class="rk3-front" id="rk3Front" aria-label="Front view">⟲</button><div class="rk3-bar" id="rk3Bar" hidden><span id="rk3BarName"></span><button type="button" id="rk3BarOpen" hidden>🗄️ Open</button><button type="button" id="rk3BarAway">🧺 Put away</button><button type="button" id="rk3BarDone">✓ Done</button></div>`);
+    box.insertAdjacentHTML('beforeend',`<button type="button" class="rk3-front" id="rk3Front" aria-label="Front view">⟲</button>`);box.insertAdjacentHTML('afterend',`<div class="rk3-bar" id="rk3Bar" hidden><span id="rk3BarName"></span><button type="button" id="rk3BarRotate">↻ Turn</button><button type="button" id="rk3BarMove">✥ Move</button><button type="button" id="rk3BarOpen" hidden>🗄️ Open</button><button type="button" id="rk3BarAway">🧺 Put away</button><button type="button" id="rk3BarDone">✓ Done</button><button type="button" id="rk3BarCancel" hidden>✕ Cancel</button><button type="button" id="rk3BarPlace" hidden>✓ Place here</button></div>`);
     const $=id=>document.getElementById(id);
     $('rk3Front').onclick=()=>{ED.azT=0;ED.elT=.5;ED.zoom=1;};
-    $('rk3BarDone').onclick=()=>{edSelect(null,true);};
+    $('rk3BarDone').onclick=()=>{ED.moveMode=false;edSelect(null,true);};
+    $('rk3BarMove').onclick=()=>{ED.moveMode=true;rkUpdateBar();};
+    $('rk3BarCancel').onclick=()=>rkCancelPreview();
+    $('rk3BarPlace').onclick=()=>{const pv=ED.preview;if(!pv)return;const g=pv.group;const X=g.position.x,Z=g.userData.onWall?ED.D/2:g.position.z;const deg=pv.deg;rkCancelPreview(true);ED.sel=pv.id;
+      if(deg){const r=rkRot();r[room+':'+pv.id]=deg;rkRotSave(r);}place(pv.id,X,Z);};
+    $('rk3BarRotate').onclick=()=>{try{const a=G('audio');a&&a('tap');}catch(_){}
+      if(ED.preview){ED.preview.deg=(ED.preview.deg+45)%360;ED.preview.group.rotation.y=-ED.preview.deg*Math.PI/180;return;}
+      const id=ED.sel;const g=ED.items.find(x=>x.userData.id===id);if(!g)return;const r=rkRot();const k=room+':'+id;const cur=r[k]!==undefined?Number(r[k]):Math.round(-g.rotation.y*180/Math.PI/45)*45;const deg=(((cur+45)%360)+360)%360;r[k]=deg;rkRotSave(r);g.rotation.y=-deg*Math.PI/180;};
     $('rk3BarOpen').onclick=()=>{const sm=G('storageModal');if(ED.sel&&typeof sm==='function')sm(ED.sel);};
     $('rk3BarAway').onclick=()=>{const id=ED.sel;if(!id)return;const decor=G('decor')||{};const pl=decor[room]||{};Object.keys(pl).forEach(k=>{if(pl[k]===id)delete pl[k];});decor[room]=pl;try{const sv=G('saveHouse');sv&&sv();}catch(_){}ED.sel=null;SET("selectedItem='';");try{const a=G('audio');a&&a('tap');}catch(_){}const hr=G('houseRender');hr&&hr();};
     /* tray */
     const inv=panel.querySelector('.dream-inventory');
     if(inv){const head=inv.previousElementSibling&&inv.previousElementSibling.tagName==='H3'?inv.previousElementSibling:null;const wrap=document.createElement('div');wrap.className='rk3-tray';
-      wrap.innerHTML='<div class="rk3-tray-title">Tap something to put it in your room</div>';box.after(wrap);wrap.appendChild(inv);if(head)head.remove();
+      wrap.innerHTML='<div class="rk3-tray-title">Tap something to put it in your room</div>';(document.getElementById('rk3Bar')||box).after(wrap);wrap.appendChild(inv);if(head)head.remove();
       const placed=Object.values((G('decor')||{})[room]||{});inv.querySelectorAll('[data-dream-inventory]').forEach(b=>{if(placed.includes(b.dataset.dreamInventory))b.classList.add('rk3-in-room');});
       if(!inv.querySelector('[data-dream-inventory]'))wrap.querySelector('.rk3-tray-title').textContent='Buy furniture in the shop, then it shows up here';
       inv.addEventListener('click',e=>{const b=e.target.closest('[data-dream-inventory]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();const id=b.dataset.dreamInventory;
-        if(placed.includes(id)){edSelect(id);return;}const p=rkFreeSpot(room);ED.sel=id;ED.internal=true;try{ORIG_PLACE(id,p.x,p.y);}finally{ED.internal=false;}},true);}
+        if(placed.includes(id)){rkCancelPreview(true);edSelect(id);return;}rkPreview(id,room);},true);}
     /* fold the rest away */
     const kids=[...panel.children];const after=kids.slice(kids.indexOf(box.nextElementSibling)+1);
     const hide=['riki3d-actions','riki3d-legend','rk3-selection-tools','dream-toolbar'];after.forEach(el=>{if(hide.some(c=>el.classList.contains(c)))el.classList.add('rk3-hidden');});
