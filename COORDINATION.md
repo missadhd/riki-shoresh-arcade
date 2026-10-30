@@ -4,7 +4,6 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
-| ChatGPT | `chatgpt/clean-wave-hair-fragments` | `assets/characters/riki-layered/arm-right.webp`, `assets/characters/riki-layered/hand-right.webp`, `COORDINATION.md` | Removing hair pixels attached to waving arm layers |
 
 ## Map of the code
 
