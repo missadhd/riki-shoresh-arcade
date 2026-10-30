@@ -259,7 +259,7 @@ function startStudio(id){
   const def=GAMES[id];const {W,pool}=words();if(!W.length)return false;
   try{const a=G('audio');a&&a('tap');}catch(_){}
   SET(`game=${JSON.stringify(id)};round=(typeof round==='number'?round+1:1);`);
-  const order=shuffle(pool).slice(0,def.steps.length);
+  const order=(window.RikiProgress&&window.RikiProgress.pick)?window.RikiProgress.pick(pool,def.steps.length):shuffle(pool).slice(0,def.steps.length);
   S={id,def,order,at:0,score:0,missed:[],tries:0,picks:[]};
   window.__stSession={order,at:0,score:0,missed:[],done:false};SET('session=window.__stSession;');
   K.loadThree(()=>{newScene(def);renderStep();},()=>{const app=document.getElementById('app');if(app)app.innerHTML='<section class="panel"><p>This game needs an internet connection to load its 3D pictures.</p></section>';});
@@ -268,8 +268,9 @@ function startStudio(id){
 function frameHTML(body,pct){const fr=G('frame');if(typeof fr==='function'){fr(`${S.def.emoji} ${S.def.title}`,body,pct);return;}document.getElementById('app').innerHTML=body;}
 function renderStep(){
   const {def,at,order}=S;const {W,pool}=words();const step=def.steps[at];const id=order[at];const w=W[id];
-  const others=shuffle(pool.filter(x=>x!==id)).slice(0,2);const choiceIds=shuffle([id,...others]);
-  const variants=shuffle(step.vs).slice(0,3);
+  const four=!!(window.RikiProgress&&window.RikiProgress.mastered(id));const nOther=four?3:2;
+  const others=shuffle(pool.filter(x=>x!==id)).slice(0,nOther);const choiceIds=shuffle([id,...others]);
+  let variants=shuffle(step.vs).slice(0,choiceIds.length);while(variants.length<choiceIds.length)variants.push(step.vs[variants.length%step.vs.length]);
   const flip=at%2===1;
   S.cur={id,choiceIds,variants,step,first:true};
   const dots=def.steps.map((_,i)=>`<i class="${i<at?'on':i===at?'now':''}"></i>`).join('');
@@ -279,7 +280,7 @@ function renderStep(){
    <div class="st-stage" id="stStage"><div class="st-burst" id="stBurst"></div></div>
    <div class="st-dots" aria-label="Step ${at+1} of ${def.steps.length}">${dots}</div>
    <p class="st-ask">${esc(step.ask)} — tap it or drag it up.</p>
-   <div class="st-cards">${cards}</div>
+   <div class="st-cards${four?' four':''}">${cards}</div>${four?'<p class="st-ask">⭐ You know this word! Now there are 4 choices.</p>':''}
    <p class="st-hint" id="stHint" hidden></p></div>`;
   frameHTML(body,Math.round(at/def.steps.length*100));
   mountStage(document.getElementById('stStage'));
@@ -389,7 +390,7 @@ if(typeof prevRender==='function'){
 }
 /* menu cards call start through their own handlers; route them here too */
 document.addEventListener('click',e=>{const b=e.target.closest('[data-creative],[data-extra],[data-special]');if(!b)return;const id=b.dataset.creative||b.dataset.extra||b.dataset.special;if(IDS.includes(id)){e.stopPropagation();e.preventDefault();if(!studioWebGLAvailable()||!startStudio(id))startStudio2D(id);}},true);
-window.RikiStudio={start:startStudio,games:GAMES,state:()=>S};
+window.RikiStudio={start:startStudio,games:GAMES,state:()=>S,chibi};
 })();
 
 /* Menu tidy-up (Claude, Oct 29): group games into "Make something" and "Word games", show each
@@ -426,4 +427,104 @@ if(typeof prevMenu==='function'){window.__tidyMenu=function(){const r=prevMenu.a
 document.addEventListener('click',e=>{const b=e.target.closest('#livingHouse,#playHouse');if(!b)return;e.preventDefault();e.stopPropagation();const hh=G('houseHome');if(typeof hh==='function')hh();},true);
 /* All scripts are loaded now: re-draw the home menu so every game shows on first open */
 if(!G('game')&&document.querySelector('.games')){const m=G('menu');if(typeof m==='function')m();}
+})();
+
+/* Learning layer (Claude, Oct 29): per-root progress, smarter word picking, mastery, hear the Hebrew,
+   a Progress screen, quiz celebrations, and 3D Social Skills scenes.
+   Progress is saved under its own new key 'rikiRootProgressV1'; no existing key is touched. */
+(function(){
+const G=n=>{try{return (0,eval)(n)}catch(e){return undefined}};
+const SET=c=>{try{(0,eval)(c)}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const KEY='rikiRootProgressV1';
+let P={};try{P=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){P={};}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(P));}catch(e){}};
+const today=()=>new Date().toISOString().slice(0,10);
+const rec=id=>P[id]||(P[id]={seen:0,first:0,miss:0,hist:[],days:[]});
+function mastered(id){const r=P[id];if(!r||r.hist.length<3)return false;const last=r.hist.slice(-3);return last.every(x=>x===1)&&(r.days||[]).length>=2;}
+function priority(id){const r=P[id];if(!r||!r.seen)return 1.1;const acc=r.first/r.seen;return (mastered(id)?.25:1)*(1.6-acc)+Math.min(r.miss,6)*.08;}
+function pick(pool,n){
+  const ranked=shuffle(pool).map(id=>({id,p:priority(id)*(0.7+Math.random()*.6)})).sort((a,b)=>b.p-a.p).map(x=>x.id);
+  const take=ranked.slice(0,Math.max(1,n-1));const rest=ranked.slice(take.length);if(rest.length&&take.length<n)take.push(rest[Math.floor(Math.random()*rest.length)]);
+  return shuffle(take).slice(0,n);
+}
+/* ---- tracking ---- */
+const TRACK=['detective','bubbles','builder','sort','cupcakes','cake','dressup','pets','boutique','claw','aquarium','quest','giftwrap','garden'];
+const missedQ=new Set(),doneQ=new Set();
+function cur(){const g=G('game'),s=G('session');if(!TRACK.includes(g)||!s||!Array.isArray(s.order))return null;const id=s.order[s.at];if(id===undefined)return null;return {id,key:g+'|'+(G('round')||0)+'|'+s.at+'|'+id};}
+const prevCorrect=G('correct'),prevIncorrect=G('incorrect');
+if(typeof prevCorrect==='function'){window.__rkCorrect=function(){const c=cur();const r=prevCorrect.apply(this,arguments);
+  if(c&&!doneQ.has(c.key)){doneQ.add(c.key);const x=rec(c.id),ok=missedQ.has(c.key)?0:1;x.seen++;if(ok){x.first++;const d=today();if(!x.days.includes(d))x.days.push(d);x.days=x.days.slice(-10);}x.hist.push(ok);x.hist=x.hist.slice(-8);x.last=Date.now();save();}
+  try{celebrateGame(G('game'));}catch(e){}return r;};SET('correct=window.__rkCorrect;');}
+if(typeof prevIncorrect==='function'){window.__rkIncorrect=function(){const c=cur();if(c&&!missedQ.has(c.key)){missedQ.add(c.key);rec(c.id).miss++;save();}return prevIncorrect.apply(this,arguments);};SET('incorrect=window.__rkIncorrect;');}
+/* ---- weak roots come up more often in the quiz games ---- */
+const WEIGHT=['detective','bubbles','builder','sort'];
+const prevStart=G('start');
+if(typeof prevStart==='function'){window.__rkStart=function(g){const r=prevStart.apply(this,arguments);try{const s=G('session'),idsFn=G('ids');
+  if(WEIGHT.includes(g)&&s&&Array.isArray(s.order)&&s.order.length&&typeof idsFn==='function'&&G('game')===g){s.order=pick(idsFn(),s.order.length);s.opts=null;s.letters=[];s.at=0;const rd=G('render');rd&&rd();}}catch(e){}return r;};SET('start=window.__rkStart;');}
+/* ---- mastered word: hide the hint button in quiz games ---- */
+function hideHints(){const c=cur();const app=document.getElementById('app');if(!app)return;const on=!!(c&&WEIGHT.includes(G('game'))&&mastered(c.id));app.classList.toggle('rk-mastered',on);
+  if(on){app.querySelectorAll('button').forEach(b=>{if(/hint|clue/i.test(b.textContent)&&!b.closest('.st'))b.hidden=true;});const pr=app.querySelector('.prompt');if(pr&&!pr.querySelector('.rk-star'))pr.insertAdjacentHTML('beforeend','<div class="rk-star">⭐ Mastered word — no hints needed!</div>');}}
+
+/* ---- hear the Hebrew ---- */
+const canSpeak='speechSynthesis' in window;let heVoice=null;
+function findVoice(){if(!canSpeak)return null;const v=speechSynthesis.getVoices();heVoice=v.find(x=>/^he|^iw/i.test(x.lang))||null;return heVoice;}
+if(canSpeak){findVoice();speechSynthesis.onvoiceschanged=findVoice;}
+function say(text,btn){if(!canSpeak)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='he-IL';if(heVoice||findVoice())u.voice=heVoice;u.rate=.8;speechSynthesis.speak(u);
+  if(btn){btn.classList.add('on');u.onend=()=>btn.classList.remove('on');}if(!heVoice&&speechSynthesis.getVoices().length&&btn&&!btn.dataset.warned){btn.dataset.warned=1;btn.title='This device may not have a Hebrew voice installed';}}catch(e){}}
+const sayBtn=t=>`<button type="button" class="rk-say" data-say="${esc(t)}" aria-label="Hear it">🔊</button>`;
+function addSpeakers(root){if(!canSpeak)return;(root||document).querySelectorAll('.prompt .hebrew,.st-order .st-he,.rk-prog-he').forEach(el=>{if(el.dataset.sayAdded)return;el.dataset.sayAdded=1;const t=el.textContent.trim();if(!/[֐-׿]/.test(t))return;el.insertAdjacentHTML('afterend',sayBtn(t));});}
+document.addEventListener('click',e=>{const b=e.target.closest('.rk-say');if(!b)return;e.preventDefault();e.stopPropagation();say(b.dataset.say,b);},true);
+
+/* ---- quiz celebrations ---- */
+function burstAt(el,n=26){if(!el||matchMedia('(prefers-reduced-motion: reduce)').matches)return;const r=el.getBoundingClientRect();const cols=['#ff71ad','#ffd45b','#5bd8bf','#8fc6e8','#c8a2ff'];
+  for(let i=0;i<n;i++){const d=document.createElement('i');d.className='rk-spark';d.style.left=(r.left+r.width/2)+'px';d.style.top=(r.top+r.height/2)+'px';d.style.background=cols[i%5];const a=Math.random()*Math.PI*2,rr=60+Math.random()*120;d.style.setProperty('--dx',Math.cos(a)*rr+'px');d.style.setProperty('--dy',Math.sin(a)*rr+'px');document.body.appendChild(d);setTimeout(()=>d.remove(),1000);}}
+function celebrateGame(g){
+  requestAnimationFrame(()=>{const app=document.getElementById('app');if(!app)return;const pr=app.querySelector('.prompt');
+    if(g==='sort'&&pr){const rk=[...pr.children].find(c=>/🚀/.test(c.textContent)&&c.children.length===0);if(rk&&!rk.classList.contains('rk-launch')){rk.classList.add('rk-launch');pr.classList.add('rk-launchpad');}burstAt(pr,18);}
+    else if(g==='detective'&&pr){if(!pr.querySelector('.rk-stamp')){pr.style.position='relative';pr.insertAdjacentHTML('beforeend','<div class="rk-stamp">CASE SOLVED</div>');}burstAt(pr,20);}
+    else if(g==='builder'){app.querySelectorAll('.slot').forEach((s,i)=>{s.style.animationDelay=(i*.08)+'s';s.classList.add('rk-hop');});burstAt(app.querySelector('.buildslots'),22);}
+    else if(g==='bubbles'){burstAt(app.querySelector('.bubble.pop')||pr,24);}
+    else if(g==='memory'){app.querySelectorAll('.tile.matched').forEach(t=>{if(!t.dataset.rkDone){t.dataset.rkDone=1;t.classList.add('rk-hop');burstAt(t,10);}});}
+    else if(g==='pairs'||g==='show'||g==='wheel'){burstAt(app.querySelector('.match-btn.solved:last-of-type,.option.correct,.feedback.good')||pr,18);}
+  });}
+
+/* ---- 3D Social Skills scenes ---- */
+let srig=null;const scache={};
+function sceneImg(emojis,seed){
+  const key=emojis+'|'+seed;if(scache[key])return scache[key];const ch=window.RikiStudio&&window.RikiStudio.chibi;const K=window.RK3;if(!ch||!K||!window.THREE)return null;
+  if(!srig){const cv=document.createElement('canvas');cv.width=480;cv.height=300;const r=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true,preserveDrawingBuffer:true});r.setPixelRatio(1);r.setSize(480,300,false);r.outputEncoding=THREE.sRGBEncoding;r.toneMapping=THREE.ACESFilmicToneMapping;r.toneMappingExposure=1.1;r.setClearColor(0,0);r.shadowMap.enabled=true;
+    const s=new THREE.Scene();s.add(new THREE.HemisphereLight(0xffffff,0xffd9e4,.8));const k=new THREE.DirectionalLight(0xfff3e6,1.05);k.position.set(2,6,5);k.castShadow=true;k.shadow.mapSize.set(512,512);const c2=k.shadow.camera;c2.left=-3;c2.right=3;c2.top=3;c2.bottom=-3;s.add(k);
+    const gr=new THREE.Mesh(new THREE.PlaneGeometry(10,10),new THREE.ShadowMaterial({opacity:.18}));gr.rotation.x=-Math.PI/2;gr.receiveShadow=true;s.add(gr);srig={r,s,c:new THREE.PerspectiveCamera(30,480/300,.05,40)};}
+  const {r,s,c}=srig;const g=new THREE.Group();s.add(g);
+  const hairs=['#3a2a20','#c98b5e','#2a2a3a','#e0a96d','#7a4a2a'],dresses=['#8fc6e8','#8ed6c4','#ffd25e','#c8a2ff','#ffb48a'];
+  const mk=(x,hair,dress,ry)=>{const d=new THREE.Group();d.position.x=x;d.rotation.y=ry;g.add(d);ch(d,{hair});K.CY(d,.15,.3,.4,K.fabric(dress),0,.36,0,24);K.CY(d,.14,.16,.2,K.fabric(dress),0,.66,0,20);};
+  mk(-.42,'#7a4a2a','#f7a0bd',.35);mk(.42,hairs[seed%5],dresses[seed%5],-.35);
+  const em=[...emojis].filter(ch2=>/\p{Extended_Pictographic}/u.test(ch2)).slice(0,3);
+  em.forEach((e,i)=>{const cv=document.createElement('canvas');cv.width=cv.height=128;const x=cv.getContext('2d');x.textAlign='center';x.textBaseline='middle';x.font='96px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';x.fillText(e,64,70);
+    const t=new THREE.CanvasTexture(cv);t.encoding=THREE.sRGBEncoding;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true}));sp.scale.set(.42,.42,.42);sp.position.set((i-(em.length-1)/2)*.42,1.62,0);g.add(sp);});
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true;});c.position.set(0,1.05,4.1);c.lookAt(0,.85,0);c.updateProjectionMatrix();r.render(s,c);const u=r.domElement.toDataURL('image/png');s.remove(g);scache[key]=u;return u;}
+function upgradeSel(root){(root||document).querySelectorAll('.sel-scene .sel-illustration').forEach(el=>{if(el.dataset.rk3)return;const txt=el.textContent.trim();if(!txt)return;el.dataset.rk3=1;
+  const seed=[...txt].reduce((a,c)=>a+c.codePointAt(0),0);const K=window.RK3;if(!K)return;K.loadThree(()=>{const u=sceneImg(txt,seed);if(u&&el.isConnected){el.innerHTML=`<img class="rk-sel-img" src="${u}" alt="${esc(txt)}">`;}},()=>{});});}
+
+/* ---- Progress screen ---- */
+function progressPage(){
+  const W=G('W')||[];const fr=G('frame');if(typeof fr!=='function')return;SET("game='progress';session=null;");
+  const rows=W.map((w,i)=>({i,w,r:P[i]})).filter(x=>x.r&&x.r.seen);const totalSeen=rows.reduce((a,x)=>a+x.r.seen,0),totalFirst=rows.reduce((a,x)=>a+x.r.first,0);
+  const mcount=rows.filter(x=>mastered(x.i)).length;rows.sort((a,b)=>(a.r.first/a.r.seen)-(b.r.first/b.r.seen)||b.r.miss-a.r.miss);
+  const bar=p=>`<span class="rk-bar"><i style="width:${Math.round(p*100)}%"></i></span>`;
+  const list=rows.length?rows.map(x=>{const p=x.r.first/x.r.seen;return `<li><span class="rk-prog-he" lang="he">${esc(x.w[0])}</span><span class="rk-prog-mean">${esc(x.w[1])}${mastered(x.i)?' ⭐':''}</span>${bar(p)}<span class="rk-prog-num">${Math.round(p*100)}% · ${x.r.seen}</span></li>`;}).join(''):'<p class="subtle">Play a few word games and her progress will show up here.</p>';
+  fr('📊 Riki\'s Progress',`<div class="rk-prog"><div class="rk-tiles"><div><b>${rows.length}</b><span>words practiced</span></div><div><b>${mcount}</b><span>mastered ⭐</span></div><div><b>${totalSeen?Math.round(totalFirst/totalSeen*100):0}%</b><span>right on first try</span></div></div>
+   <p class="subtle">Hardest words are at the top. "Mastered" means right on the first try 3 times in a row, on at least 2 different days. Tricky words come up more often in the games, and mastered words get 4 choices and no hints.</p>
+   <ul class="rk-prog-list">${list}</ul><div class="row"><button class="primary" id="rkPractice">🔎 Practice the tricky words</button></div><p class="subtle">Saved on this device only.</p></div>`);
+  addSpeakers(document.getElementById('app'));const b=document.getElementById('rkPractice');if(b)b.onclick=()=>{const st=G('start');st&&st('detective');};}
+function addProgressButton(){const stats=document.querySelector('.top .stats');if(!stats||document.getElementById('rkProgressBtn'))return;const b=document.createElement('button');b.className='smallbtn';b.id='rkProgressBtn';b.textContent='📊 Progress';b.onclick=progressPage;const set=document.getElementById('settingsToggle');stats.insertBefore(b,set||null);}
+addProgressButton();
+
+/* ---- keep everything applied as screens change ---- */
+const app=document.getElementById('app');
+if(app)new MutationObserver(()=>{addSpeakers(app);upgradeSel(app);hideHints();}).observe(app,{childList:true,subtree:true});
+addSpeakers(app);upgradeSel(app);
+window.RikiProgress={pick,mastered,data:()=>P,say,show:progressPage};
 })();
