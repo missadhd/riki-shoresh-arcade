@@ -41,7 +41,9 @@ Merging into `main` deploys to the live Netlify site.
 4. Rerun the relevant tests on the updated branch.
 5. Merge only when there are no unresolved conflicts and the tests pass.
 
-If the other assistant published while you were working, you must incorporate the latest `main` and retest before publishing.
+If the other assistant published while you were working, incorporate the latest `main` before publishing.
+- If their change touched **different files** from yours, a quick check is enough: syntax check, open the site, play your feature once. Publish, then run fuller tests afterward.
+- If their change touched **the same files** or the same feature, rerun the full relevant tests before publishing.
 
 ## 6. Protect saved progress
 
