@@ -609,6 +609,38 @@ function rikiSceneDraw(){
  const next=$('#rikiSceneNext');if(next)next.onclick=()=>{a.at++;a.choice=null;a.phase='choose';rikiSceneDraw()};
 }
 (function(){const st=document.createElement('style');st.id='rikiStoryGameStyle';st.textContent='.riki-story-game{text-align:center}.riki-story-theater{max-width:540px;margin:15px auto;overflow:hidden;border-radius:23px;background:#f5eaff;border:4px solid #fff;box-shadow:0 8px 25px #6e519333}.riki-story-theater svg{display:block;width:100%;height:auto}.riki-story-caption{margin:0;padding:12px;background:#fff8db;color:#674b74;font-weight:800}.riki-story-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:12px 0}.riki-story-options button{min-height:66px;white-space:normal}.riki-story-theater .riki-story-actor,.riki-story-theater .riki-story-food,.riki-story-theater .riki-story-tray,.riki-story-theater .riki-story-object{transform-box:fill-box;transform-origin:center}.riki-story-lunch .riki-story-food{animation:rikiFoodDrop 1.2s ease-out both}.riki-story-lunch .riki-story-tray{animation:rikiTrayTip 1.2s ease-in-out both}.riki-story-result.riki-story-helpful .riki-story-first{animation:rikiStoryBend 1.2s ease-in-out both}.riki-story-result.riki-story-helpful .riki-story-food{animation:rikiFoodClean 1.2s ease-in-out both}.riki-story-result.riki-story-unkind .riki-story-second{animation:rikiStoryWithdraw 1.2s ease-in-out both}.riki-story-result.riki-story-curious .riki-story-second{animation:rikiStoryTalk 1.2s ease-in-out both}.riki-story-result.riki-story-helpful .riki-story-second{animation:rikiStoryJoin 1.2s ease-in-out both}.riki-story-result.riki-story-park .riki-story-ball{animation:rikiStoryBounce 1.2s ease-in-out both}@keyframes rikiFoodDrop{from{opacity:0;transform:translateY(-55px)}to{opacity:1;transform:translateY(0)}}@keyframes rikiTrayTip{50%{transform:rotate(22deg)}to{transform:rotate(0)}}@keyframes rikiStoryBend{50%{transform:translate(38px,16px) rotate(12deg)}to{transform:translate(40px,0)}}@keyframes rikiFoodClean{to{opacity:0;transform:translateY(-45px)}}@keyframes rikiStoryWithdraw{to{transform:translateX(38px);opacity:.65}}@keyframes rikiStoryTalk{50%{transform:translateY(-8px)}to{transform:translateX(-12px)}}@keyframes rikiStoryJoin{to{transform:translateX(-85px)}}@keyframes rikiStoryBounce{50%{transform:translateY(-55px)}}@media(prefers-reduced-motion:reduce){.riki-story-theater *{animation:none!important}}';document.head.appendChild(st)})();
+(function(){
+ const st=document.createElement('style');st.id='rikiStoryActingV2';
+ st.textContent=`
+ /* Override the old single-piece slide: acting is built from small joint movements. */
+ .riki-story-theater .riki-story-first,.riki-story-theater .riki-story-second{animation:none!important}
+ .riki-story-theater .riki-story-actor{transform-origin:50% 85%;transform-box:fill-box}
+ .riki-story-result.riki-story-lunch.riki-story-helpful .riki-story-first{animation:rikiApproachLunch 2.8s ease-in-out both!important}
+ .riki-story-result.riki-story-lunch.riki-story-helpful .riki-story-second{animation:rikiAssistLunch 2.8s ease-in-out both!important}
+ .riki-story-result.riki-story-lunch.riki-story-helpful .riki-story-arm{animation:rikiReachLunch 2.8s ease-in-out both!important;transform-origin:50% 0%;transform-box:fill-box}
+ .riki-story-result.riki-story-lunch.riki-story-helpful .riki-story-food{animation:rikiCollectFood 2.8s ease-in-out both!important}
+ .riki-story-result.riki-story-lunch.riki-story-curious .riki-story-second{animation:rikiAnswerQuestion 2.5s ease-in-out both!important}
+ .riki-story-result.riki-story-lunch.riki-story-curious .riki-story-arm{animation:rikiExplainWithArm 2.5s ease-in-out both!important;transform-origin:50% 0%;transform-box:fill-box}
+ .riki-story-result.riki-story-unkind .riki-story-second{animation:rikiRecoil 2.2s ease-in-out both!important}
+ .riki-story-result.riki-story-unkind .riki-story-first .riki-story-arm{animation:rikiAngryArms 2.2s ease-in-out both!important;transform-origin:50% 0%;transform-box:fill-box}
+ .riki-story-result.riki-story-park.riki-story-helpful .riki-story-second{animation:rikiFriendJoins 2.4s ease-in-out both!important}
+ .riki-story-result.riki-story-team.riki-story-helpful .riki-story-object{animation:rikiShareDrawing 2.4s ease-in-out both!important}
+ .riki-story-result.riki-story-phone.riki-story-curious .riki-story-object{animation:rikiPhoneReply 2.4s ease-in-out both!important}
+ @keyframes rikiApproachLunch{0%{transform:translate(0,0)}30%{transform:translate(35px,0)}55%{transform:translate(35px,14px) rotate(13deg)}80%{transform:translate(35px,14px) rotate(13deg)}100%{transform:translate(35px,0)}}
+ @keyframes rikiAssistLunch{0%,30%{transform:translate(0,0)}55%,80%{transform:translate(-18px,12px) rotate(-10deg)}100%{transform:translate(-18px,0)}}
+ @keyframes rikiReachLunch{0%,35%{transform:rotate(0deg)}55%,78%{transform:rotate(-35deg)}100%{transform:rotate(0deg)}}
+ @keyframes rikiCollectFood{0%,42%{opacity:1;transform:translateY(0)}65%{opacity:1;transform:translateY(-22px)}90%,100%{opacity:0;transform:translateY(-48px)}}
+ @keyframes rikiAnswerQuestion{0%,20%,100%{transform:rotate(0deg)}35%,65%{transform:rotate(-7deg)}}
+ @keyframes rikiExplainWithArm{0%,20%,100%{transform:rotate(0deg)}35%,65%{transform:rotate(35deg)}}
+ @keyframes rikiRecoil{0%,15%{transform:translateX(0) rotate(0deg);opacity:1}45%{transform:translateX(5px) rotate(7deg);opacity:1}100%{transform:translateX(9px) rotate(4deg);opacity:.8}}
+ @keyframes rikiAngryArms{0%,100%{transform:rotate(0deg)}35%,65%{transform:rotate(65deg)}}
+ @keyframes rikiFriendJoins{0%{transform:translateX(0)}60%,100%{transform:translateX(-70px)}}
+ @keyframes rikiShareDrawing{0%,30%{transform:translateY(0) rotate(0deg)}70%,100%{transform:translateY(-18px) rotate(-10deg)}}
+ @keyframes rikiPhoneReply{0%,30%{filter:brightness(1)}60%,100%{filter:brightness(1.3)}}
+ @media(prefers-reduced-motion:reduce){.riki-story-theater *{animation:none!important}}
+ `;
+ document.head.appendChild(st);
+})();
 const RIKI_BUILD_STEPS=[
  ['Choose a plan',['🗼 Tower','🌉 Bridge','🏡 House'],'Planning together helps everyone know the goal.'],
  ['Share the materials',['🧱 Give a friend blocks','🙋 Keep all blocks','🚫 Hide the blocks'],'Sharing gives both builders a chance.'],
