@@ -522,7 +522,8 @@ const PROMPTS='.st-order,.wheel-question,.show-spotlight,.prompt,.sel-scene,.sel
 const seen=new WeakSet();let timer=0;
 function headerH(){const t=document.querySelector('.top');if(!t)return 0;const cs=getComputedStyle(t);return /sticky|fixed/.test(cs.position)?t.getBoundingClientRect().height:0;}
 function fit(){
-  const app=document.getElementById('app');if(!app)return;const ch=[...app.querySelectorAll(CHOICES)].filter(e=>e.offsetParent&&!e.closest('.comic-theater'));if(!ch.length)return;
+  const app=document.getElementById('app');if(!app)return;
+  const cq=app.querySelector('.st-claw-question');if(cq&&!seen.has(cq)){seen.add(cq);const r=cq.getBoundingClientRect();if(r.bottom>innerHeight-20||r.top<0)window.scrollBy({top:r.bottom-innerHeight+24,behavior:'smooth'});return;}const ch=[...app.querySelectorAll(CHOICES)].filter(e=>e.offsetParent&&!e.closest('.comic-theater'));if(!ch.length)return;
   const pr=[...app.querySelectorAll(PROMPTS)].find(e=>e.offsetParent)||ch[0];if(seen.has(pr))return;seen.add(pr);
   const hh=headerH()+6,avail=innerHeight-hh-6;
   const span=()=>{const top=pr.getBoundingClientRect().top;const bot=Math.max(...ch.map(e=>e.getBoundingClientRect().bottom));return {top,bot,need:bot-top};};
@@ -534,6 +535,6 @@ function fit(){
 const app=document.getElementById('app');
 if(app)new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(fit,120);}).observe(app,{childList:true,subtree:true});
 /* after an answer, keep the "Next" button reachable without scrolling */
-document.addEventListener('click',()=>{setTimeout(()=>{const n=document.querySelector('#app #next,#app #spinAgain,#app #comicNext:not([hidden])');if(n&&n.offsetParent){const r=n.getBoundingClientRect();if(r.bottom>innerHeight)n.scrollIntoView({block:'end',behavior:'smooth'});}},350);},true);
+document.addEventListener('click',()=>{setTimeout(()=>{const n=document.querySelector('#app .st-claw-question,#app #next,#app #spinAgain,#app #comicNext:not([hidden])');if(n&&n.offsetParent){const r=n.getBoundingClientRect();if(r.bottom>innerHeight||r.top<0)n.scrollIntoView({block:'end',behavior:'smooth'});}},900);},true);
 window.RikiFit=fit;
 })();

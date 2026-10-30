@@ -216,3 +216,8 @@ body:has(#app .gamehead) .top .brand{display:none}
 #app .st-card{padding:4px 4px 8px}
 #app .st-card img,#app .st-card .ph{aspect-ratio:1.15}
 #app .st-ask{font-size:14px}
+/* Claw question answers (ChatGPT's new step) styled like the other choices */
+#app .st-claw-question{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:4px}
+#app .st-claw-question p{flex:1 0 100%;margin:0;text-align:center;font-weight:800}
+#app .st-claw-answer{flex:1 1 30%;min-width:96px;padding:12px 8px;border-radius:16px;border:2px solid #f3d6dc;background:#fff;box-shadow:0 4px 0 #f3d6dc;font-weight:900;font-size:15px;color:#4a2338;cursor:pointer}
+#app .st-claw-answer:disabled{opacity:.5}
