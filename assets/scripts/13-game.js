@@ -1,4 +1,5 @@
 
+/* Claw game improvements claimed by ChatGPT. */
 /* Riki Studio Games: the make-something Shoresh games rebuilt in 3D.
    Every right answer puts the chosen piece onto the creation. Words come from the game's own list (W, ids()). */
 (function(){
