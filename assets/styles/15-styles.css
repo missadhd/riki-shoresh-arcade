@@ -1,0 +1,54 @@
+
+@import url("https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;800;900&display=swap");
+/* Sparkle theme: peach ground, berry accent, mint + sunshine, Baloo headings, Nunito body. Loaded last so it wins. */
+:root{
+  --ink:#4a2338!important;--muted:#8a6577!important;--purple:#e2457a!important;--pink:#e2457a!important;
+  --mint:#5cc6a8!important;--yellow:#ffc943!important;--line:#f3d6dc!important;--paper:#fff!important;
+  --berry:#e2457a;--berry-dk:#b92e5e;--tint:#ffe3ea;--sky:#7cc4f2;
+  --shadow:0 10px 26px -12px #e2457a55!important;
+  font-family:"Nunito","Segoe UI",system-ui,sans-serif!important;color:var(--ink)!important;
+}
+body{background:#fff1e8!important;background-image:radial-gradient(circle at 12% 6%,#ffd9e4 0 140px,transparent 141px),radial-gradient(circle at 92% 22%,#ffe9b8 0 110px,transparent 111px)!important;background-repeat:no-repeat!important;background-attachment:fixed!important}
+body,button,select,input{font-family:"Nunito","Segoe UI",system-ui,sans-serif!important}
+h1,h2,h3,.brand,.sectiontitle,.gamecard strong,.sel-card strong,.price,.pill{font-family:"Baloo 2","Trebuchet MS",system-ui,sans-serif!important}
+h1,h2,h3{color:var(--ink)!important;letter-spacing:-.01em;text-wrap:balance}
+.hero h1,.house-head h1,.sel-hero h1{color:var(--berry)!important}
+.brand{color:var(--ink)!important;letter-spacing:-.02em!important}
+.brand span{color:var(--berry)!important}
+.subtle,.eyebrow,.hero p,.sel-card p,.quest-hint{color:var(--muted)!important}
+
+/* cards & panels */
+.panel,.gamecard,.shop-item,.sel-card,.card,.new-wardrobe,.interior-product,.storage-unit,.quest-map,.prompt,.order-ticket{
+  background:#fff!important;border:2px solid var(--line)!important;border-radius:24px!important;box-shadow:0 10px 26px -14px #e2457a40!important}
+.gamecard:hover,.sel-card:hover{border-color:var(--berry)!important;transform:translateY(-3px)}
+.hero,.sel-hero,.creative-banner,.extra-stage,.sel-scene,.storage-zone,.pet-stage,.dress-stage,.new-scene{background:var(--tint)!important;border-color:#fff!important}
+.house-banner,.quest-reward{background:#fff2c7!important;color:var(--ink)!important;border-radius:999px!important}
+
+/* buttons */
+.primary,.interior-product button[data-interior-buy],[data-buy],.sel-big-btn{
+  background:var(--berry)!important;color:#fff!important;border:0!important;border-radius:16px!important;
+  box-shadow:0 4px 0 var(--berry-dk)!important;font-weight:900!important}
+.primary:active,[data-buy]:active,.interior-product button[data-interior-buy]:active{transform:translateY(2px);box-shadow:0 2px 0 var(--berry-dk)!important}
+.primary:disabled,[data-buy]:disabled,.interior-product button[data-interior-buy]:disabled{background:#eedde2!important;color:var(--muted)!important;box-shadow:none!important;opacity:1!important}
+.secondary,.smallbtn,.option,.sel-choice,.extra-choices button,.cupcake-picks button,.wardrobe-grid button,.pet-tools button,.life-rooms button,.life-actions button,.life-items button,.music-panel button,.riki3d-actions button{
+  background:#fff!important;border:2px solid var(--line)!important;color:var(--ink)!important;border-radius:16px!important;font-weight:800!important}
+.option{box-shadow:0 4px 0 var(--line)!important}
+.secondary:hover,.smallbtn:hover,.option:hover,.sel-choice:hover{border-color:var(--berry)!important}
+.pill{background:#fff!important;border:2px solid var(--line)!important;color:var(--ink)!important;box-shadow:none!important}
+.tag,.wheel-tag{background:var(--tint)!important;color:var(--berry-dk)!important}
+
+/* chips / tabs */
+.shop-categories button,.house-nav button,.subcats button{background:#fff!important;border:2px solid var(--line)!important;color:var(--ink)!important;border-radius:999px!important;font-weight:800!important}
+.shop-categories button.active,.house-nav button.active,.subcats button.active,.life-rooms button.active,.life-actions button.active{background:var(--berry)!important;border-color:var(--berry)!important;color:#fff!important}
+.subcats{background:#fff7f9!important}
+
+/* feedback & progress */
+.feedback.good,.sel-feedback{background:#e3f6ef!important;border-color:var(--mint)!important;color:var(--ink)!important}
+.feedback.try{background:#fff2c7!important;border-color:var(--yellow)!important;color:var(--ink)!important}
+.quest-track,.progress{background:var(--tint)!important}
+.quest-fill{background:var(--mint)!important}
+.quest-island.unlocked{border-color:var(--yellow)!important;background:#fff6d6!important}
+.music-panel{background:#fff!important;border:2px solid var(--line)!important}
+.music-panel label{color:var(--muted)!important}
+.music-panel input{accent-color:var(--berry)!important}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--sky)!important;outline-offset:2px!important}
