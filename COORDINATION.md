@@ -5,7 +5,7 @@ Add a row when you open your draft PR and remove it in the same PR when you fini
 
 | Who | Branch | Files | Status |
 |---|---|---|---|
-| Claude | `claude/fixes-oct29` (planned) | `assets/scripts/01-game.js`, `assets/scripts/11-game.js`, `assets/scripts/13-game.js`, `assets/styles/16-styles.css` | Waiting for Rachel's go-ahead |
+| Claude | `claude/fixes-oct29` | `assets/scripts/01-game.js`, `assets/scripts/11-game.js`, `assets/scripts/13-game.js`, `assets/styles/16-styles.css`, `COORDINATION.md` | In progress |
 
 ## Map of the code
 
