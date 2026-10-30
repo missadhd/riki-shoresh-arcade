@@ -4,7 +4,6 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
-| ChatGPT | `chatgpt/remove-riki-bangle` | `preview-layered-riki.html`, `assets/characters/riki-layered/accessory-bangle-*.webp`, `assets/characters/riki-layered/rig.json`, `COORDINATION.md` | Removing floating bracelet overlay |
 
 ## Map of the code
 
