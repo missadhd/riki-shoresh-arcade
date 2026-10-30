@@ -1,4 +1,3 @@
-/* Claw reward reliability claim. */
 
 /* Claw game improvements claimed by ChatGPT. */
 /* Riki Studio Games: the make-something Shoresh games rebuilt in 3D.
@@ -376,12 +375,29 @@ function finishStudio(){
     const feed=document.getElementById('stClawCoin');
     if(feed)feed.onclick=()=>{
       feed.disabled=true;feed.textContent='✨ Mystery prize coming out…';
-      const owned=G('owned');const save=G('saveHouse');
-      const choices=rewards.filter(([id])=>Array.isArray(owned)&&!owned.includes(id));
-      const reward=rand(choices.length?choices:rewards);
-      if(Array.isArray(owned)&&!owned.includes(reward[0])){owned.push(reward[0]);if(typeof save==='function')save();}
       const gift=document.getElementById('stClawGift');
-      if(gift)gift.innerHTML=`🎁 Surprise! <b>${esc(reward[1])}</b> is now in your dollhouse inventory!`;
+      let owned=G('owned');const save=G('saveHouse');
+      if(!Array.isArray(owned)){
+        try{const raw=JSON.parse(localStorage.getItem('rickyHouseInventoryV1')||'[]');if(Array.isArray(raw))owned=raw;}catch(_){}
+      }
+      if(!Array.isArray(owned)){feed.disabled=false;feed.textContent='🪙 Try the Claw Coin again';if(gift)gift.textContent='Could not read your dollhouse inventory. No prize was used.';return;}
+      const choices=rewards.filter(([id])=>!owned.includes(id));
+      if(!choices.length){feed.textContent='🏠 All mini prizes collected!';if(gift)gift.textContent='Amazing! You already own every available mini prize.';return;}
+      const reward=rand(choices);
+      const previous=owned.slice();
+      owned.push(reward[0]);
+      try{
+        if(typeof save==='function'&&owned===G('owned'))save();
+        else localStorage.setItem('rickyHouseInventoryV1',JSON.stringify(owned));
+        const stored=JSON.parse(localStorage.getItem('rickyHouseInventoryV1')||'[]');
+        if(!Array.isArray(stored)||!stored.includes(reward[0]))throw Error('Inventory did not save');
+      }catch(_){
+        owned.splice(0,owned.length,...previous);
+        feed.disabled=false;feed.textContent='🪙 Try the Claw Coin again';
+        if(gift)gift.textContent='The prize could not be saved. Please try again.';
+        return;
+      }
+      if(gift)gift.innerHTML=`<span style="font-size:2.5rem;display:block" aria-hidden="true">${esc(reward[1].split(' ')[0])}</span>🎁 Surprise! <b>${esc(reward[1])}</b> was added to your dollhouse inventory!`;
       feed.textContent='🎁 Prize collected!';
     };
   }
