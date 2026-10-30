@@ -20,7 +20,7 @@
     "wave-pose"
   ],
   "parts": {
-    "neutralBase": "neutral-base-seamless.png",
+    "neutralBase": "neutral-base-clean-v2.png",
     "eyeLeft": "eye-left-tight.png",
     "eyeRight": "eye-right-tight.png",
     "blink": "eyes-blink.webp",
@@ -35,12 +35,12 @@
       176
     ],
     "earLeft": [
-      323,
-      598
+      338,
+      582
     ],
     "earRight": [
-      801,
-      598
+      788,
+      582
     ],
     "shoulderLeft": [
       422,
@@ -101,7 +101,7 @@
   },
   "wearables": {
     "dress": "outfit-pink-dress-fitted-v3.webp",
-    "earrings": "accessory-earrings-drop-v9.png",
+    "earrings": "accessory-earrings-drop-v10.png",
     "hairClips": "accessory-hair-clips.webp",
     "mintDress": "outfit-mint-dress-fitted-v2.webp",
     "headbandOn": "accessory-headband-pink-clean.png",
@@ -157,9 +157,9 @@
     "mint": "wave-pose-mint-v1.webp"
   },
   "rendering": {
-    "neutralPose": "Flattened seamless base prevents rectangular hair, neck, shoulder, and wrist slice boundaries.",
-    "facialFeatures": "Eyes use tightly masked sclera, iris, and lash pixels with no surrounding skin discs; blink and four mouth states remain independent.",
-    "accessories": "Headband, earrings, shoes, and two-sided bracelet remain togglable overlays."
+    "neutralPose": "Flattened seamless body and hair base with a clean, feathered master-face patch; no central face haze or rectangular seams.",
+    "facialFeatures": "Eyes and four mouth states remain independent, while the clean nose and cheek pixels stay in the neutral base without a blurred skin disc.",
+    "accessories": "Headband, fitted lower-lobe earrings, shoes, and two-sided bracelet remain togglable overlays."
   },
   "walkRig": {
     "body": "walk-body.png",
