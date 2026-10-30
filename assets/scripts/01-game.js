@@ -592,8 +592,9 @@ function rikiStoryVisual(index,choice,phase){
  else if(theme==='team')props='<g class="riki-story-object"><rect x="145" y="180" width="92" height="60" rx="6" fill="#fff"/><path d="M158 220L178 190 201 211 221 190" stroke="#e58fb1" stroke-width="7" fill="none"/></g>';
  else if(theme==='whisper')props='<g class="riki-story-object"><rect x="159" y="179" width="62" height="56" rx="8" fill="#e5a7ce"/><path d="M159 190L190 209 221 190" fill="none" stroke="#fff" stroke-width="6"/></g>';
  else props='<g class="riki-story-object"><rect x="163" y="176" width="55" height="63" rx="8" fill="#f4bc84"/><path d="M175 193H207M175 208H207" stroke="#fff" stroke-width="5"/></g>';
+ const sceneExtras=theme==='park'?'<g class="riki-story-action-prop"><path d="M166 202Q184 177 204 201" fill="none" stroke="#ffcf65" stroke-width="9"/><circle cx="185" cy="186" r="10" fill="#fff5b0"/></g>':theme==='hall'?'<g class="riki-story-action-prop"><rect x="239" y="205" width="42" height="35" rx="6" fill="#f1ac85"/><path d="M250 212H272" stroke="#fff" stroke-width="5"/></g>':theme==='whisper'?'<g class="riki-story-action-prop"><path d="M239 83Q284 48 312 83V116H272L253 133V116H239Z" fill="#fff" stroke="#d7a7cf" stroke-width="3"/><path d="M254 90H299M254 102H288" stroke="#ce9cba" stroke-width="4"/></g>':theme==='team'?'<g class="riki-story-action-prop"><rect x="116" y="202" width="60" height="39" rx="4" fill="#fff4bf" stroke="#e5ae82" stroke-width="3"/><path d="M127 226L144 210 162 226" fill="none" stroke="#7aa9d1" stroke-width="5"/></g>':theme==='phone'?'<g class="riki-story-action-prop"><rect x="164" y="183" width="39" height="28" rx="7" fill="#8be4bb"/><path d="M172 192H195M172 200H190" stroke="#fff" stroke-width="3"/></g>':'';
  const person=(x,shirt,second)=>'<g class="riki-story-actor '+(second?'riki-story-second':'riki-story-first')+'" transform="translate('+x+' 0)"><ellipse cx="0" cy="237" rx="30" ry="7" fill="#654a6e" opacity=".18"/><path d="M-13 188L-19 234M13 188L19 234" stroke="#796b93" stroke-width="12" stroke-linecap="round"/><path d="M-29 141Q0 123 29 141L28 197Q0 208-28 197Z" fill="'+shirt+'" stroke="#fff" stroke-width="4"/><path class="riki-story-arm" d="M-26 150L-38 185M26 150L38 185" stroke="#e4b89e" stroke-width="11" stroke-linecap="round"/><circle cx="0" cy="104" r="38" fill="#f2c8a8" stroke="#fff9" stroke-width="4"/><path d="M-38 102Q-40 52 0 57Q42 53 38 102L25 79Q0 67-24 82Z" fill="'+(second?'#9a6c4e':'#704c53')+'"/><ellipse cx="-13" cy="105" rx="4" ry="5" fill="#47384d"/><ellipse cx="13" cy="105" rx="4" ry="5" fill="#47384d"/><path d="'+(hurt?'M-13 132Q0 118 13 132':resolved?'M-13 124Q0 140 13 124':'M-8 127Q0 131 8 127')+'" fill="none" stroke="#a85c69" stroke-width="4" stroke-linecap="round"/></g>';
- return '<div class="riki-story-theater riki-story-'+theme+' '+(resolved?'riki-story-result ':'')+(hurt?'riki-story-unkind':help?'riki-story-helpful':'riki-story-curious')+'" role="img" aria-label="Animated story showing the characters and the consequence of your choice"><svg viewBox="0 0 360 260" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="rikiStorySky" x2="0" y2="1"><stop stop-color="'+sceneBack+'"/><stop offset="1" stop-color="#fff9f0"/></linearGradient></defs><rect width="360" height="260" rx="22" fill="url(#rikiStorySky)"/><rect x="0" y="239" width="360" height="21" fill="#a5c7b4"/><circle cx="313" cy="42" r="24" fill="#fff5b8"/>'+person(92,'#e8a3d2',false)+person(270,'#a6b6f0',true)+props+'</svg><p class="riki-story-caption">'+(phase==='intro'?'Watch what happens…':phase==='choose'?'Watch the story, then choose what happens next.':(hurt?'The other child moves away.':'The children respond to your choice!'))+'</p></div>';
+ return '<div class="riki-story-theater riki-story-'+theme+' '+(resolved?'riki-story-result ':'')+(hurt?'riki-story-unkind':help?'riki-story-helpful':'riki-story-curious')+' riki-story-choice-'+(choice||'none')+'" role="img" aria-label="Animated story showing the characters and the consequence of your choice"><svg viewBox="0 0 360 260" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="rikiStorySky" x2="0" y2="1"><stop stop-color="'+sceneBack+'"/><stop offset="1" stop-color="#fff9f0"/></linearGradient></defs><rect width="360" height="260" rx="22" fill="url(#rikiStorySky)"/><rect x="0" y="239" width="360" height="21" fill="#a5c7b4"/><circle cx="313" cy="42" r="24" fill="#fff5b8"/>'+person(92,'#e8a3d2',false)+person(270,'#a6b6f0',true)+props+sceneExtras+'</svg><p class="riki-story-caption">'+(phase==='intro'?'Watch what happens…':phase==='choose'?'Watch the story, then choose what happens next.':(hurt?'The other child moves away.':'The children respond to your choice!'))+'</p></div>';
 }
 function rikiSceneDraw(){
  const a=rikiScene,q=RIKI_SCENE[a.at];
@@ -640,6 +641,46 @@ function rikiSceneDraw(){
  @media(prefers-reduced-motion:reduce){.riki-story-theater *{animation:none!important}}
  `;
  document.head.appendChild(st);
+})();
+(function(){
+ const style=document.createElement('style');style.id='rikiSixSceneActionAnimations';
+ style.textContent=`
+ .riki-story-theater .riki-story-action-prop{transform-box:fill-box;transform-origin:center}
+ .riki-story-theater:not(.riki-story-result) .riki-story-action-prop{opacity:0}
+ .riki-story-result .riki-story-action-prop{animation:rikiPropReveal 2.4s ease both}
+ .riki-story-result.riki-story-park.riki-story-choice-invite .riki-story-second{animation:rikiFriendJoins 2.4s ease-in-out both!important}
+ .riki-story-result.riki-story-park.riki-story-choice-ask .riki-story-second{animation:rikiNod 2.4s ease-in-out both!important}
+ .riki-story-result.riki-story-park.riki-story-choice-invite .riki-story-ball{animation:rikiStoryBounce 2.4s ease-in-out both!important}
+ .riki-story-result.riki-story-hall.riki-story-choice-ask .riki-story-second,
+ .riki-story-result.riki-story-whisper.riki-story-choice-ask .riki-story-second,
+ .riki-story-result.riki-story-team.riki-story-choice-ask .riki-story-second{animation:rikiExplain 2.4s ease-in-out both!important}
+ .riki-story-result.riki-story-hall.riki-story-choice-help .riki-story-first,
+ .riki-story-result.riki-story-whisper.riki-story-choice-help .riki-story-first{animation:rikiNod 2.4s ease-in-out both!important}
+ .riki-story-result.riki-story-hall.riki-story-choice-ask .riki-story-action-prop{animation:rikiBagLift 2.4s ease-in-out both!important}
+ .riki-story-result.riki-story-whisper.riki-story-choice-ask .riki-story-action-prop{animation:rikiBubbleAppear 2.4s ease-in-out both!important}
+ .riki-story-result.riki-story-whisper.riki-story-choice-help .riki-story-object{animation:rikiGiftReveal 2.4s ease-in-out both!important}
+ .riki-story-result.riki-story-team.riki-story-choice-help .riki-story-action-prop{animation:rikiDrawingShare 2.4s ease-in-out both!important}
+ .riki-story-result.riki-story-team.riki-story-choice-help .riki-story-second{animation:rikiNod 2.4s ease-in-out both!important}
+ .riki-story-result.riki-story-phone.riki-story-choice-ask .riki-story-action-prop,
+ .riki-story-result.riki-story-phone.riki-story-choice-help .riki-story-action-prop{animation:rikiMessageAppear 2.4s ease-in-out both!important}
+ .riki-story-result.riki-story-phone.riki-story-choice-blame .riki-story-action-prop{animation:rikiMessageAngry 2.4s ease-in-out both!important}
+ .riki-story-result.riki-story-phone .riki-story-first .riki-story-arm{animation:rikiPhoneHand 2.4s ease-in-out both!important;transform-box:fill-box;transform-origin:50% 0%}
+ .riki-story-result.riki-story-lunch.riki-story-choice-ask .riki-story-tray{animation:rikiTraySettle 2.4s ease-in-out both!important}
+ .riki-story-result.riki-story-lunch.riki-story-choice-blame .riki-story-food{animation:none!important;opacity:1!important}
+ @keyframes rikiPropReveal{0%,35%{opacity:0}65%,100%{opacity:1}}
+ @keyframes rikiNod{0%,25%,100%{transform:rotate(0deg)}40%,65%{transform:rotate(7deg)}}
+ @keyframes rikiExplain{0%,25%,100%{transform:rotate(0deg)}45%,65%{transform:rotate(-8deg)}}
+ @keyframes rikiBagLift{0%,30%{opacity:0;transform:translateY(0)}60%,100%{opacity:1;transform:translateY(-15px)}}
+ @keyframes rikiBubbleAppear{0%,35%{opacity:0;transform:scale(.5)}70%,100%{opacity:1;transform:scale(1)}}
+ @keyframes rikiGiftReveal{0%,40%{transform:rotate(0)}70%,100%{transform:rotate(-12deg) translateY(-12px)}}
+ @keyframes rikiDrawingShare{0%,30%{opacity:0;transform:translate(45px,15px) rotate(0)}70%,100%{opacity:1;transform:translate(0,-15px) rotate(-10deg)}}
+ @keyframes rikiMessageAppear{0%,35%{opacity:0;transform:scale(.2)}70%,100%{opacity:1;transform:scale(1)}}
+ @keyframes rikiMessageAngry{0%,35%{opacity:0;transform:scale(.2)}70%,100%{opacity:1;transform:scale(1);filter:hue-rotate(140deg)}}
+ @keyframes rikiPhoneHand{0%,30%,100%{transform:rotate(0)}50%,75%{transform:rotate(-40deg)}}
+ @keyframes rikiTraySettle{0%,40%{transform:rotate(16deg)}100%{transform:rotate(0)}}
+ @media(prefers-reduced-motion:reduce){.riki-story-theater *{animation:none!important}}
+ `;
+ document.head.appendChild(style);
 })();
 const RIKI_BUILD_STEPS=[
  ['Choose a plan',['🗼 Tower','🌉 Bridge','🏡 House'],'Planning together helps everyone know the goal.'],
