@@ -106,9 +106,16 @@
   },
   "wearables": {
     "dress": "outfit-pink-dress-fitted-v3.webp",
-    "earrings": "accessory-earrings-drop-v6.webp",
+    "earrings": "accessory-earrings-drop-v7.png",
     "hairClips": "accessory-hair-clips.webp",
-    "mintDress": "outfit-mint-dress-fitted-v2.webp"
+    "mintDress": "outfit-mint-dress-fitted-v2.webp",
+    "headbandOn": "head-base.webp",
+    "headbandOff": "head-base-no-headband.png",
+    "shoes": {
+      "white": "base leg layers",
+      "pink": "accessory-shoes-pink.png",
+      "mint": "accessory-shoes-mint.png"
+    }
   },
   "garmentZones": {
     "upperBody": [
