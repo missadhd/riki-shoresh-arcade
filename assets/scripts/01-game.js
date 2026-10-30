@@ -315,17 +315,33 @@ const SOCIAL_SAY=[
 ];
 let socialPlay=null;
 function socialStart(kind){game='sel';const key='rikiSocialAdventureSeenV1',saved=selRead(key),bank=kind==='detective'?SOCIAL_DETECTIVE:SOCIAL_SAY;let available=bank.map((_,i)=>i).filter(i=>!(saved[kind]||[]).includes(i));if(!available.length){saved[kind]=[];available=bank.map((_,i)=>i)}available.sort(()=>Math.random()-.5);const picks=available.slice(0,6);saved[kind]=(saved[kind]||[]).concat(picks);selWrite(key,saved);socialPlay={kind,picks,at:0,score:0,stage:0,selected:[],paid:false};socialDraw()}
-function socialDraw(){const a=socialPlay,detect=a.kind==='detective',bank=detect?SOCIAL_DETECTIVE:SOCIAL_SAY;if(a.at===a.picks.length){if(!a.paid){award(8+a.score*2);a.paid=true}app.innerHTML='<section class="panel"><h2>🏆 Adventure complete!</h2><p>🪙 Earned '+(8+a.score*2)+' coins!</p><button class="primary" id="socialAgain">Play again</button><button class="secondary" id="socialBack">Social Skills</button></section>';$('#socialAgain').onclick=()=>socialStart(a.kind);$('#socialBack').onclick=selHub;return}
-const q=bank[a.picks[a.at]],done=a.stage===2;let html='<section class="panel"><button class="secondary" id="socialBack">← Social Skills</button><p>Scene '+(a.at+1)+' of '+a.picks.length+'</p><div class="sel-scene"><h2>'+selSafe(q[0])+'</h2>';
-if(detect){html+='<p>🔎 Explore the clues first:</p>';['What do you actually know?','What might you be assuming?','Could there be another explanation?'].forEach((c,i)=>{html+='<button class="secondary" data-social-clue="'+i+'" '+(a.selected.includes(i)?'disabled':'')+'>'+c+(a.selected.includes(i)?' ✓':'')+'</button>'});if(a.selected.length===3){html+='<p>Choose the interpretation that keeps an open mind:</p>';[0,1,2].sort((x,y)=>((x+a.at*2)%3)-((y+a.at*2)%3)).forEach(i=>{html+='<button class="sel-choice" data-social-answer="'+i+'" '+(done?'disabled':'')+'>'+selSafe(q[i+1])+'</button>'})}}
-else{html+='<p>💬 Build a respectful response by tapping the pieces in order:</p><div style="padding:12px;border:2px dashed #b8a0d9;border-radius:12px;min-height:60px">'+a.selected.map(i=>selSafe(q[1][i])).join(' ')+'</div>';[2,0,1].filter(i=>!a.selected.includes(i)).forEach(i=>{html+='<button class="sel-choice" data-social-piece="'+i+'">'+selSafe(q[1][i])+'</button>'});html+='<button class="secondary" id="socialUndo">↶ Undo</button>';if(a.selected.length===3&&!done)html+='<button class="primary" id="socialCheck">Check my sentence</button>'}
-if(done){html+='<div class="sel-feedback"><p>'+ (detect?'One moment rarely tells you exactly what someone thinks.': 'One helpful way to say it: '+selSafe(q[1].join(' ')))+'</p><button class="primary" id="socialNext">Next scene →</button></div>'}html+='</div></section>';app.innerHTML=html;$('#socialBack').onclick=selHub;
-document.querySelectorAll('[data-social-clue]').forEach(b=>b.onclick=()=>{a.selected.push(Number(b.dataset.socialClue));socialDraw()});
-document.querySelectorAll('[data-social-answer]').forEach(b=>b.onclick=()=>{if(a.stage)return;a.stage=2;if(Number(b.dataset.socialAnswer)===0)a.score++;socialDraw()});
-document.querySelectorAll('[data-social-piece]').forEach(b=>b.onclick=()=>{if(a.stage)return;a.selected.push(Number(b.dataset.socialPiece));socialDraw()});
-if($('#socialUndo'))$('#socialUndo').onclick=()=>{a.selected.pop();socialDraw()};
-if($('#socialCheck'))$('#socialCheck').onclick=()=>{a.stage=2;if(a.selected.every((v,i)=>v===i))a.score++;socialDraw()};
-if($('#socialNext'))$('#socialNext').onclick=()=>{a.at++;a.stage=0;a.selected=[];socialDraw()}
+
+function socialDraw(){
+ const a=socialPlay,detect=a.kind==='detective',bank=detect?SOCIAL_DETECTIVE:SOCIAL_SAY;
+ if(a.at>=a.picks.length){if(!a.paid){award(8+a.score*2);a.paid=true}app.innerHTML='<section class="panel riki-clay-stage"><h2>🏆 Adventure complete!</h2><p>You earned '+(8+a.score*2)+' coins!</p><button class="primary" id="socialAgain">Play again</button><button class="secondary" id="socialBack">Social Skills</button></section>';$('#socialAgain').onclick=()=>socialStart(a.kind);$('#socialBack').onclick=selHub;return}
+ const q=bank[a.picks[a.at]],done=a.stage===2,safe=selSafe;
+ let html='<section class="panel riki-clay-stage"><button class="secondary" id="socialBack">← Social Skills</button><p>Scene '+(a.at+1)+' of '+a.picks.length+'</p><div style="max-width:250px;margin:auto">'+rikiClayArt(detect?'detective':'say')+'</div><h2>'+safe(q[0])+'</h2>';
+ if(detect){
+  html+='<p>🔎 Investigate three clues, then test your theory.</p><div class="riki-clay-objects">';
+  ['What do you know for sure?','What might you be assuming?','What else could be true?'].forEach((c,i)=>{html+='<button class="riki-clay-object" data-social-clue="'+i+'" '+(a.selected.includes(i)?'disabled':'')+'>'+['🔎','💭','💡'][i]+'<p>'+c+'</p>'+(a.selected.includes(i)?'✓':'')+'</button>'});
+  html+='</div>';
+  if(a.selected.length===3){html+='<h3>Which explanation leaves room for another possibility?</h3>';[0,1,2].sort((x,y)=>((x+a.at*2)%3)-((y+a.at*2)%3)).forEach(i=>html+='<button class="sel-choice" data-social-answer="'+i+'" '+(done?'disabled':'')+'>'+safe(q[i+1])+'</button>')}
+ }else{
+  html+='<p>🧩 Build a respectful response. Tap or drag the speech tiles into the bubble.</p><div id="rikiSpeechBubble" style="padding:18px;border-radius:24px;background:linear-gradient(#fff,#d7f7ec);border:3px dashed #6bbfa8;min-height:84px;box-shadow:inset 0 4px 10px #77b3a533" role="status">'+(a.selected.length?a.selected.map(i=>'<span class="riki-clay-block" style="width:auto;min-width:70px;padding:8px;font-size:15px">'+safe(q[1][i])+'</span>').join(' '):'Drop your words here!')+'</div><div class="riki-clay-objects">';
+  [2,0,1].filter(i=>!a.selected.includes(i)).forEach(i=>html+='<button class="riki-clay-object" draggable="true" data-social-piece="'+i+'">'+safe(q[1][i])+'</button>');
+  html+='</div><button class="secondary" id="socialUndo">↶ Undo</button>';
+  if(a.selected.length===3&&!done)html+='<button class="primary" id="socialCheck">Hear how it sounds</button>';
+ }
+ if(done){const correct=detect?a.choice===0:a.selected.every((v,i)=>v===i);html+='<div class="sel-feedback"><h3>'+(correct?'🌟 Great thinking!':'💜 Keep practicing!')+'</h3><p>'+(detect?'People can have different reasons for their actions.':'A helpful sentence is: '+safe(q[1].join(' ')))+'</p><button class="primary" id="socialNext">Next scene →</button></div>'}
+ html+='</section>';app.innerHTML=html;$('#socialBack').onclick=selHub;
+ document.querySelectorAll('[data-social-clue]').forEach(btn=>btn.onclick=()=>{if(!a.selected.includes(Number(btn.dataset.socialClue))){a.selected.push(Number(btn.dataset.socialClue));socialDraw()}});
+ document.querySelectorAll('[data-social-answer]').forEach(btn=>btn.onclick=()=>{if(a.stage)return;a.choice=Number(btn.dataset.socialAnswer);a.stage=2;if(a.choice===0)a.score++;socialDraw()});
+ function addPiece(i){if(a.stage||a.selected.includes(i))return;a.selected.push(i);socialDraw()}
+ document.querySelectorAll('[data-social-piece]').forEach(btn=>{btn.onclick=()=>addPiece(Number(btn.dataset.socialPiece));btn.ondragstart=e=>{e.dataTransfer.setData('text/plain',btn.dataset.socialPiece)}});
+ const bubble=$('#rikiSpeechBubble');if(bubble){bubble.ondragover=e=>e.preventDefault();bubble.ondrop=e=>{e.preventDefault();const i=Number(e.dataTransfer.getData('text/plain'));if(Number.isInteger(i)&&i>=0&&i<3)addPiece(i)}}
+ if($('#socialUndo'))$('#socialUndo').onclick=()=>{if(a.stage)return;a.selected.pop();socialDraw()};
+ if($('#socialCheck'))$('#socialCheck').onclick=()=>{a.stage=2;if(a.selected.every((v,i)=>v===i))a.score++;socialDraw()};
+ if($('#socialNext'))$('#socialNext').onclick=()=>{a.at++;a.stage=0;a.selected=[];a.choice=null;socialDraw()}
 }
 
 
