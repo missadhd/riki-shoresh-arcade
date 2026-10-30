@@ -109,6 +109,16 @@
     "shoes": "shoes-pink.webp",
     "earrings": "accessory-earrings.webp",
     "hairClips": "accessory-hair-clips.webp",
-    "bracelet": "accessory-bracelet.webp"
+    "bracelet": "accessory-bracelet.webp",
+    "mintDress": "outfit-mint-top.webp"
+  },
+  "garmentZones": {
+    "upperBody": [
+      300,
+      700,
+      790,
+      1155
+    ],
+    "note": "Rendered on the master pose; transparent garment pixels only."
   }
 }
