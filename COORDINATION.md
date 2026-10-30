@@ -6,6 +6,8 @@ Add a row when you open your draft PR and remove it in the same PR when you fini
 | Who | Branch | Files | Status |
 |---|---|---|
 
+| ChatGPT | chatgpt/pets-pajamas-accessories | assets/scripts/13-game.js, assets/styles/16-styles.css, assets/images/dolls/pet-collection.webp, assets/images/dolls/pajama-collection.webp, index.html, COORDINATION.md | Dress fit, practical pajamas, hair accessories/earrings and 3D pets |
+
 ## Map of the code
 
 - `assets/scripts/01-game.js` — core: word list `W`, menu, quiz games, header, Social Skills, old 2D "Play inside" house
