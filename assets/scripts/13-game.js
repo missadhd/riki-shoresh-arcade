@@ -274,8 +274,8 @@ function renderStep(){
   const flip=at%2===1;
   S.cur={id,choiceIds,variants,step,first:true};
   const dots=def.steps.map((_,i)=>`<i class="${i<at?'on':i===at?'now':''}"></i>`).join('');
-  const ask=flip?`<small>${def.lead} Find the Hebrew word for</small><b>${esc(w[1])}</b>`:`<small>${def.lead} I would love</small><div class="st-he" lang="he">${esc(w[0])}</div>`;
-  const cards=choiceIds.map((cid,i)=>{const v=variants[i];return `<button type="button" class="st-card" data-i="${i}" aria-label="${esc(flip?W[cid][0]:W[cid][1])}: ${esc(v.name)}"><div class="ph">✨</div>${flip?`<span class="st-he" lang="he">${esc(W[cid][0])}</span>`:`<span>${esc(W[cid][1])}</span>`}</button>`;}).join('');
+  const ask=S.id==='claw'?`<small>Choose the plush you want to win!</small><b>The prize will reveal your Hebrew root.</b>`:flip?`<small>${def.lead} Find the Hebrew word for</small><b>${esc(w[1])}</b>`:`<small>${def.lead} I would love</small><div class="st-he" lang="he">${esc(w[0])}</div>`;
+  const cards=choiceIds.map((cid,i)=>{const v=variants[i];return `<button type="button" class="st-card" data-i="${i}" aria-label="${esc(S.id==='claw'?v.name:(flip?W[cid][0]:W[cid][1]))}"><div class="ph">${S.id==='claw'?['🐰','🧸','⭐','🦆','🐱','🦄'][Math.max(0,step.vs.findIndex(x=>x.name===v.name))%6]:'✨'}</div>${S.id==='claw'?`<span>${esc(v.name)}</span>`:flip?`<span class="st-he" lang="he">${esc(W[cid][0])}</span>`:`<span>${esc(W[cid][1])}</span>`}</button>`;}).join('');
   const body=`<div class="st"><div class="st-order"><div class="st-av" aria-hidden="true">${def.av}</div><div class="st-bub">${ask}</div></div>
    <div class="st-stage" id="stStage"><div class="st-burst" id="stBurst"></div></div>
    <div class="st-dots" aria-label="Step ${at+1} of ${def.steps.length}">${dots}</div>
@@ -304,6 +304,25 @@ let busy=false;
 async function choose(b){
   if(busy||b.classList.contains('bad'))return;const i=+b.dataset.i;const {id,choiceIds,variants,step}=S.cur;
   const {W}=words();
+  if(S.id==='claw'){
+    busy=true;b.classList.add('good');
+    await applyPiece(step,variants[i]);
+    const reveal=document.getElementById('stHint');
+    if(reveal){reveal.hidden=false;reveal.innerHTML=`🎁 <b>${esc(variants[i].name)}</b> — <b lang="he" class="st-he">${esc(W[id][0])}</b>. ${esc(W[id][2]||'')}`;}
+    S.picks.push(variants[i].name);
+    const question=document.createElement('div');question.className='st-claw-question';
+    question.innerHTML=`<p><b lang="he" class="st-he">${esc(W[id][0])}</b> — What does this shoresh mean?</p>`+
+      shuffle([id,...shuffle(words().pool.filter(x=>x!==id)).slice(0,2)]).map(cid=>`<button type="button" class="st-claw-answer" data-root="${cid}">${esc(W[cid][1])}</button>`).join('');
+    const hint=document.getElementById('stHint');if(hint){hint.after(question);}
+    question.querySelectorAll('.st-claw-answer').forEach(answer=>answer.addEventListener('click',()=>{
+      if(+answer.dataset.root!==id){answer.disabled=true;answer.textContent+=' — try again';return;}
+      question.remove();try{const cor=G('correct');cor&&cor(3);}catch(_){}
+      S.score+=3;if(window.__stSession)window.__stSession.score=S.score;
+      S.at++;if(window.__stSession)window.__stSession.at=S.at;
+      setTimeout(()=>{busy=false;if(S.at>=S.def.steps.length)finishStudio();else renderStep();},700);
+    }));
+    return;
+  }
   if(choiceIds[i]!==id){b.classList.add('bad');S.cur.first=false;try{const inc=G('incorrect');inc&&inc();}catch(_){}
     const h=document.getElementById('stHint');if(h){h.hidden=false;h.innerHTML=`💡 <b lang="he" class="st-he" style="font-size:1.2rem">${esc(W[id][0])}</b> means <b>${esc(W[id][1])}</b>. ${esc(W[id][2]||'')}`;}return;}
   busy=true;b.classList.add('good');
