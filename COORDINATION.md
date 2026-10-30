@@ -6,6 +6,8 @@ Add a row when you open your draft PR and remove it in the same PR when you fini
 | Who | Branch | Files | Status |
 |---|---|---|
 
+| ChatGPT | chatgpt/pet-accessories-game-art | assets/scripts/01-game.js, assets/scripts/07-game.js, assets/scripts/13-game.js, assets/styles/16-styles.css, assets/images/dolls/game-illustrations.webp, index.html, COORDINATION.md | Pet accessories and shared game artwork; brief checks and publish |
+
 ## Map of the code
 
 - `assets/scripts/01-game.js` — core: word list `W`, menu, quiz games, header, Social Skills, old 2D "Play inside" house
