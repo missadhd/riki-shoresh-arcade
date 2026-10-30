@@ -36,11 +36,11 @@
     ],
     "earLeft": [
       338,
-      592
+      602
     ],
     "earRight": [
       789,
-      603
+      602
     ],
     "shoulderLeft": [
       422,
@@ -101,10 +101,7 @@
   },
   "wearables": {
     "dress": "outfit-pink-dress-fitted-v3.webp",
-    "earrings": {
-      "left": "accessory-earring-left-v11.png",
-      "right": "accessory-earring-right-v11.png"
-    },
+    "earrings": "accessory-earrings-studs-v12.png",
     "hairClips": "accessory-hair-clips.webp",
     "mintDress": "outfit-mint-dress-fitted-v2.webp",
     "headbandOn": "accessory-headband-pink-clean.png",
@@ -162,7 +159,7 @@
   "rendering": {
     "neutralPose": "Flattened seamless body and hair base with a clean rebuilt lower jaw; the previous gray chin crescent is removed.",
     "facialFeatures": "Eyes and four mouth states remain independent, while the clean nose and cheek pixels stay in the neutral base without a blurred skin disc.",
-    "accessories": "Independent left/right earrings follow the asymmetric earlobes. Skin-clipped cuffs cross each wrist perpendicular to the arm and use a real rear layer in the neutral pose."
+    "accessories": "A matched pair of tucked flower studs shares one visual baseline so both earrings stay attached and even during motion. Skin-clipped cuffs cross each wrist perpendicular to the arm and use a real rear layer in the neutral pose."
   },
   "walkRig": {
     "body": "walk-body.png",
