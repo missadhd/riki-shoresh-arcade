@@ -41,15 +41,17 @@ Merging into `main` deploys to the live Netlify site.
 4. Rerun the relevant tests on the updated branch.
 5. Merge only when there are no unresolved conflicts and the tests pass.
 
-If the other assistant published while you were working, you must incorporate the latest `main` and retest before publishing.
+If the other assistant published while you were working, incorporate the latest `main` before publishing.
+- If their change touched **different files** from yours, a quick check is enough: syntax check, open the site, play your feature once. Publish, then run fuller tests afterward.
+- If their change touched **the same files** or the same feature, rerun the full relevant tests before publishing.
 
 ## 6. Protect saved progress
 
 - Preserve Riki's purchases, coins, XP, furniture, pets, room layouts, and all other saved data.
-- Never rename, remove, or change the format of these 15 localStorage keys:
+- Never rename, remove, or change the format of these 17 localStorage keys:
   `rickyCoins`, `rickyHouseInventoryV1`, `rickyHouseDecorV1`, `rickyHouseWallsV1`, `rickyDreamStorageV2`,
   `rickyDreamPetsV2`, `rickyDreamPositionsV2`, `rickyRoomInteriorsV3`, `rickyTinyOwnedV1`, `rickyTinyPlacedV1`,
-  `rickyAdventureXPV1`, `rickySpatialMusicV1`, `riki3dOrbit`, `rikiReal3dAz`, `rikiRootProgressV1` (per-word learning progress).
+  `rickyAdventureXPV1`, `rickySpatialMusicV1`, `riki3dOrbit`, `rikiReal3dAz`, `rikiRootProgressV1` (per-word learning progress), `rikiDreamRotationV1` (furniture rotation, shared 2D/3D), `rikiClawPlushV1` (Claw plushies won).
 - Never change the script or stylesheet loading order in `index.html` without Rachel's approval.
 
 ## 7. Testing is your job
