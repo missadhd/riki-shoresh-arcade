@@ -450,3 +450,10 @@ body{background:#f7f4f8!important;color:#443247}
 .top .stats>.sound-settings{grid-column:1/-1;flex-wrap:wrap}
 .rk3-room.rk-storage-focus{height:clamp(245px,calc(100svh - 395px),540px)}
 .primary:not(:disabled){background:#a94772!important;color:#fff!important;border-color:#91385f!important}
+
+/* Keep the situation visible while choosing a practical response. */
+.zz-instruction{text-align:center;font-weight:850;color:#68465e;font-size:16px;margin:12px 0 8px}
+.zz-scenario:disabled{opacity:1!important;color:#513b4d!important;background:#fff8ef!important;cursor:default;box-shadow:0 2px 0 #ead9cf!important}
+.sl-choice.zz-helpful{background:#e1f3e8!important;color:#205b43!important;opacity:1!important;border:2px solid #68aa88}
+.pd-card .pd-doll{height:200px!important;width:124px!important}
+@media(min-width:700px){.pd-card .pd-doll{height:220px!important;width:140px!important}}
