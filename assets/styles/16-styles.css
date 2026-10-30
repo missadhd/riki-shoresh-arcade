@@ -81,3 +81,18 @@
 /* Decorate screen: fewer buttons. Dragging the room turns it; Shop is already in the top tabs */
 #orbitLeft,#orbitRight,#dreamShop,#playHouse{display:none!important}
 .top .stats #gamesShortcut{background:#e2457a!important;color:#fff!important;border-color:#e2457a!important;box-shadow:none!important}
+
+/* Polish batch 1 (Claude, Oct 29) */
+/* Decorate screen: when the 3D room is showing, shrink the dollhouse header so the room sits near the top */
+#app:has(.rk3-room) .house-head{padding:10px 12px!important;margin-bottom:8px!important}
+#app:has(.rk3-room) .house-head>.spark,#app:has(.rk3-room) .house-head>h1,#app:has(.rk3-room) .house-head>p,#app:has(.rk3-room) .house-head>.house-banner{display:none!important}
+#app:has(.rk3-room) .house-head .house-nav{margin:0!important}
+.dream-panel .dream-heading p{display:none}
+.dream-panel .dream-heading h2{margin:0 0 6px!important;font-size:1.25rem!important}
+.dream-panel{padding-top:12px!important}
+/* Leftover purple: active tabs and selections use the pink theme color */
+.room-tabs button.active,.house-nav button.active,.life-rooms button.active,.shop-categories button.active,.subcats button.active{background:#e2457a!important;border-color:#e2457a!important;color:#fff!important;box-shadow:0 3px 0 #b92e5e!important}
+.dream-inventory-item.active,.dream-inventory button.active{outline:3px solid #e2457a!important;outline-offset:2px}
+/* Bubble Pop: bigger bubbles, text always fits */
+#app .bubblefield{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(104px,1fr))!important;justify-items:center;gap:14px!important}
+#app .bubble{width:clamp(104px,30vw,132px)!important;height:auto!important;padding:10px!important;font-size:clamp(14px,4vw,17px)!important;line-height:1.15!important;overflow-wrap:anywhere;hyphens:auto;display:grid;place-items:center;text-align:center}
