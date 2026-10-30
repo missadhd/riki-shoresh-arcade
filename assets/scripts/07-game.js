@@ -542,14 +542,14 @@ if(!document.getElementById('zoneCss')){const st=document.createElement('style')
 zSave.log=zSave.log||{};zSave.done=zSave.done||{};zSave.rc=zSave.rc||{goals:['no','listen','calm'],days:{}};zSave.calmPlan=zSave.calmPlan||null;
 const dkey=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const UNITS=[
- {id:'calm',ic:'🌡️',name:'Calm Down',color:'#f06a8a',steps:[['👀','Notice my body clues'],['🔢','Rate my feeling 1 to 5'],['🫧','Pick a calm tool'],['💪','Try again when I’m calm']],games:[['scale','📏','Feelings Scale'],['volcano','🌋','Cool the Volcano'],['sort','🕵️','Feelings Detective'],['emotion','🌬️','Emotion Lab'],['calmplan','📝','My Calm Plan']],mission:'When you feel upset today, rate it 1 to 5 and use one calm tool.',goal:'Used a calm tool when upset',tip:'Practice calm tools when she is already calm, so they are ready when she is not. Praise the attempt, not only the result.'},
+ {id:'calm',ic:'🌡️',name:'Calm Down',color:'#f06a8a',steps:[['👀','Notice my body clues'],['🔢','Rate my feeling 1 to 5'],['🫧','Pick a calm tool'],['💪','Try again when I’m calm']],games:[['scale','📏','Feelings Scale'],['volcano','🌋','Cool the Volcano'],['feelsort','💗','Feelings Sorting'],['sort','🕵️','Feelings Detective'],['emotion','🌬️','Emotion Lab'],['calmplan','📝','My Calm Plan']],mission:'When you feel upset today, rate it 1 to 5 and use one calm tool.',goal:'Used a calm tool when upset',tip:'Practice calm tools when she is already calm, so they are ready when she is not. Praise the attempt, not only the result.'},
  {id:'no',ic:'🙅',name:'Accepting No',color:'#8f6cf2',steps:[['👀','Look at the person'],['😌','Keep a calm body'],['👌','Say “Okay”'],['🗓️','Ask later, or ask once nicely']],games:[['no','🙅','Hearing No'],['cps','🤝','Let’s Work It Out']],mission:'When a grown-up says no today, try the 4 steps.',goal:'Accepted no without arguing',tip:'Say no with a short reason and a when-then (“Not now. After dinner you can.”). Reinforce calm acceptance right away; sometimes follow it with a yes-later.'},
  {id:'listen',ic:'👂',name:'Following Directions',color:'#3fa9f5',steps:[['✋','Stop what I’m doing'],['👀','Look and listen'],['👌','Say “Okay”'],['🏃','Do it right away']],games:[['listen','👂','Listen & Do'],['says','🙋','Riki Says']],mission:'Follow the first direction a grown-up gives you today, the first time.',goal:'Followed a direction the first time',tip:'One clear direction, close by, said as a statement not a question. Wait about 5 seconds. Praise the follow-through specifically.'},
  {id:'wait',ic:'⏳',name:'Waiting & Stopping',color:'#22a77e',steps:[['🧊','Freeze my body'],['🌬️','Take a breath'],['💭','Tell myself “I can wait”'],['⭐','Wait for my turn']],games:[['waitfor','🧁','Wait For It'],['pause','⏸️','Pause & Choose'],['switch','🔀','Switch It!']],mission:'Wait for your turn once today without grabbing or interrupting.',goal:'Waited for a turn',tip:'Start with short waits she can win, then stretch them. Name it: “You waited. That was hard and you did it.”'},
  {id:'workit',ic:'🤝',name:'Working It Out',color:'#e8902a',steps:[['🗣️','Say what I want, calmly'],['👂','Listen to their worry'],['💡','Think of ideas'],['✅','Pick one that works for both']],games:[['cps','🤝','Let’s Work It Out'],['solve','🧩','Problem Solver'],['plan','🛤️','Plan B']],mission:'Work out one problem with a grown-up today by making a deal.',goal:'Worked out a problem together',tip:'Collaborative problem solving: empathy first (“What’s up?”), then your concern, then “Let’s find a way that works for both of us.” Let her suggest first.'},
  {id:'accident',ic:'🔍',name:'Accident or On Purpose?',color:'#5b6ee8',steps:[['✋','Stop before I react'],['🔍','Look for clues'],['💭','Think “Maybe it was an accident”'],['🗣️','Ask, or use calm words']],games:[['accident','🔍','Clue Detective'],['detective','🔎','Social Detective'],['mystery','🕵️‍♀️','Friendship Mystery'],['size','🐘','Size of the Problem']],mission:'If someone bumps you or takes something today, ask before you get mad.',goal:'Checked before reacting',tip:'Kids with oppositional patterns often read neutral events as hostile. When she reports one, wonder aloud: “Could it have been an accident? What clues do we have?”'},
  {id:'talk',ic:'💬',name:'Talking & Tone',color:'#d9488f',steps:[['👀','Look at the person'],['👂','Listen to what they say'],['❓','Ask a question about it'],['💬','Add my own comment']],games:[['tone','🎙️','Tone of Voice'],['say','💬','Say It Better'],['talk','🗨️','Build the Chat'],['board','🎤','Talk Show']],mission:'Ask someone a question about their day and listen to the answer.',goal:'Used a friendly tone',tip:'Model a calm tone, and point out tone in shows and books: “Did that sound bossy or friendly?”'},
- {id:'friends',ic:'💖',name:'Being a Friend',color:'#ff7fa8',steps:[['🚶','Walk up and smile'],['👋','Say hi and their name'],['❓','Ask “Can I play?”'],['🔄','Take turns and share']],games:[['friendship','💖','Friendship Studio'],['sport','🏆','Good Sport'],['team','🧑‍🤝‍🧑','Teamwork Challenge']],mission:'Ask a kid to play, or say “good game” after a game today.',goal:'Joined in kindly or was a good sport',tip:'Short, structured playdates work best. Coach before (“What will you say if you lose?”) and praise specifics after.'},
+ {id:'friends',ic:'💖',name:'Being a Friend',color:'#ff7fa8',steps:[['🚶','Walk up and smile'],['👋','Say hi and their name'],['❓','Ask “Can I play?”'],['🔄','Take turns and share']],games:[['friendship','💖','Friendship Studio'],['sport','🏆','Good Sport'],['teambuild','🧱','Teamwork Builder'],['team','🧑‍🤝‍🧑','Teamwork Challenge']],mission:'Ask a kid to play, or say “good game” after a game today.',goal:'Joined in kindly or was a good sport',tip:'Short, structured playdates work best. Coach before (“What will you say if you lose?”) and praise specifics after.'},
  {id:'brain',ic:'🧠',name:'Brain Boss',color:'#7c6cf2',steps:[['🎯','Know my goal'],['📋','Make a plan'],['🏃','Do the steps in order'],['✅','Check my work']],games:[['mem','🛒','Memory Shopper'],['rush','⏰','Beat the Clock'],['switch','🔀','Switch It!'],['comic','🎬','Story Order']],mission:'Do your morning or bedtime routine in order without reminders.',goal:'Did a routine without reminders',tip:'Picture checklists for routines; let her check off each step herself. Praise starting, not only finishing.'}];
 const UNIT=Object.fromEntries(UNITS.map(u=>[u.id,u]));
 const GAME_UNIT={};UNITS.forEach(u=>u.games.forEach(g=>{if(!GAME_UNIT[g[0]])GAME_UNIT[g[0]]=u.id;}));
@@ -742,8 +742,9 @@ function grownups(focusGoal){const rc=zSave.rc;const d=dkey();const today=rc.day
 /* Unit page and hub */
 const XRUN={scale:drawScale,calmplan:drawCalmPlan,waitfor:drawWaitFor,cps:drawCps,accident:drawAccident,tone:drawTone,
  emotion:()=>{if(typeof selHandsStart==='function')selHandsStart('emotion');},mystery:()=>{if(typeof selHandsStart==='function')selHandsStart('mystery');},team:()=>{if(typeof selHandsStart==='function')selHandsStart('team');},
- detective:()=>{if(typeof socialStart==='function')socialStart('detective');},say:()=>{if(typeof socialStart==='function')socialStart('say');}};
+ detective:()=>{if(typeof rikiSceneStart==='function')rikiSceneStart();else if(typeof socialStart==='function')socialStart('detective');},feelsort:()=>{if(typeof selSortStart==='function')selSortStart();},teambuild:()=>{if(typeof rikiTeamStart==='function')rikiTeamStart();},say:()=>{if(typeof socialStart==='function')socialStart('say');}};
 Object.assign(ZRUN,XRUN);
+window.RikiSkillCity={open:()=>newHub(),units:()=>UNITS.map(u=>({id:u.id,name:u.name,games:u.games.map(g=>g[0])})),addGame(unitId,id,emoji,name,start){const u=UNIT[unitId];if(!u||typeof start!=='function')return false;if(!u.games.some(g=>g[0]===id))u.games.push([id,emoji,name]);XRUN[id]=start;ZRUN[id]=start;if(!GAME_UNIT[id])GAME_UNIT[id]=unitId;return true;}};
 const runGame=g=>{audio('tap');zCur=g;(ZRUN[g]||(()=>{}))();window.scrollTo(0,0);};
 function unitProgress(u){const d=zSave.done[u.id]||{};const practiced=u.games.some(g=>(zSave.stars[g[0]]||0)>0);return [!!d.watch,!!d.steps,practiced,!!d.mission];}
 function drawUnit(uid){const u=UNIT[uid];zStop();lastUnit=uid;zCur='';game='sel';const [w,s,p,m]=unitProgress(u);
@@ -764,7 +765,7 @@ newHub=function(){zStop();zCur='';lastUnit=null;game='sel';const tm=todaysMissio
   <div class="sc-row"><button class="secondary" id="scCheck">🧭 ${zSave.check?'Redo check-in':'Start check-in'}</button><button class="secondary" id="scGrown">👩‍🏫 Grown-ups</button></div>
   <div class="sc-grid">${UNITS.map(u=>{const pr=unitProgress(u);const n=pr.filter(Boolean).length;const focus=zSave.check&&zSave.check.scores&&zSave.check.scores[u.id]===0;return `<button class="sc-unit" data-unit="${u.id}" style="--zc:${u.color}"><span class="sc-ic">${u.ic}</span><b>${u.name}</b><span class="sc-dots">${pr.map(x=>`<i class="${x?'on':''}"></i>`).join('')}</span>${focus?'<em>Focus</em>':n===4?'<em class="ok">⭐ Done</em>':''}</button>`;}).join('')}</div></section>`;
  $id('backHebrewNew').onclick=menu;$id('scToday').onclick=()=>{audio('tap');tm.run();};$id('scCheck').onclick=()=>{audio('tap');drawCheck();};$id('scGrown').onclick=()=>{audio('tap');grownGate(()=>grownups());};
- document.querySelectorAll('[data-unit]').forEach(b=>b.onclick=()=>{audio('tap');drawUnit(b.dataset.unit);});window.scrollTo(0,0);};
+ document.querySelectorAll('[data-unit]').forEach(b=>b.onclick=()=>{audio('tap');drawUnit(b.dataset.unit);});if(typeof selClassicHub==='function'){const mb=document.createElement('button');mb.className='secondary';mb.style.cssText='display:block;margin:14px auto 0';mb.textContent='📚 More Social Skills adventures';mb.onclick=()=>{audio('tap');selClassicHub();};app.querySelector('.panel').appendChild(mb);}window.scrollTo(0,0);};
 const UCSS=`.sc-today{width:100%;border:0;border-radius:22px;padding:14px 16px;text-align:left;color:#fff;background:linear-gradient(135deg,var(--zc),color-mix(in srgb,var(--zc) 60%,#ff9cc6));box-shadow:0 6px 0 color-mix(in srgb,var(--zc) 65%,#000);display:grid;gap:2px;cursor:pointer}.sc-today b{font-size:22px;font-family:"Baloo 2",system-ui,sans-serif}.sc-tag{font-size:12px;font-weight:900;opacity:.9}
 .sc-row{display:flex;gap:8px;margin:10px 0}.sc-row .secondary{flex:1}
 .sc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
@@ -801,6 +802,81 @@ if(!document.getElementById('unitCss')){const st=document.createElement('style')
 
 var lastUnit=null;
 document.addEventListener('click',e=>{if(lastUnit&&e.target.closest&&e.target.closest('#selBackNew')){e.stopImmediatePropagation();e.preventDefault();zStop();drawUnit(lastUnit);}},true);
+
+/* ---------- Arcade answers (Claude, Oct 30): every choice becomes a mini arcade game ---------- */
+const ARC_TOK=[['🐻','#ff8fb2'],['🐰','#7cc4f2'],['🦄','#b79bff'],['🐥','#ffc94d']];
+let arcN=0;
+function arcSpeak(t){try{if(window.RikiVoice)return RikiVoice.speak(t,{character:'narrator'});}catch(e){}try{return slSpeak(t,'riki');}catch(e){}}
+function arcScan(){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;document.querySelectorAll('#slCh,#fsA .sl-choices').forEach(ch=>{if(ch.hidden||!ch.isConnected)return;
+ const btns=[...ch.querySelectorAll('.sl-choice')].filter(b=>!b.id&&!b.dataset.r&&(b.dataset.i!=null||b.dataset.k!=null||b.dataset.v!=null));
+ if(btns.length<2||btns.every(b=>b.dataset.arcd))return;arcBuild(ch,btns);});}
+function arcBuild(ch,btns){const old=ch.parentNode.querySelector(':scope > .arc');if(old)old.remove();const mech=['claw','balloon','toss'][arcN++%3];
+ btns.forEach((b,i)=>{b.dataset.arcd=1;b.classList.add('arc-label');const [e,c]=ARC_TOK[i%4];b.style.setProperty('--ac',c);if(!b.querySelector('.arc-badge'))b.insertAdjacentHTML('afterbegin',`<span class="arc-badge">${e}</span>`);
+  const sp=document.createElement('span');sp.className='arc-say';sp.textContent='🔊';sp.onclick=ev=>{ev.stopPropagation();arcSpeak(b.textContent.replace(/^\S+\s*/,'').replace(/🔊/g,''));};b.appendChild(sp);});
+ const a=document.createElement('div');a.className='arc arcm-'+mech;ch.after(a);
+ const n=btns.length,xs=btns.map((_,i)=>Math.round((i+.5)/n*100));
+ const live=()=>a.isConnected&&!ch.hidden;
+ const fire=i=>{const b=btns[i];if(!b||b.disabled)return;b.style.pointerEvents='auto';b.click();b.style.pointerEvents='';sync();};
+ const sync=()=>{if(!a.isConnected)return;btns.forEach((b,i)=>{const t=a.querySelector(`[data-t="${i}"]`);if(t){t.classList.toggle('gone',b.disabled);t.classList.toggle('glow',b.classList.contains('z-glow'));}});a.classList.toggle('done',btns.every(b=>b.disabled)||!btns[0].isConnected);};
+ const mo=new MutationObserver(sync);btns.forEach(b=>mo.observe(b,{attributes:true,attributeFilter:['disabled','class']}));
+ const msg=t=>{const m=a.querySelector('.arc-msg');if(m){m.textContent=t;m.classList.remove('on');void m.offsetWidth;m.classList.add('on');}};
+ const tokHTML=(i,cls='')=>`<span class="arc-tok ${cls}" data-t="${i}" style="--ac:${ARC_TOK[i%4][1]}">${ARC_TOK[i%4][0]}</span>`;
+ if(mech==='claw'){
+  a.innerHTML=`<div class="arc-head">🕹️ Drag the claw over your answer, then GRAB!</div><div class="arc-box" id="arcBox"><div class="arc-rail"></div><div class="arc-claw" style="left:50%"><div class="arc-cable"></div><svg class="arc-hand" viewBox="0 0 40 30"><rect x="14" y="0" width="12" height="8" rx="3" fill="#9aa3b5"/><path d="M20 8 L8 18 L10 28 M20 8 L32 18 L30 28" stroke="#7b8498" stroke-width="4" fill="none" stroke-linecap="round"/></svg><span class="arc-held"></span></div><div class="arc-floor">${xs.map((x,i)=>`<span class="arc-slot" style="left:${x}%">${tokHTML(i)}</span>`).join('')}</div><div class="arc-msg"></div></div><button class="arc-go" type="button">🦾 GRAB!</button>`;
+  const box=a.querySelector('.arc-box'),claw=a.querySelector('.arc-claw'),cable=a.querySelector('.arc-cable'),held=a.querySelector('.arc-held'),go=a.querySelector('.arc-go');let x=50,busy=false;
+  const setX=v=>{x=Math.max(6,Math.min(94,v));claw.style.left=x+'%';};
+  const drag=e=>{if(busy)return;const r=box.getBoundingClientRect();setX((e.clientX-r.left)/r.width*100);};
+  box.addEventListener('pointerdown',e=>{if(busy)return;box.setPointerCapture(e.pointerId);drag(e);const mv=ev=>drag(ev);const up=()=>{box.removeEventListener('pointermove',mv);box.removeEventListener('pointerup',up);};box.addEventListener('pointermove',mv);box.addEventListener('pointerup',up);});
+  go.onclick=async()=>{if(busy)return;busy=true;go.disabled=true;audio('tap');cable.style.height='96px';await slWait(650);if(!live())return;
+   let hit=-1;xs.forEach((px,i)=>{if(Math.abs(px-x)<Math.min(14,50/n)&&!btns[i].disabled)hit=i;});
+   if(hit>=0){const t=a.querySelector(`[data-t="${hit}"]`);held.innerHTML=t.outerHTML;t.style.visibility='hidden';audio('good');}
+   cable.style.height='14px';await slWait(650);if(!live())return;
+   if(hit>=0){msg(`You grabbed ${ARC_TOK[hit%4][0]}!`);setX(4);await slWait(500);held.innerHTML='';const t=a.querySelector(`[data-t="${hit}"]`);if(t)t.style.visibility='';fire(hit);}
+   else{msg('So close! Line it up and try again.');}
+   busy=false;go.disabled=false;};
+ }
+ if(mech==='balloon'){
+  a.innerHTML=`<div class="arc-head">🎈 Pop the balloon with your answer!</div><div class="arc-box arc-sky">${btns.map((_,i)=>`<button type="button" class="arc-bal" data-t="${i}" style="--ac:${ARC_TOK[i%4][1]};left:${xs[i]}%;animation-duration:${5.5+i*1.3}s;animation-delay:${-i*1.7}s"><span>${ARC_TOK[i%4][0]}</span></button>`).join('')}<div class="arc-msg"></div></div>`;
+  a.querySelectorAll('.arc-bal').forEach(bl=>bl.onclick=async()=>{const i=+bl.dataset.t;if(btns[i].disabled||bl.classList.contains('pop'))return;bl.classList.add('pop');audio('good');const r=bl.getBoundingClientRect(),br=a.querySelector('.arc-box').getBoundingClientRect();for(let k=0;k<8;k++){const s=document.createElement('i');s.className='arc-conf';s.textContent=['✨','🎉','💖','⭐'][k%4];s.style.left=(r.left-br.left+r.width/2)+'px';s.style.top=(r.top-br.top+r.height/3)+'px';s.style.setProperty('--dx',(Math.cos(k)*60)+'px');s.style.setProperty('--dy',(Math.sin(k)*60)+'px');a.querySelector('.arc-box').appendChild(s);setTimeout(()=>s.remove(),900);}
+   await slWait(420);if(!live())return;fire(i);if(!btns[i].disabled)bl.classList.remove('pop');});
+ }
+ if(mech==='toss'){
+  a.innerHTML=`<div class="arc-head">🏀 Drag the ball under your answer, then flick it up!</div><div class="arc-box arc-court"><div class="arc-hoops">${xs.map((x,i)=>`<span class="arc-hoop" style="left:${x}%">${tokHTML(i)}<i></i></span>`).join('')}</div><div class="arc-ball" style="left:50%">🏐</div><div class="arc-msg"></div></div>`;
+  const box=a.querySelector('.arc-box'),ball=a.querySelector('.arc-ball');let bx=50,sy=0,st=0,busy=false;
+  const place=v=>{bx=Math.max(6,Math.min(94,v));ball.style.left=bx+'%';};
+  box.addEventListener('pointerdown',e=>{if(busy)return;box.setPointerCapture(e.pointerId);const r=box.getBoundingClientRect();place((e.clientX-r.left)/r.width*100);sy=e.clientY;st=Date.now();
+   const mv=ev=>{place((ev.clientX-r.left)/r.width*100);};
+   const up=async ev=>{box.removeEventListener('pointermove',mv);box.removeEventListener('pointerup',up);const dy=sy-ev.clientY;if(dy<25){msg('Flick UP to throw!');return;}
+    busy=true;audio('tap');ball.classList.add('fly');await slWait(600);if(!live())return;let hit=-1;xs.forEach((px,i)=>{if(Math.abs(px-bx)<Math.min(13,46/n)&&!btns[i].disabled)hit=i;});
+    if(hit>=0){const h=a.querySelectorAll('.arc-hoop')[hit];h.classList.add('swish');audio('good');msg('SWISH! 🎉');await slWait(450);ball.classList.remove('fly');h.classList.remove('swish');busy=false;fire(hit);}
+    else{msg('Missed! Aim right under a hoop.');ball.classList.remove('fly');busy=false;}};
+   box.addEventListener('pointermove',mv);box.addEventListener('pointerup',up);});
+ }
+ sync();if(window.RikiFit)RikiFit();setTimeout(()=>{if(a.isConnected)a.scrollIntoView({block:'nearest',behavior:'smooth'});},350);}
+let arcQ=0;new MutationObserver(()=>{if(arcQ)return;arcQ=requestAnimationFrame(()=>{arcQ=0;try{arcScan();}catch(e){}});}).observe(document.getElementById('app'),{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
+const ACSS=`.sl-choice.arc-label{pointer-events:none;display:flex;align-items:center;gap:8px;padding:9px 10px}.sl-choice.arc-label .arc-say{pointer-events:auto;margin-left:auto;font-size:16px;background:#fff9;border-radius:50%;width:30px;height:30px;display:grid;place-items:center;flex:none;cursor:pointer}
+.arc-badge{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:20px;background:var(--ac);box-shadow:0 2px 0 #0002}
+.sl-choice.arc-label:disabled{opacity:.5}
+.arc{margin-top:10px;border-radius:22px;padding:8px;background:linear-gradient(#fff,#fff3f8);box-shadow:0 0 0 3px #ffd1e4,0 6px 14px #b9567a22}.arc.done{display:none}
+.arc-head{font-weight:900;font-size:14px;color:#4a2338;text-align:center;margin-bottom:6px}
+.arc-box{position:relative;height:170px;border-radius:16px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;background:linear-gradient(#e9f6ff,#fbeaff)}
+.arc-msg{position:absolute;left:50%;top:8px;transform:translateX(-50%);font-weight:900;color:#4a2338;background:#fffc;border-radius:999px;padding:2px 12px;font-size:13px;opacity:0;pointer-events:none}.arc-msg.on{animation:arcMsg 1.8s}
+@keyframes arcMsg{10%,80%{opacity:1}100%{opacity:0}}
+.arc-tok{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;font-size:28px;background:radial-gradient(circle at 35% 30%,#fff,var(--ac));box-shadow:0 4px 0 #0002,inset 0 -4px 0 #0001}.arc-tok.gone,.arc-bal.gone{opacity:.2;filter:grayscale(1);pointer-events:none}.arc-tok.glow,.arc-bal.glow{animation:zGlow 1s 3;box-shadow:0 0 0 5px #ffd34d}
+.arc-rail{position:absolute;left:0;right:0;top:6px;height:6px;background:#c7cbd8;border-radius:3px}
+.arc-claw{position:absolute;top:6px;transform:translateX(-50%);transition:left .12s;display:flex;flex-direction:column;align-items:center;z-index:2}.arc-cable{width:3px;height:14px;background:#7b8498;transition:height .6s ease-in-out}.arc-hand{width:44px;height:32px;margin-top:-2px}
+.arc-held{position:absolute;bottom:-38px}.arc-held .arc-tok{width:40px;height:40px;font-size:22px}
+.arc-floor{position:absolute;left:0;right:0;bottom:8px;height:56px}.arc-slot{position:absolute;bottom:0;transform:translateX(-50%)}
+.arc-go{width:100%;margin-top:8px;border:0;border-radius:18px;padding:12px;font-size:20px;font-weight:900;color:#fff;background:linear-gradient(135deg,#ff5f9e,#ff9a5c);box-shadow:0 6px 0 #c23d74;cursor:pointer}.arc-go:disabled{opacity:.6}
+.arc-sky{background:linear-gradient(#bfe6ff,#fff0f8)}
+.arc-bal{position:absolute;bottom:-70px;transform:translateX(-50%);width:58px;height:70px;border:0;border-radius:50% 50% 46% 46%;background:radial-gradient(circle at 35% 30%,#fff8,transparent 40%),var(--ac);box-shadow:inset -6px -8px 0 #0001;cursor:pointer;animation:arcRise linear infinite;padding:0}
+.arc-bal::after{content:"";position:absolute;left:50%;top:100%;width:1px;height:26px;background:#8886}.arc-bal span{font-size:26px}
+.arc-bal.pop{animation-play-state:paused;transform:translateX(-50%) scale(1.5);opacity:0;transition:transform .3s,opacity .3s}
+@keyframes arcRise{0%{bottom:-75px;margin-left:0}25%{margin-left:10px}50%{margin-left:-8px}75%{margin-left:8px}100%{bottom:175px;margin-left:0}}
+.arc-conf{position:absolute;font-style:normal;font-size:16px;pointer-events:none;animation:arcConf .9s ease-out forwards}@keyframes arcConf{to{transform:translate(var(--dx),var(--dy));opacity:0}}
+.arc-court{background:linear-gradient(#fff4dc,#ffe0c2)}.arc-hoops{position:absolute;left:0;right:0;top:10px;height:60px}.arc-hoop{position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center}.arc-hoop i{display:block;width:54px;height:10px;border-radius:50%;border:4px solid #ff6f3c;margin-top:-6px;background:#fff6}.arc-hoop.swish{animation:zGlow .45s}
+.arc-ball{position:absolute;bottom:10px;transform:translateX(-50%);font-size:40px;transition:left .05s;cursor:grab}.arc-ball.fly{transition:bottom .55s cubic-bezier(.2,.7,.4,1),transform .55s;bottom:112px;transform:translateX(-50%) scale(.65)}`;
+if(!document.getElementById('arcCss')){const st=document.createElement('style');st.id='arcCss';st.textContent=ACSS;document.head.appendChild(st);}
 
 window.RikiSocial={state:()=>({boardPick,good:boardPick!==null?scenes[boardPick].good:null,pieces:talks[dialogueStep%talks.length].pieces,sortAnswer:sortCases[sortIndex%sortCases.length][1],sortIndex,planStep,zone:zSave,zCur})};
 selHub=newHub;
