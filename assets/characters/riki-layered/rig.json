@@ -1,0 +1,96 @@
+{
+  "version": 2,
+  "canvas": [
+    1086,
+    1448
+  ],
+  "master": "master.png",
+  "zOrder": [
+    "hair-back",
+    "legs-shoes",
+    "torso",
+    "arm-left",
+    "arm-right",
+    "outfit",
+    "head-base",
+    "eye-left",
+    "eye-right",
+    "mouth",
+    "hand-left",
+    "hand-right",
+    "accessories"
+  ],
+  "parts": {
+    "hair-back": "hair-back.webp",
+    "legs-shoes": "legs-shoes.webp",
+    "torso": "torso.webp",
+    "arm-left": "arm-left.webp",
+    "arm-right": "arm-right.webp",
+    "hand-left": "hand-left.webp",
+    "hand-right": "hand-right.webp",
+    "headBase": "head-base.webp",
+    "eyeLeft": "eye-left.webp",
+    "eyeRight": "eye-right.webp",
+    "blink": "eyes-blink.webp",
+    "mouthClosed": "mouth-closed.webp",
+    "mouthSmall": "mouth-small.webp",
+    "mouthWide": "mouth-wide.webp",
+    "mouthO": "mouth-o.webp"
+  },
+  "anchors": {
+    "hat": [
+      512,
+      176
+    ],
+    "earLeft": [
+      319,
+      578
+    ],
+    "earRight": [
+      797,
+      578
+    ],
+    "shoulderLeft": [
+      422,
+      790
+    ],
+    "shoulderRight": [
+      622,
+      790
+    ],
+    "neck": [
+      522,
+      748
+    ],
+    "waist": [
+      522,
+      900
+    ],
+    "hip": [
+      522,
+      1020
+    ],
+    "handLeft": [
+      303,
+      1050
+    ],
+    "handRight": [
+      813,
+      1050
+    ],
+    "footLeft": [
+      450,
+      1370
+    ],
+    "footRight": [
+      598,
+      1370
+    ]
+  },
+  "wearables": {
+    "dress": "outfit-pink-dress.webp",
+    "top": "outfit-mint-top.webp",
+    "shoes": "shoes-pink.webp",
+    "accessories": "accessories-sunshine.webp"
+  }
+}
