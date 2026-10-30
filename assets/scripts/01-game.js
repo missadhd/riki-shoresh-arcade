@@ -476,7 +476,7 @@ function rikiClayHub(){
  const holder=document.createElement('section');holder.className='panel riki-clay-hub';
  holder.innerHTML='<div class="riki-clay-banner"><div style="font-size:42px">🌈 🧸 ✨</div><h2>Social Skills Play World</h2><p>Five playful adventures. Learn by doing!</p></div><div class="riki-clay-grid">'+RIKI_CLAY_GAMES.map(([id,art,title,desc,color])=>'<button class="riki-clay-card" data-riki-clay="'+id+'" style="background:linear-gradient(155deg,#fff9,'+color+' 42%,'+color+')"><span class="riki-clay-art">'+art+'</span><strong>'+title+'</strong><p>'+desc+'</p><span class="riki-clay-play">▶ Play</span></button>').join('')+'</div>';
  app.innerHTML='';app.appendChild(holder);
- holder.querySelectorAll('[data-riki-clay]').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.rikiClay;if(id==='sort')selSortStart();else if(id==='detective')rikiSceneStart();else if(id==='say')socialStart('say');else if(id==='team')rikiTeamStart();else selStart('reset')});
+ holder.querySelectorAll('[data-riki-clay]').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.rikiClay;if(id==='sort')selSortStart();else if(id==='detective')rikiSceneStart();else if(id==='say')socialStart('say');else if(id==='team')rikiTeamStart();else {selMode='reset';selCalm()}});
 }
 const RIKI_SCENE=[
  ['Your friend walks away while you are talking.',['⏰','She keeps checking the clock.'],['🎒','She picks up her backpack.'],['😟','She looks worried.'],'Maybe she has to get somewhere.','Could we finish talking later?'],
