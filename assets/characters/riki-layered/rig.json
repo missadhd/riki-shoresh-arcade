@@ -102,13 +102,32 @@
     "shoeRight": [
       608,
       1292
+    ],
+    "wristRight": [
+      780,
+      1000
+    ],
+    "waveWristRight": [
+      844,
+      706
     ]
   },
   "wearables": {
     "dress": "outfit-pink-dress-fitted-v3.webp",
-    "earrings": "accessory-earrings-drop-v6.webp",
+    "earrings": "accessory-earrings-drop-v7.png",
     "hairClips": "accessory-hair-clips.webp",
-    "mintDress": "outfit-mint-dress-fitted-v2.webp"
+    "mintDress": "outfit-mint-dress-fitted-v2.webp",
+    "headbandOn": "head-base-headband-feathered.png",
+    "headbandOff": "head-base-no-headband.png",
+    "shoes": {
+      "white": "base leg layers",
+      "pink": "accessory-shoes-pink.png",
+      "mint": "accessory-shoes-mint.png"
+    },
+    "bracelet": {
+      "neutral": "accessory-bracelet-neutral.png",
+      "wave": "accessory-bracelet-wave.png"
+    }
   },
   "garmentZones": {
     "upperBody": [
