@@ -1,3 +1,4 @@
+/* Dollhouse shop guidance and sorting claim. */
 /* Room and boutique expansion claim. */
 
 'use strict';
