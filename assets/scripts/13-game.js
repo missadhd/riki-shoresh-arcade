@@ -1,4 +1,5 @@
 
+/* Claw game improvements claimed by ChatGPT. */
 /* Riki Studio Games: the make-something Shoresh games rebuilt in 3D.
    Every right answer puts the chosen piece onto the creation. Words come from the game's own list (W, ids()). */
 (function(){
@@ -11,7 +12,8 @@ const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 /* ================= styles ================= */
-const css=`.st{display:flex;flex-direction:column;gap:12px}
+const css=`.st-claw-question{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0;padding:12px;background:#fff8fc;border:2px solid #f3d6dc;border-radius:22px}.st-claw-question p{grid-column:1/-1;text-align:center;font-size:1.15rem;font-weight:900;margin:0 0 5px}.st-claw-answer{font:inherit;font-size:1.05rem;font-weight:900;min-height:64px;padding:14px 12px;border-radius:18px;background:#fff;border:3px solid #eaa6c6;box-shadow:0 5px 0 #eac6d8;color:#54253e;cursor:pointer;touch-action:manipulation}.st-claw-answer:disabled{opacity:.65;background:#f8e6ed}.st-claw-answer:active{transform:translateY(2px)}@media(max-width:400px){.st-claw-question{gap:8px;padding:9px}.st-claw-answer{font-size:1rem;min-height:62px;padding:10px 7px}}
+.st{display:flex;flex-direction:column;gap:12px}
 .st-order{display:flex;gap:12px;align-items:center;background:#fff;border:2px solid #f3d6dc;border-radius:22px;padding:12px 14px}
 .st-av{width:54px;height:54px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:30px;background:#ffe3ea}
 .st-bub{flex:1;min-width:0}
@@ -174,7 +176,7 @@ const GAMES={
     for(let k=0;k<12;k++){const p=new THREE.Group();p.position.set(-.3+(k%4)*.25,.78+Math.floor(k/4)*.09,-.3+Math.floor(k/4)*.18);p.scale.setScalar(.5);g.add(p);plush(p,k%6);}
     const claw=new THREE.Group();claw.position.set(.45,1.75,0);g.add(claw);CY(claw,.006,.006,.3,metalM(),0,.15,0,4);CY(claw,.05,.06,.06,metalM('#dfe6ea'),0,0,0,12);g.userData.prongs=[];for(let k=0;k<3;k++){const a=k/3*Math.PI*2;const pr=new THREE.Group();pr.position.set(Math.cos(a)*.04,-.02,Math.sin(a)*.04);pr.rotation.y=-a;claw.add(pr);const r=CY(pr,.01,.01,.16,metalM('#dfe6ea'),.03,-.07,0,6);r.rotation.z=.5;g.userData.prongs.push(pr);}
     g.userData.claw=claw;const tray=new THREE.Group();tray.position.set(0,0,.0);g.add(tray);g.userData.won=0;},
-  steps:[0,1,2,3,4,5,6,7].map(i=>({ask:'Grab a prize',slot:'p'+i,anim:'claw',vs:[0,1,2,3,4,5].map(k=>V(['Bunny plush','Teddy plush','Star plush','Duck plush','Kitty plush','Unicorn plush'][k],g=>{const p=new THREE.Group();g.add(p);plush(p,k);p.userData.prize=i;}))}))},
+  steps:[0,1,2,3,4,5,6,7].map(i=>({ask:'Grab a prize',slot:'p'+i,anim:'claw',vs:["Bunny plush","Teddy plush","Star plush","Duck plush","Kitty plush","Unicorn plush","Panda plush","Frog plush","Penguin plush","Fox plush","Rainbow bear","Sleepy koala","Pink puppy","Baby dragon","Moon plush","Happy cloud","Heart plush","Dinosaur plush"].map((name,k)=>V(name,g=>{const p=new THREE.Group();g.add(p);plush(p,k%6);p.userData.prize=i;}))}))},
  quest:{title:'Adventure Missions',emoji:'🗺️',av:'🧭',lead:'Mission!',cam:[.4,4.2,.5],done:'Adventure complete!',
   base(g){for(let k=0;k<9;k++){const p=QP(k);const isl=new THREE.Group();isl.position.set(p[0],0,p[1]);g.add(isl);CY(isl,.32,.22,.25,mat('#c9a27e',.95),0,-.1,0,16);CY(isl,.34,.34,.06,toy(k===8?P.lilac:'#7cc46f'),0,.04,0,20);if(k%3===1){SP(isl,.08,toy('#4f9e5b'),.2,.12,-.1);}}
     const c=new THREE.Group();const p8=QP(8);c.position.set(p8[0],.07,p8[1]);g.add(c);BX(c,.4,.3,.3,toy('#f3e6ff'),0,.15,0);[-1,1].forEach(k=>{CY(c,.07,.07,.45,toy('#f3e6ff'),k*.2,.22,0,12);CO(c,.09,.18,toy(P.hot),k*.2,.54,0);});
@@ -268,19 +270,19 @@ function startStudio(id){
 function frameHTML(body,pct){const fr=G('frame');if(typeof fr==='function'){fr(`${S.def.emoji} ${S.def.title}`,body,pct);return;}document.getElementById('app').innerHTML=body;}
 function renderStep(){
   const {def,at,order}=S;const {W,pool}=words();const step=def.steps[at];const id=order[at];const w=W[id];
-  const four=!!(window.RikiProgress&&window.RikiProgress.mastered(id));const nOther=four?3:2;
+  const four=!!(window.RikiProgress&&window.RikiProgress.mastered(id));const nOther=S.id==='claw'?5:(four?3:2);
   const others=shuffle(pool.filter(x=>x!==id)).slice(0,nOther);const choiceIds=shuffle([id,...others]);
   let variants=shuffle(step.vs).slice(0,choiceIds.length);while(variants.length<choiceIds.length)variants.push(step.vs[variants.length%step.vs.length]);
   const flip=at%2===1;
   S.cur={id,choiceIds,variants,step,first:true};
   const dots=def.steps.map((_,i)=>`<i class="${i<at?'on':i===at?'now':''}"></i>`).join('');
   const ask=S.id==='claw'?`<small>Choose the plush you want to win!</small><b>The prize will reveal your Hebrew root.</b>`:flip?`<small>${def.lead} Find the Hebrew word for</small><b>${esc(w[1])}</b>`:`<small>${def.lead} I would love</small><div class="st-he" lang="he">${esc(w[0])}</div>`;
-  const cards=choiceIds.map((cid,i)=>{const v=variants[i];return `<button type="button" class="st-card" data-i="${i}" aria-label="${esc(S.id==='claw'?v.name:(flip?W[cid][0]:W[cid][1]))}"><div class="ph">${S.id==='claw'?['🐰','🧸','⭐','🦆','🐱','🦄'][Math.max(0,step.vs.findIndex(x=>x.name===v.name))%6]:'✨'}</div>${S.id==='claw'?`<span>${esc(v.name)}</span>`:flip?`<span class="st-he" lang="he">${esc(W[cid][0])}</span>`:`<span>${esc(W[cid][1])}</span>`}</button>`;}).join('');
+  const cards=choiceIds.map((cid,i)=>{const v=variants[i];return `<button type="button" class="st-card" data-i="${i}" aria-label="${esc(S.id==='claw'?v.name:(flip?W[cid][0]:W[cid][1]))}"><div class="ph">${S.id==='claw'?['🐰','🧸','⭐','🦆','🐱','🦄','🐼','🐸','🐧','🦊','🌈','🐨','🐶','🐉','🌙','☁️','💗','🦕'][Math.max(0,step.vs.findIndex(x=>x.name===v.name))%18]:'✨'}</div>${S.id==='claw'?`<span>${esc(v.name)}</span>`:flip?`<span class="st-he" lang="he">${esc(W[cid][0])}</span>`:`<span>${esc(W[cid][1])}</span>`}</button>`;}).join('');
   const body=`<div class="st"><div class="st-order"><div class="st-av" aria-hidden="true">${def.av}</div><div class="st-bub">${ask}</div></div>
    <div class="st-stage" id="stStage"><div class="st-burst" id="stBurst"></div></div>
    <div class="st-dots" aria-label="Step ${at+1} of ${def.steps.length}">${dots}</div>
    <p class="st-ask">${esc(step.ask)} — tap it or drag it up.</p>
-   <div class="st-cards${four?' four':''}">${cards}</div>${four?'<p class="st-ask">⭐ You know this word! Now there are 4 choices.</p>':''}
+   <div class="st-cards${four||S.id==='claw'?' four':''}">${cards}</div>${four&&S.id!=='claw'?'<p class="st-ask">⭐ You know this word! Now there are 4 choices.</p>':''}
    <p class="st-hint" id="stHint" hidden></p></div>`;
   frameHTML(body,Math.round(at/def.steps.length*100));
   mountStage(document.getElementById('stStage'));
@@ -365,6 +367,23 @@ function finishStudio(){
    <h2>${esc(def.done)}</h2><p style="margin:0;font-weight:800;color:#8a6577">You earned <b>${S.score}</b> stars and a <b>+5</b> coin bonus for your dollhouse!</p>
    <div class="st-row"><button class="primary" id="stAgain">Play again</button><button class="secondary" id="stHouse">🏠 Spend my coins</button></div></div>`;
   frameHTML(body,100);mountStage(document.getElementById('stStage'));camCfg=[camCfg[0],camCfg[1]*.92,camCfg[2]];burst();
+  if(S.id==='claw'){
+    const rewards=[['teddy','🧸 Teddy bear'],['flowers','💐 Flower bouquet'],['books','📚 Little book stack'],['tea','🫖 Tiny tea set'],['cupcake','🧁 Fridge treat'],['plant','🪴 Mini plant'],['picture','🖼️ Wall picture'],['light','💡 Small lamp'],['rug','🧶 Cozy rug']];
+    const extra=document.createElement('div');extra.className='st-claw-reward';
+    extra.innerHTML='<p style="font-weight:900">🪙 You earned a special Claw Coin! Feed it into the machine for a mystery dollhouse prize.</p><button type="button" class="primary" id="stClawCoin">🪙 Feed the Claw Coin</button><p id="stClawGift" aria-live="polite"></p>';
+    const buttons=document.querySelector('.st-end .st-row');if(buttons)buttons.before(extra);
+    const feed=document.getElementById('stClawCoin');
+    if(feed)feed.onclick=()=>{
+      feed.disabled=true;feed.textContent='✨ Mystery prize coming out…';
+      const owned=G('owned');const save=G('saveHouse');
+      const choices=rewards.filter(([id])=>Array.isArray(owned)&&!owned.includes(id));
+      const reward=rand(choices.length?choices:rewards);
+      if(Array.isArray(owned)&&!owned.includes(reward[0])){owned.push(reward[0]);if(typeof save==='function')save();}
+      const gift=document.getElementById('stClawGift');
+      if(gift)gift.innerHTML=`🎁 Surprise! <b>${esc(reward[1])}</b> is now in your dollhouse inventory!`;
+      feed.textContent='🎁 Prize collected!';
+    };
+  }
   const ag=document.getElementById('stAgain');if(ag)ag.onclick=()=>startStudio(def===GAMES[S.id]?S.id:S.id);
   const hs=document.getElementById('stHouse');if(hs)hs.onclick=()=>{try{const hh=G('houseHome');hh&&hh();}catch(_){}};
 }
