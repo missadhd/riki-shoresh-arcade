@@ -96,3 +96,39 @@
 /* Bubble Pop: bigger bubbles, text always fits */
 #app .bubblefield{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(104px,1fr))!important;justify-items:center;gap:14px!important}
 #app .bubble{width:clamp(104px,30vw,132px)!important;height:auto!important;padding:10px!important;font-size:clamp(14px,4vw,17px)!important;line-height:1.15!important;overflow-wrap:anywhere;hyphens:auto;display:grid;place-items:center;text-align:center}
+
+/* Learning + fun batch (Claude, Oct 29) */
+.st-cards.four{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.rk-say{border:0;background:#fff;border-radius:999px;width:42px;height:42px;font-size:20px;box-shadow:0 3px 0 #f3d6dc,0 0 0 2px #f3d6dc;cursor:pointer;vertical-align:middle;margin:6px auto 0;display:inline-grid;place-items:center}
+.rk-say.on{background:#ffe3ea;animation:rkPulse .6s ease-in-out infinite alternate}
+.st-order .rk-say{margin:0 0 0 8px;flex:none}
+@keyframes rkPulse{to{transform:scale(1.12)}}
+.rk-star{margin-top:8px;font-weight:900;color:#3c9c82;font-size:13px}
+.rk-spark{position:fixed;width:11px;height:11px;border-radius:50%;z-index:9999;pointer-events:none;animation:rkFly .95s ease-out forwards}
+@keyframes rkFly{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+.rk-launchpad{overflow:visible!important}
+.rk-launch{animation:rkLaunch 1.3s cubic-bezier(.5,0,.75,0) forwards;position:relative}
+.rk-launch::after{content:"🔥";position:absolute;left:50%;top:78%;transform:translateX(-50%) rotate(180deg);font-size:34px;animation:rkFlame .12s ease-in-out infinite alternate}
+@keyframes rkLaunch{0%{transform:translateY(0)}15%{transform:translateY(6px) rotate(-3deg)}30%{transform:translateY(0) rotate(3deg)}100%{transform:translateY(-480px) rotate(0);opacity:.2}}
+@keyframes rkFlame{to{transform:translateX(-50%) rotate(180deg) scale(1.25)}}
+.rk-stamp{position:absolute;right:8px;bottom:8px;border:4px solid #e2457a;color:#e2457a;font-family:"Baloo 2","Trebuchet MS",system-ui,sans-serif;font-weight:800;font-size:15px;letter-spacing:.06em;padding:1px 8px;border-radius:10px;transform:rotate(-12deg);background:#fff8;animation:rkStamp .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes rkStamp{from{transform:rotate(-12deg) scale(2.4);opacity:0}}
+.rk-hop{animation:rkHop .5s ease-out both}
+@keyframes rkHop{40%{transform:translateY(-14px) scale(1.08)}}
+.sel-scene .sel-illustration{line-height:1!important}
+.rk-sel-img{width:100%;max-width:420px;height:auto;display:block;margin:0 auto}
+.rk-prog{display:flex;flex-direction:column;gap:12px}
+.rk-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.rk-tiles div{background:#fff;border:2px solid #f3d6dc;border-radius:18px;padding:10px 6px;text-align:center}
+.rk-tiles b{display:block;font-family:"Baloo 2","Trebuchet MS",system-ui,sans-serif;font-size:1.6rem;color:#e2457a;font-variant-numeric:tabular-nums}
+.rk-tiles span{font-size:12px;font-weight:800;color:#8a6577}
+.rk-prog-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.rk-prog-list li{display:grid;grid-template-columns:auto auto 1fr auto auto;gap:8px;align-items:center;background:#fff;border:2px solid #f3d6dc;border-radius:16px;padding:6px 10px}
+.rk-prog-list .rk-say{width:34px;height:34px;font-size:16px;margin:0}
+.rk-prog-he{font-family:"Frank Ruhl Libre","David","Arial Hebrew",serif;font-weight:900;font-size:24px;color:#e2457a;direction:rtl}
+.rk-prog-mean{font-weight:800;font-size:13px;min-width:0;overflow-wrap:anywhere}
+.rk-bar{height:10px;background:#ffe3ea;border-radius:999px;overflow:hidden;min-width:40px}
+.rk-bar i{display:block;height:100%;background:#5cc6a8;border-radius:999px}
+.rk-prog-num{font-size:12px;font-weight:800;color:#8a6577;font-variant-numeric:tabular-nums;white-space:nowrap}
+@media (max-width:420px){.rk-prog-list li{grid-template-columns:auto 1fr auto;grid-template-areas:"he mean say" "bar bar num"}.rk-prog-he{grid-area:he}.rk-prog-mean{grid-area:mean}.rk-prog-list .rk-say{grid-area:say}.rk-bar{grid-area:bar}.rk-prog-num{grid-area:num}}
+@media (prefers-reduced-motion:reduce){.rk-launch,.rk-stamp,.rk-hop,.rk-say.on{animation:none}}

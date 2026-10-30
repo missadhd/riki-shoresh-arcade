@@ -46,10 +46,10 @@ If the other assistant published while you were working, you must incorporate th
 ## 6. Protect saved progress
 
 - Preserve Riki's purchases, coins, XP, furniture, pets, room layouts, and all other saved data.
-- Never rename, remove, or change the format of these 14 localStorage keys:
+- Never rename, remove, or change the format of these 15 localStorage keys:
   `rickyCoins`, `rickyHouseInventoryV1`, `rickyHouseDecorV1`, `rickyHouseWallsV1`, `rickyDreamStorageV2`,
   `rickyDreamPetsV2`, `rickyDreamPositionsV2`, `rickyRoomInteriorsV3`, `rickyTinyOwnedV1`, `rickyTinyPlacedV1`,
-  `rickyAdventureXPV1`, `rickySpatialMusicV1`, `riki3dOrbit`, `rikiReal3dAz`.
+  `rickyAdventureXPV1`, `rickySpatialMusicV1`, `riki3dOrbit`, `rikiReal3dAz`, `rikiRootProgressV1` (per-word learning progress).
 - Never change the script or stylesheet loading order in `index.html` without Rachel's approval.
 
 ## 7. Testing is your job
