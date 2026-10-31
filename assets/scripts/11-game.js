@@ -703,7 +703,22 @@ document.addEventListener('keydown',e=>{if(H.open&&e.key==='Escape')closeHouse()
 function addButtons(){document.querySelectorAll('.house-nav').forEach(n=>{if(n.querySelector('.wh3d-open'))return;const b=document.createElement('button');b.type='button';b.className='secondary wh3d-open';b.textContent='🏡 Whole house 3D';b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openHouse();});n.appendChild(b);});}
 new MutationObserver(addButtons).observe(document.body,{childList:true,subtree:true});addButtons();
 window.openWholeHouse3D=openHouse;
-window.RK3=Object.assign(window.RK3||{},{openStorage:storageOpen,closeStorage:storageClose,setFridgeOpen(id,on){const g=ED.items.find(x=>x.userData.id===id);if(g&&g.userData.setFridgeOpen)g.userData.setFridgeOpen(on);},B,mat,fabric,gloss,wood,metalM,RB,BX,CY,SP,CO,add,rbox,eye,legs4,loadThree,shadeHex,canvasTex,rugTex,lights,makeItem,MODEL:(window.RK3&&window.RK3.MODEL)||{}});
+/* Snapshot of one of Riki's real rooms (her own furniture and layout) for Play with Dolls. Claude, Oct 30 */
+let SNAP=null;const snapCache={};
+function roomSnapshot(room,w=960,h=720){if(!window.THREE||!ROOM_SIZE[room])return null;
+ const decor=(G('decor')||{})[room]||{},pos=(G('dreamPosition')||{})[room]||{},owned=G('owned')||[],walls=(G('walls')||{})[room]||'';const key=room+'|'+w+'x'+h+'|'+JSON.stringify([decor,pos,owned.length,walls,(G('dreamRotation')||{})[room]||0]);if(snapCache[key])return snapCache[key];
+ if(!SNAP){const cv=document.createElement('canvas');const R=new THREE.WebGLRenderer({canvas:cv,antialias:true,preserveDrawingBuffer:true});R.setPixelRatio(1);R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.05;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;SNAP={R};}
+ const R=SNAP.R;R.setSize(w,h,false);const s=new THREE.Scene();const [W,D,H]=ROOM_SIZE[room];
+ if(room==='garden')s.background=new THREE.Color(0xbfe6ff);else s.background=new THREE.Color(0xfff6fb);
+ lights(s,Math.max(W,D),1024);const shell=new THREE.Group();s.add(shell);roomShell(shell,room,W,D,H);roomIdentity(shell,room,W,D,H);
+ if(room!=='garden'){const L=new THREE.PointLight(0xffe2b8,.35,9,2);L.position.set(0,H-.4,.6);s.add(L);}
+ const g=new THREE.Group();s.add(g);const items=fillItems(g,room,W,D,1.35);try{if(window.RK3.hydrateStorage)items.forEach(x=>window.RK3.hydrateStorage(x,room));}catch(e){}try{animateItems(items,0);}catch(e){}
+ const cam=new THREE.PerspectiveCamera(40,w/h,.1,80);const vf=cam.fov*Math.PI/180,hf=2*Math.atan(Math.tan(vf/2)*cam.aspect);const dist=(Math.max((W/2-.2)/Math.tan(hf/2),(H*.5)/Math.tan(vf/2))+D*.22)*.92;const tgt=new THREE.Vector3(0,H*.3,-.35),el=.16;
+ cam.position.set(0,tgt.y+Math.sin(el)*dist,tgt.z+Math.cos(el)*dist);cam.lookAt(tgt);cam.updateMatrixWorld();cam.updateProjectionMatrix();R.render(s,cam);
+ const spots=items.map(it=>{const b=new THREE.Box3().setFromObject(it),c=b.getCenter(new THREE.Vector3());const f=new THREE.Vector3(c.x,b.min.y,c.z).project(cam),t=new THREE.Vector3(c.x,b.max.y,c.z).project(cam);return {id:it.userData.id,x:(f.x+1)*50,y:(1-f.y)*50,top:(1-t.y)*50,wall:!!it.userData.onWall};});
+ const floorY=new THREE.Vector3(0,0,D*.25).project(cam);
+ const out={url:R.domElement.toDataURL('image/jpeg',.88),spots,floor:(1-floorY.y)*50};s.traverse(o=>{if(o.geometry&&o.geometry.dispose)o.geometry.dispose();});snapCache[key]=out;return out;}
+window.RK3=Object.assign(window.RK3||{},{roomSnapshot,openStorage:storageOpen,closeStorage:storageClose,setFridgeOpen(id,on){const g=ED.items.find(x=>x.userData.id===id);if(g&&g.userData.setFridgeOpen)g.userData.setFridgeOpen(on);},B,mat,fabric,gloss,wood,metalM,RB,BX,CY,SP,CO,add,rbox,eye,legs4,loadThree,shadeHex,canvasTex,rugTex,lights,makeItem,MODEL:(window.RK3&&window.RK3.MODEL)||{}});
 })();
 
 /* Fit game screens to the phone (Claude, Oct 29): when a new question appears, scroll so the prompt
