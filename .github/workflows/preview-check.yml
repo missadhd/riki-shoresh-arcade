@@ -1,0 +1,69 @@
+name: Preview check (screenshots)
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright browsers
+        run: npx --yes playwright install chromium --with-deps
+      - name: Start local static server
+        run: |
+          python3 -m http.server 4173 &
+          sleep 2
+          echo "Server started on 4173"
+      - name: Capture preview screenshots
+        run: |
+          mkdir -p preview-shots
+          cat > /tmp/preview.mjs << 'JS'
+          import { chromium } from 'playwright';
+          const browser = await chromium.launch();
+          const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+          await page.goto('http://127.0.0.1:4173/', { waitUntil: 'networkidle' });
+          await page.screenshot({ path: 'preview-shots/home.png', fullPage: true });
+          // Try to open dollhouse / decorate if the button exists
+          const house = await page.$('#houseShortcut, [id*="house"]');
+          if (house) {
+            await house.click();
+            await page.waitForTimeout(1500);
+            await page.screenshot({ path: 'preview-shots/after-house.png', fullPage: true });
+            const decorate = await page.$('#decorateTab');
+            if (decorate) {
+              await decorate.click();
+              await page.waitForTimeout(2000);
+              await page.screenshot({ path: 'preview-shots/decorate.png', fullPage: true });
+            }
+          }
+          await browser.close();
+          console.log('Screenshots saved');
+          JS
+          node /tmp/preview.mjs
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-screenshots
+          path: preview-shots/
+          retention-days: 7
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const msg = 'Preview screenshots uploaded as an artifact on this run.\n\nDownload the **preview-screenshots** artifact to see the home, house, and decorate views before merging.\n\n(Live site only updates after merge to main.)';
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: msg
+            });
