@@ -1,23 +1,13 @@
 {
-  "version": 3,
+  "version": 4,
   "canvas": [
     1086,
     1448
   ],
   "master": "master.png",
   "zOrder": [
-    "bracelet-back",
-    "neutral-base",
-    "eyes",
-    "blink",
-    "mouth",
-    "outfit",
-    "headband",
-    "earrings",
-    "hair-clips",
-    "shoes",
-    "bracelet-front",
-    "wave-pose"
+    "textured-skinned-mesh",
+    "joint-local-jewelry"
   ],
   "parts": {
     "neutralBase": "neutral-base-clean-v3.png",
@@ -29,79 +19,15 @@
     "mouthWide": "mouth-wide-fitted.png",
     "mouthO": "mouth-o-fitted.png"
   },
-  "anchors": {
-    "hat": [
-      512,
-      176
-    ],
-    "earLeft": [
-      338,
-      602
-    ],
-    "earRight": [
-      789,
-      602
-    ],
-    "shoulderLeft": [
-      422,
-      790
-    ],
-    "shoulderRight": [
-      622,
-      790
-    ],
-    "neck": [
-      522,
-      748
-    ],
-    "waist": [
-      522,
-      900
-    ],
-    "hip": [
-      522,
-      1020
-    ],
-    "handLeft": [
-      303,
-      1050
-    ],
-    "handRight": [
-      813,
-      1050
-    ],
-    "footLeft": [
-      450,
-      1370
-    ],
-    "footRight": [
-      598,
-      1370
-    ],
-    "hairClip": [
-      848,
-      411
-    ],
-    "shoeLeft": [
-      462,
-      1292
-    ],
-    "shoeRight": [
-      608,
-      1292
-    ],
-    "wristRight": [
-      784,
-      1015
-    ],
-    "waveWristRight": [
-      836,
-      740
-    ]
-  },
   "wearables": {
     "dress": "outfit-pink-dress-fitted-v3.webp",
-    "earrings": "accessory-earrings-studs-v12.png",
+    "earrings": {
+      "type": "joint-local-vector",
+      "attachments": [
+        "earringLeft",
+        "earringRight"
+      ]
+    },
     "hairClips": "accessory-hair-clips.webp",
     "mintDress": "outfit-mint-dress-fitted-v2.webp",
     "headbandOn": "accessory-headband-pink-clean.png",
@@ -112,9 +38,8 @@
       "mint": "accessory-shoes-mint.png"
     },
     "bracelet": {
-      "neutralBack": "accessory-bracelet-neutral-back-v2.png",
-      "neutralFront": "accessory-bracelet-neutral-front-v2.png",
-      "wave": "accessory-bracelet-wave-fitted-v2.png"
+      "type": "joint-local-vector",
+      "attachment": "bracelet"
     }
   },
   "garmentZones": {
@@ -127,28 +52,25 @@
     "note": "Rendered on the master pose; transparent garment pixels only."
   },
   "animations": {
+    "wave": {
+      "durationMs": 2200,
+      "type": "raised-pose-with-skinned-forearm-and-hand"
+    },
     "walk": {
-      "durationMs": 1600,
-      "parts": [
-        "walk-body",
-        "walk-hip-overlay",
-        "left-leg",
-        "right-leg"
-      ],
-      "steps": 4,
-      "note": "Four alternating foot lifts and body rise-and-fall; legs remain separated with no sideways glide."
+      "durationMs": 2400,
+      "type": "continuous-leg-mesh"
     },
     "jump": {
-      "durationMs": 850,
-      "parts": [
-        "wholeRig"
-      ],
-      "note": "Whole-rig movement prevents seams."
-    },
-    "wave": {
       "durationMs": 950,
-      "type": "fullPose",
-      "note": "Complete one-piece pose keeps hair, shoulder, wrist, and hand continuous."
+      "type": "root-transform"
+    },
+    "nod": {
+      "durationMs": 1100,
+      "type": "head-joint"
+    },
+    "reach": {
+      "durationMs": 1600,
+      "type": "forearm-joint"
     }
   },
   "wavePoses": {
@@ -157,9 +79,9 @@
     "mint": "wave-pose-mint-v1.webp"
   },
   "rendering": {
-    "neutralPose": "Flattened seamless body and hair base with a clean rebuilt lower jaw; the previous gray chin crescent is removed.",
-    "facialFeatures": "Eyes and four mouth states remain independent, while the clean nose and cheek pixels stay in the neutral base without a blurred skin disc.",
-    "accessories": "A matched pair of tucked flower studs shares one visual baseline so both earrings stay attached and even during motion. Skin-clipped cuffs cross each wrist perpendicular to the arm and use a real rear layer in the neutral pose."
+    "neutralPose": "Seamless textured 2D mesh; head, ears, forearm, wrist and legs use skin weights.",
+    "facialFeatures": "Eyes and mouth compose into the same texture before mesh deformation so they follow the head.",
+    "accessories": "Local vector studs and cuff inherit earlobe/wrist joint world matrices. No full-canvas jewelry sprites."
   },
   "walkRig": {
     "body": "walk-body.png",
@@ -179,5 +101,152 @@
     "durationMs": 1600,
     "steps": 4,
     "note": "Alternating vertical foot lifts with slight outward angles prevent the legs from crossing; feathered hip overlay hides the joint."
+  },
+  "jointRig": {
+    "units": "character height = 1; local transforms independent of raster and viewport dimensions",
+    "aspect": 0.75,
+    "bones": {
+      "root": {
+        "parent": null,
+        "position": [
+          0,
+          0
+        ]
+      },
+      "body": {
+        "parent": "root",
+        "position": [
+          0,
+          0
+        ]
+      },
+      "head": {
+        "parent": "body",
+        "position": [
+          0.387,
+          0.503
+        ]
+      },
+      "earLeft": {
+        "parent": "head",
+        "position": [
+          -0.15081215,
+          -0.09554143999999998
+        ]
+      },
+      "earRight": {
+        "parent": "head",
+        "position": [
+          0.15374586,
+          -0.08518231999999998
+        ]
+      },
+      "shoulderRight": {
+        "parent": "body",
+        "position": [
+          0.469,
+          0.581
+        ]
+      },
+      "forearmRight": {
+        "parent": "shoulderRight",
+        "position": [
+          0.02754696000000001,
+          0.06333702000000008
+        ]
+      },
+      "wristRight": {
+        "parent": "forearmRight",
+        "position": [
+          0.032458560000000025,
+          0.044889499999999916
+        ],
+        "rotation": -0.6108652381980153
+      },
+      "legLeft": {
+        "parent": "body",
+        "position": [
+          0.322,
+          0.742
+        ]
+      },
+      "legRight": {
+        "parent": "body",
+        "position": [
+          0.425,
+          0.742
+        ]
+      }
+    },
+    "poses": {
+      "neutral": {},
+      "wave": {
+        "head": {
+          "position": [
+            0.387,
+            0.491
+          ]
+        },
+        "earLeft": {
+          "position": [
+            -0.14943094,
+            -0.09182872999999997
+          ]
+        },
+        "earRight": {
+          "position": [
+            0.15443646,
+            -0.08354143999999997
+          ]
+        },
+        "shoulderRight": {
+          "position": [
+            0.489,
+            0.539
+          ]
+        },
+        "forearmRight": {
+          "position": [
+            0.051055249999999996,
+            0.021082869999999976
+          ]
+        },
+        "wristRight": {
+          "position": [
+            0.03936464000000006,
+            -0.05870165000000005
+          ],
+          "rotation": 0.6108652381980153
+        }
+      }
+    },
+    "attachments": {
+      "earringLeft": {
+        "bone": "earLeft",
+        "position": [
+          0,
+          0
+        ],
+        "radius": 0.0046
+      },
+      "earringRight": {
+        "bone": "earRight",
+        "position": [
+          0,
+          0
+        ],
+        "radius": 0.0046
+      },
+      "bracelet": {
+        "bone": "wristRight",
+        "position": [
+          0,
+          0
+        ],
+        "radius": 0.01864641,
+        "depth": 0.0048
+      }
+    },
+    "note": "The renderer loads this hierarchy. Accessories use only bone-local origin and radius. Bind landmarks describe the textured 2D mesh; they are not viewport pixel offsets."
   }
 }
