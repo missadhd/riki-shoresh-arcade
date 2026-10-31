@@ -592,4 +592,4 @@ body{background:#f7f4f8!important;color:#443247}
 .catalog-choosing .catalog-tools,.catalog-choosing .catalog-filters,.catalog-choosing #catalogProducts,.catalog-choosing .catalog-collections{display:none}
 
 /* Keep the full hugging-hearts Social Skills illustration inside its atlas cell. */
-#hubSocial .hub-ic::before{background-size:380% 380%;background-position:33.04% 0%;}
+#hubSocial .hub-ic::before{background-size:400% 400%;background-position:33.333333% 0%;transform:scale(.83);transform-origin:center center;}
