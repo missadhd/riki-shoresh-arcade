@@ -4,6 +4,7 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
+| ChatGPT | `chatgpt/header-coin-security-audit` | `assets/styles/16-styles.css`, `COORDINATION.md`, `docs/security-review-2026-10.md` | Header and security review |
 
 ## Map of the code
 
