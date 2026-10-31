@@ -25,17 +25,17 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify authentication is configured
         env:
-          CLAUDE_AUTH: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_AUTH: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         shell: bash
         run: |
           if [ -z "$CLAUDE_AUTH" ]; then
-            echo "::error::Add ANTHROPIC_API_KEY under GitHub Actions secrets, and install the Claude GitHub App, before using dispatch."
+            echo "::error::Add CLAUDE_CODE_OAUTH_TOKEN under GitHub Actions secrets. Generate via claude setup-token locally."
             exit 1
           fi
       - name: Run Claude on the approved issue
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             Work on Arcade issue #${{ github.event_name == 'workflow_dispatch' && inputs.issue_number || github.event.issue.number }} in missadhd/riki-shoresh-arcade.
             Read AGENTS.md and COORDINATION.md. Respect active PR file claims.
