@@ -34,12 +34,10 @@ self.addEventListener('fetch',event=>{
  }
  const path=url.pathname;
  if(!/\.(?:js|css|html|webmanifest|svg|png|jpg|jpeg|webp)$/i.test(path))return;
- event.respondWith(caches.match(req).then(async cached=>{
-  if(cached)return cached;
-  const res=await fetch(req);
+ event.respondWith(fetch(req).then(async res=>{
   if(res.ok && res.type==='basic' && !/\.(?:png|jpg|jpeg|webp)$/i.test(path)){
    (await caches.open(CACHE)).put(req,res.clone());
   }
   return res;
- }));
+ }).catch(async()=> (await caches.match(req)) || Response.error()));
 });
