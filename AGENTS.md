@@ -82,3 +82,11 @@ After publishing, tell Rachel in a few lines: what changed, what was tested, and
 - Keep progress reports short: what changed, tests actually run, risks, and next action. On a new session, summarize the current branch, relevant PR, claimed files, and remaining work rather than repeating long transcripts.
 - Do not confuse Git ignore rules with Codex context controls: `.gitignore` prevents untracked files from being added to Git by default, but does not prevent Codex from reading files.
 - Preserve all coordination, saved-progress, and publishing protections above. Never sacrifice testing quality merely to save tokens.
+
+## 11. Choose the right operating mode automatically
+
+- **Explore (new major creative direction):** Research comparable experiences and competing concepts; compare educational value, accessibility, enjoyment, and feasibility. Present the best concept for Rachel's creative approval **before building it**.
+- **Build (approved concept):** Once Rachel approves, carry out implementation, relevant asset creation, tests, iterative fixes, and publication without seeking approval for every technical step. Escalate major redesigns, paid services, permissions, or destructive data changes.
+- **Fix (defect or already-requested behavior):** Rachel's report itself authorizes diagnosis, repair, real-browser verification when available, regression tests, and publication. Do not repeatedly ask permission. A successful code edit is not proof the deployed UI is fixed.
+- Maintain separate file claims and GitHub coordination in all modes. Do not fabricate automated tool access, completed testing, or third-party integration. See `docs/next-task.md` for the current scope and future asset-production concept.
+- **Current Fix priority:** Shoreshim must appear first in the actual primary learning navigation on desktop and mobile. Investigate the rendered ordering source, fix it, and test the live result; do not treat this as a new creative proposal.
