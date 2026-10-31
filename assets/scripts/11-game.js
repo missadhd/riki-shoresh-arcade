@@ -292,27 +292,30 @@ function roomShell(g,id,W,D,H,opts={}){
     panel.rotation.x = -Math.PI / 2;
     panel.castShadow = false;
   } else {
-    const ceilMat = mat(st.color, 0.92);
-    const plane = add(ceil, new THREE.PlaneGeometry(W - 0.08, D - 0.08), ceilMat, 0, H - 0.02, 0);
-    plane.rotation.x = Math.PI / 2;
-    plane.receiveShadow = true;
-    plane.castShadow = false;
-    plane.raycast = () => {};
+    // Thin solid ceiling box so it is visible from the normal camera angle
+    const ceilMat = mat(st.color, 0.85, 0, { side: THREE.DoubleSide });
+    const slab = add(ceil, new THREE.BoxGeometry(W - 0.04, 0.08, D - 0.04), ceilMat, 0, H - 0.06, 0);
+    slab.castShadow = false;
+    slab.receiveShadow = true;
+    slab.raycast = () => {};
 
-    const mold = mat('#fffaf4', 0.5);
-    BX(ceil, W, 0.06, 0.08, mold, 0, H - 0.05, -D/2 + 0.04);
-    BX(ceil, W, 0.06, 0.08, mold, 0, H - 0.05,  D/2 - 0.04);
+    // Crown molding that hangs down into view
+    const mold = mat('#fffaf4', 0.45);
+    BX(ceil, W, 0.12, 0.1, mold, 0, H - 0.14, -D/2 + 0.05);
+    BX(ceil, W, 0.12, 0.1, mold, 0, H - 0.14,  D/2 - 0.05);
     if (!opts.noSides) {
-      BX(ceil, 0.08, 0.06, D, mold, -W/2 + 0.04, H - 0.05, 0);
-      BX(ceil, 0.08, 0.06, D, mold,  W/2 - 0.04, H - 0.05, 0);
+      BX(ceil, 0.1, 0.12, D, mold, -W/2 + 0.05, H - 0.14, 0);
+      BX(ceil, 0.1, 0.12, D, mold,  W/2 - 0.05, H - 0.14, 0);
     }
 
+    // Hanging light fixture that drops into the camera view
     const fix = mat(st.fixture, 0.4);
-    CY(ceil, 0.18, 0.22, 0.06, fix, 0, H - 0.12, 0, 20);
-    const bulb = add(ceil, new THREE.SphereGeometry(0.08, 16, 12), mat('#fff8e1', 0.2, 0, { emissive: new THREE.Color('#ffe2a0'), emissiveIntensity: 0.6 }), 0, H - 0.18, 0);
+    CY(ceil, 0.02, 0.02, 0.35, fix, 0, H - 0.28, 0, 8); // cord
+    CY(ceil, 0.22, 0.16, 0.1, fix, 0, H - 0.5, 0, 20);   // shade
+    const bulb = add(ceil, new THREE.SphereGeometry(0.07, 16, 12), mat('#fff8e1', 0.2, 0, { emissive: new THREE.Color('#ffe2a0'), emissiveIntensity: 0.8 }), 0, H - 0.52, 0);
     bulb.raycast = () => {};
-    const L = new THREE.PointLight(0xfff0d0, 0.25, 6, 2);
-    L.position.set(0, H - 0.25, 0);
+    const L = new THREE.PointLight(0xfff0d0, 0.4, 7, 2);
+    L.position.set(0, H - 0.6, 0);
     ceil.add(L);
   }
   ceil.visible = true;
