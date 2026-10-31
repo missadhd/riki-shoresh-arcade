@@ -554,7 +554,9 @@ function edCamera(){
   const c=ED.R.domElement,w=c.clientWidth||1,h=c.clientHeight||1;ED.cam.aspect=w/h;ED.cam.fov=42;
   const vf=ED.cam.fov*Math.PI/180,hf=2*Math.atan(Math.tan(vf/2)*ED.cam.aspect);
   const need=Math.max((ED.W/2+.15)/Math.tan(hf/2),(ED.H*.62)/Math.tan(vf/2));const dist=need*ED.zoom+ED.D*.35;
-  const tgt=new THREE.Vector3(0,ED.H*.3,-.3);
+  // When looking up, aim higher so the full ceiling can come into view
+  const lookY = ED.H * (0.3 + Math.max(0, ED.el - 0.4) * 0.55);
+  const tgt=new THREE.Vector3(0, lookY, -.3);
   ED.cam.position.set(tgt.x+Math.sin(ED.az)*Math.cos(ED.el)*dist,tgt.y+Math.sin(ED.el)*dist,tgt.z+Math.cos(ED.az)*Math.cos(ED.el)*dist);ED.cam.lookAt(tgt);ED.cam.updateProjectionMatrix();
 }
 function edResize(){if(!ED.R)return;const c=ED.R.domElement.parentElement;if(!c)return;const w=c.clientWidth,h=c.clientHeight;if(!w||!h)return;ED.R.setSize(w,h,false);}
@@ -586,7 +588,7 @@ function edPointers(cv){
     if(!d.moved)return;
     if(d.item&&!d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v){d.item.position.x=v.x;d.item.position.z=v.z;}}
     else if(d.item&&d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v)d.item.position.x=v.x;}
-    else{ED.azT=cl(ED.azT-(e.clientX-d.lx)*.006,-.9,.9);ED.elT=cl(ED.elT+(e.clientY-d.ly)*.004,.12,.9);ED.az=ED.azT;ED.el=ED.elT;}
+    else{ED.azT=cl(ED.azT-(e.clientX-d.lx)*.006,-.9,.9);ED.elT=cl(ED.elT+(e.clientY-d.ly)*.004,.12,1.25);ED.az=ED.azT;ED.el=ED.elT;}
     d.lx=e.clientX;d.ly=e.clientY;});
   const up=e=>{if(ED.storage){storageUp(e);return;}const d=ED.drag;if(!d||d.id!==e.pointerId)return;ED.drag=null;
     if(ED.preview){if(!d.moved&&!d.item){const v=hitFloor({x:e.clientX,y:e.clientY});if(v&&!ED.preview.group.userData.onWall){ED.preview.group.position.x=v.x;ED.preview.group.position.z=v.z;}else if(v)ED.preview.group.position.x=v.x;}return;}

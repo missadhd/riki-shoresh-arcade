@@ -4,6 +4,7 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
+| Grok | grok/ceiling-camera | assets/scripts/11-game.js, COORDINATION.md | In progress — camera can look higher at ceiling |
 
 ## Map of the code
 
