@@ -538,3 +538,27 @@ body{background:#f7f4f8!important;color:#443247}
  .top .stats>#settingsToggle{grid-row:3!important;grid-column:3!important}
  .top .stats>.sound-settings{grid-row:4!important}
 }
+
+/* Compact persistent wallet: coins are a status badge, never a navigation tab. */
+.top{position:sticky!important;top:0!important;z-index:1000!important;isolation:isolate}
+.top .brand{padding-right:94px!important;min-height:34px;display:flex;align-items:center}
+.top .stats{position:static!important}
+.top .stats>#coins{
+ position:absolute!important;top:10px!important;right:12px!important;left:auto!important;
+ grid-row:auto!important;grid-column:auto!important;display:inline-flex!important;
+ align-items:center!important;justify-content:center!important;
+ width:auto!important;min-width:0!important;max-width:88px!important;height:34px!important;
+ margin:0!important;padding:4px 10px!important;box-sizing:border-box!important;
+ border-radius:999px!important;border:2px solid #f3d6dc!important;
+ background:#fff!important;color:#4a2338!important;font:800 13px/1 "Nunito",sans-serif!important;
+ font-variant-numeric:tabular-nums;white-space:nowrap!important;box-shadow:none!important;
+ pointer-events:none
+}
+.top .stats>#settingsToggle{grid-row:2!important;grid-column:5!important;justify-self:end!important;width:auto!important;min-height:36px!important}
+.top .stats>.sound-settings{grid-row:3!important}
+@media(max-width:540px){
+ .top .brand{padding-right:82px!important;font-size:clamp(15px,4vw,21px)!important}
+ .top .stats>#coins{top:10px!important;right:10px!important;max-width:76px!important;padding:4px 7px!important;font-size:12px!important}
+ .top .stats>#settingsToggle{grid-row:3!important;grid-column:3!important}
+ .top .stats>.sound-settings{grid-row:4!important}
+}
