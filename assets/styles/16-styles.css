@@ -571,3 +571,22 @@ body{background:#f7f4f8!important;color:#443247}
 .hub-grid #hubPlay .hub-ic{width:70px;height:76px;min-height:76px;grid-row:1/3;padding:5px 0}
 .hub-grid #hubPlay .hub-ic::before{width:60px;height:60px}
 @media(max-width:360px){.hub-grid .hub-ic{height:82px;min-height:82px}.hub-grid .hub-ic::before{width:68px;height:68px}}
+
+/* Little Clay Boutique: two-level navigation keeps the first decision simple. */
+.catalog-simple-nav{margin:14px 0 18px}.catalog-simple-nav h3{margin:0 0 12px;font-size:1.2rem}
+.catalog-main-choices{display:grid;grid-template-columns:1fr;gap:12px}
+.catalog-main-group,.catalog-collections{border:2px solid #ead9e8;border-radius:18px;padding:12px;background:#fff9fd}
+.catalog-main-group summary,.catalog-collections summary{cursor:pointer;font-weight:900;font-size:17px;list-style:revert;min-height:42px;align-content:center;color:#563456}
+.catalog-main-group p{font-weight:800;font-size:14px;margin:8px 0}
+.catalog-main-group .catalog-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:none;overflow:visible}
+.catalog-main-group .catalog-tabs button{white-space:normal;min-height:54px}
+.catalog-special-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.catalog-special-choices button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:88px;padding:10px 5px;border-radius:16px;border:2px solid #ead9e8;background:#fff;color:#543752;font-weight:900;cursor:pointer}
+.catalog-special-choices button span{font-size:27px}
+.catalog-special-choices button.active{background:#fce5ef;border-color:#db91b2}
+.catalog-collections{margin-top:12px}.catalog-collections .catalog-tabs{display:flex;gap:8px;overflow-x:auto;padding:8px 0}
+.catalog-simple-nav button:focus-visible,.catalog-simple-nav summary:focus-visible{outline:3px solid #9556b4;outline-offset:3px}
+@media(min-width:750px){.catalog-main-choices{grid-template-columns:1fr 1.5fr}.catalog-special-choices{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* No giant product list before Riki chooses a shop section. */
+.catalog-choosing .catalog-tools,.catalog-choosing .catalog-filters,.catalog-choosing #catalogProducts,.catalog-choosing .catalog-collections{display:none}
