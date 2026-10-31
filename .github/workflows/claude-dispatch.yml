@@ -1,0 +1,48 @@
+name: Claude Arcade task dispatch
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Existing approved Arcade task issue number
+        required: true
+        type: number
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+jobs:
+  claude-task:
+    if: >-
+      github.actor == 'missadhd' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'issues' && github.event.label.name == 'claude-ready'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify authentication is configured
+        env:
+          CLAUDE_AUTH: ${{ secrets.ANTHROPIC_API_KEY }}
+        shell: bash
+        run: |
+          if [ -z "$CLAUDE_AUTH" ]; then
+            echo "::error::Add ANTHROPIC_API_KEY under GitHub Actions secrets, and install the Claude GitHub App, before using dispatch."
+            exit 1
+          fi
+      - name: Run Claude on the approved issue
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Work on Arcade issue #${{ github.event_name == 'workflow_dispatch' && inputs.issue_number || github.event.issue.number }} in missadhd/riki-shoresh-arcade.
+            Read AGENTS.md and COORDINATION.md. Respect active PR file claims.
+            Fetch the issue from GitHub, determine whether it is Fix Mode or an approved Build task.
+            Do not build unapproved Explore concepts. Do not spend on other external paid services.
+            Use your own branch and pull request. Preserve all saved-progress keys.
+            Implement bounded changes, run relevant tests, publish safe fixes per project rules.
+            Do not claim visual tests passed without actual browser evidence.
+            Add precise completion/limitations to the issue and PR.
+          claude_args: "--max-turns 18"

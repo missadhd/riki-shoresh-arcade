@@ -1,0 +1,33 @@
+name: Arcade lightweight quality gate
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  syntax-and-guardrails:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+          done < <(find assets/scripts -type f -name '*.js' -print0)
+      - name: Protected save keys documented
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const instructions = fs.readFileSync('AGENTS.md','utf8');
+          const keys = ['rickyCoins','rickyHouseInventoryV1','rickyHouseDecorV1','rickyHouseWallsV1','rickyDreamStorageV2','rickyDreamPetsV2','rickyDreamPositionsV2','rickyRoomInteriorsV3','rickyTinyOwnedV1','rickyTinyPlacedV1','rickyAdventureXPV1','rickySpatialMusicV1','riki3dOrbit','rikiReal3dAz','rikiRootProgressV1','rikiDreamRotationV1','rikiClawPlushV1'];
+          const missing = keys.filter(k=>!instructions.includes(k));
+          if(missing.length){console.error('Protected keys absent from AGENTS.md:',missing);process.exitCode=1}
+          else console.log('All 17 protected save keys remain documented.');
+          NODE

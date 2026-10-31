@@ -88,6 +88,10 @@ const SL_CSS=`
 .sl-bubble{position:relative;min-height:46px;max-width:100%;background:#fff;border:2px solid #4a2338;border-radius:16px;padding:7px 10px;font-weight:800;font-size:14px;line-height:1.25;color:#4a2338;opacity:0;transform:scale(.8);transition:.25s}
 .sl-bubble.on{opacity:1;transform:none}
 .sl-bubble::after{content:"";position:absolute;bottom:-9px;left:50%;border:8px solid transparent;border-top-color:#4a2338;border-bottom:0;transform:translateX(-50%)}
+.sl-scene{overflow:visible;grid-template-columns:repeat(2,minmax(0,1fr));height:auto;min-height:260px;isolation:isolate}
+.sl-actor{min-width:0}
+.sl-bubble{box-sizing:border-box;width:100%;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:normal;min-height:52px;height:auto;text-align:center;font-size:clamp(12px,2.4vw,14px)}
+@media(max-width:420px){.sl-scene{min-height:240px;padding:12px 6px 10px;gap:4px}.sl-bubble{font-size:12px;padding:7px 6px}}
 .sl-actor.talk svg{animation:none}
 .sl-actor.bounce svg{animation:slBounce .55s cubic-bezier(.3,1.6,.5,1) 2}
 .sl-actor.shake svg{animation:slShake .45s ease-in-out 2}
