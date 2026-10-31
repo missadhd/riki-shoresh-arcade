@@ -15,8 +15,8 @@ Approval of the concept authorizes ordinary implementation decisions, targeted 2
 ### Fix — reported defects or previously requested behavior
 A bug report, missing control, regression, layout clipping, incorrect ordering, or already agreed requirement is sufficient authorization to investigate, patch, regression-test, and publish. **Do not request repeated approval.** Check the live user-facing result; do not equate a code edit with success. Escalate only if a major redesign, saved-progress changes, external paid action, or conflicting user decision is required.
 
-## Current priority: Shoreshim first
-Ensure the Shoreshim learning game/category is the first clearly visible option in the live arcade's primary learning navigation, including desktop and phone-sized layouts. Determine the actual rendered UI source and ordering logic before editing. Confirm on the deployed site; test keyboard/touch navigation and saved progress. If multiple views differ, align the primary home entry point without hiding Social Skills or other games. This is an authorized **Fix Mode** task, not a proposal needing another approval.
+## Current priority: permanent Shoreshim top tab
+Keep a **Shoreshim** navigation tab permanently visible in the header from anywhere in the arcade, alongside Dollhouse and other main sections. The request is **not** to reorder the learning games. The existing `#gamesShortcut` uses the `menu()` route, but a later CSS rule hides its button. Restore header visibility and click/touch accessibility on desktop and phone-sized layouts, without altering other games or saved progress. Confirm the actual deployed experience. This is an authorized **Fix Mode** task.
 
 ## Future production loop (not yet fully automated)
 1. Research and compare concepts (Explore).
