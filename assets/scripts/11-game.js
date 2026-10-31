@@ -248,19 +248,19 @@ function roomShell(g,id,W,D,H,opts={}){
     [.25,.55].forEach(y=>BX(g,W+1,.06,.04,fence,0,y,-D/2+.04));
     for(let i=0;i<5;i++){const s=add(g,new THREE.CylinderGeometry(.22,.24,.04,10),mat('#ffffff',.9,0,{map:stoneTex()}),(i-2)*.28,.01,D/2-.2-i*.55);s.castShadow=false;}
     [[-W/2,-D/2+.3],[W/2,-D/2+.3]].forEach(([x,z])=>{[0,.3,-.3].forEach((dx,i)=>add(g,new THREE.IcosahedronGeometry(.32-i*.05,1),mat(['#4f9e5b','#5fb06a','#3e8a4c'][i],.9),x+dx,.25,z));});
-    return;
+  } else {
+    const fl=woodFloor().clone();fl.needsUpdate=true;fl.repeat.set(W/2.2,D/2.2);
+    const floor=add(g,new THREE.BoxGeometry(W,.12,D),mat('#ffffff',.55,0,{map:fl}),0,-.06,0);floor.castShadow=false;
+    const wt=wallFor(id).clone();wt.needsUpdate=true;wt.repeat.set(W/2,H/2);const wtS=wallFor(id).clone();wtS.needsUpdate=true;wtS.repeat.set(D/2,H/2);
+    const wm=mat('#ffffff',.92,0,{map:wt}),wms=mat('#ffffff',.92,0,{map:wtS});
+    const back=add(g,new THREE.BoxGeometry(W,H,.12),wm,0,H/2,-D/2-.06);back.castShadow=false;
+    if(!opts.noSides){const L=add(g,new THREE.BoxGeometry(.12,H,D),wms,-W/2-.06,H/2,0);const R=add(g,new THREE.BoxGeometry(.12,H,D),wms,W/2+.06,H/2,0);L.castShadow=R.castShadow=false;}
+    const trim=mat('#fffaf4',.5);
+    BX(g,W,.16,.04,trim,0,.08,-D/2+.02);BX(g,W,.08,.08,trim,0,H-.04,-D/2+.04);BX(g,W,.04,.03,trim,0,1.0,-D/2+.015);
+    if(!opts.noSides)[-1,1].forEach(s=>{BX(g,.04,.16,D,trim,s*(W/2-.02),.08,0);BX(g,.08,.08,D,trim,s*(W/2-.04),H-.04,0);});
+    const wins=opts.windows||(W>5.5?[-W/4,W/4]:[0]);wins.forEach(x=>windowOn(g,x,H*.56,-D/2+.01,0,id));
+    if(!opts.noSides&&W>=5.5)windowOn(g,W/2-.01,H*.56,0,-Math.PI/2,id);
   }
-  const fl=woodFloor().clone();fl.needsUpdate=true;fl.repeat.set(W/2.2,D/2.2);
-  const floor=add(g,new THREE.BoxGeometry(W,.12,D),mat('#ffffff',.55,0,{map:fl}),0,-.06,0);floor.castShadow=false;
-  const wt=wallFor(id).clone();wt.needsUpdate=true;wt.repeat.set(W/2,H/2);const wtS=wallFor(id).clone();wtS.needsUpdate=true;wtS.repeat.set(D/2,H/2);
-  const wm=mat('#ffffff',.92,0,{map:wt}),wms=mat('#ffffff',.92,0,{map:wtS});
-  const back=add(g,new THREE.BoxGeometry(W,H,.12),wm,0,H/2,-D/2-.06);back.castShadow=false;
-  if(!opts.noSides){const L=add(g,new THREE.BoxGeometry(.12,H,D),wms,-W/2-.06,H/2,0);const R=add(g,new THREE.BoxGeometry(.12,H,D),wms,W/2+.06,H/2,0);L.castShadow=R.castShadow=false;}
-  const trim=mat('#fffaf4',.5);
-  BX(g,W,.16,.04,trim,0,.08,-D/2+.02);BX(g,W,.08,.08,trim,0,H-.04,-D/2+.04);BX(g,W,.04,.03,trim,0,1.0,-D/2+.015);
-  if(!opts.noSides)[-1,1].forEach(s=>{BX(g,.04,.16,D,trim,s*(W/2-.02),.08,0);BX(g,.08,.08,D,trim,s*(W/2-.04),H-.04,0);});
-  const wins=opts.windows||(W>5.5?[-W/4,W/4]:[0]);wins.forEach(x=>windowOn(g,x,H*.56,-D/2+.01,0,id));
-  if(!opts.noSides&&W>=5.5)windowOn(g,W/2-.01,H*.56,0,-Math.PI/2,id);
 
   /* ---- ceilings (Grok) ---- */
   const ceil = new THREE.Group();
@@ -269,17 +269,16 @@ function roomShell(g,id,W,D,H,opts={}){
   g.userData.ceiling = ceil;
 
   const styles = {
-    bedroom:  { color: '#f8e8ef', fixture: '#f7dbe7', pattern: 'stars' },
-    living:   { color: '#f4efe8', fixture: '#e8d5c4', pattern: 'plain' },
-    kitchen:  { color: '#fff6e8', fixture: '#f0d9b5', pattern: 'dots' },
-    bathroom: { color: '#eef7f8', fixture: '#d8eef0', pattern: 'plain' },
-    playroom: { color: '#f9f0e8', fixture: '#eeb4c7', pattern: 'stars' },
-    garden:   { color: '#d8f0d0', fixture: '#c8e6c0', pattern: 'none' }
+    bedroom:  { color: '#f8e8ef', fixture: '#f7dbe7' },
+    living:   { color: '#f4efe8', fixture: '#e8d5c4' },
+    kitchen:  { color: '#fff6e8', fixture: '#f0d9b5' },
+    bathroom: { color: '#eef7f8', fixture: '#d8eef0' },
+    playroom: { color: '#f9f0e8', fixture: '#eeb4c7' },
+    garden:   { color: '#d8f0d0', fixture: '#c8e6c0' }
   };
   const st = styles[id] || styles.bedroom;
 
   if (id === 'garden') {
-    // Open pergola: light beams, not a solid ceiling
     const beam = wood('#e8dcc8');
     const beamH = 0.08;
     for (let i = -1; i <= 1; i++) {
@@ -288,21 +287,18 @@ function roomShell(g,id,W,D,H,opts={}){
     for (let i = -2; i <= 2; i++) {
       BX(ceil, 0.1, beamH, D + 0.3, beam, 0, H + 0.15, i * (D / 4.5));
     }
-    // Soft fabric canopy panels (semi-transparent)
     const canopy = mat('#fff8e6', 0.9, 0, { transparent: true, opacity: 0.35, side: THREE.DoubleSide });
     const panel = add(ceil, new THREE.PlaneGeometry(W * 0.7, D * 0.55), canopy, 0, H + 0.12, 0.2);
     panel.rotation.x = -Math.PI / 2;
     panel.castShadow = false;
   } else {
-    // Solid indoor ceiling
     const ceilMat = mat(st.color, 0.92);
     const plane = add(ceil, new THREE.PlaneGeometry(W - 0.08, D - 0.08), ceilMat, 0, H - 0.02, 0);
     plane.rotation.x = Math.PI / 2;
     plane.receiveShadow = true;
     plane.castShadow = false;
-    plane.raycast = () => {}; // never block selection
+    plane.raycast = () => {};
 
-    // Crown molding
     const mold = mat('#fffaf4', 0.5);
     BX(ceil, W, 0.06, 0.08, mold, 0, H - 0.05, -D/2 + 0.04);
     BX(ceil, W, 0.06, 0.08, mold, 0, H - 0.05,  D/2 - 0.04);
@@ -311,7 +307,6 @@ function roomShell(g,id,W,D,H,opts={}){
       BX(ceil, 0.08, 0.06, D, mold,  W/2 - 0.04, H - 0.05, 0);
     }
 
-    // Simple center light fixture
     const fix = mat(st.fixture, 0.4);
     CY(ceil, 0.18, 0.22, 0.06, fix, 0, H - 0.12, 0, 20);
     const bulb = add(ceil, new THREE.SphereGeometry(0.08, 16, 12), mat('#fff8e1', 0.2, 0, { emissive: new THREE.Color('#ffe2a0'), emissiveIntensity: 0.6 }), 0, H - 0.18, 0);
@@ -320,7 +315,6 @@ function roomShell(g,id,W,D,H,opts={}){
     L.position.set(0, H - 0.25, 0);
     ceil.add(L);
   }
-  // Default visible; toggle controlled externally
   ceil.visible = true;
 }
 function roomIdentity(g,id,W,D,H){
