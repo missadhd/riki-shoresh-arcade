@@ -1,0 +1,39 @@
+name: Social Detective 18-choice viewport regression
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'assets/scripts/**'
+      - 'assets/styles/**'
+      - 'tests/social-detective-ci.mjs'
+      - '.github/workflows/social-detective-regression.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  social-detective:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser dependencies
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start static arcade server
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/riki-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8765/ >/dev/null && exit 0; sleep 1; done
+          exit 1
+      - name: Test every Social Detective choice on three viewports
+        run: node tests/social-detective-ci.mjs
+      - name: Save failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: social-detective-failures
+          path: social-failure-*.png
+          if-no-files-found: ignore
