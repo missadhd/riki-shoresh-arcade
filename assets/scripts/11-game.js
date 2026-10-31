@@ -93,7 +93,7 @@ function curtainFor(room){
 const matCache={};
 function mat(c,rough=.75,metal=0,extra){
   // Matte clay on opaque toy surfaces; keep eyes, glass, water and lights crisp.
-  if(rough>=.2&&metal<.5&&!(extra&&(extra.transparent||extra.emissive))){rough=Math.max(.78,rough);}
+  if(rough>=.2&&metal<.5&&!(extra&&(extra.transparent||extra.emissive))){rough=Math.max(.88,rough);}
   const k=c+rough+metal+(extra?JSON.stringify(Object.keys(extra)):'');if(!extra&&matCache[k])return matCache[k];
   const m=new THREE.MeshStandardMaterial(Object.assign({color:new THREE.Color(c).convertSRGBToLinear(),roughness:rough,metalness:metal},extra||{}));if(!extra)matCache[k]=m;return m;}
 const fabric=c=>mat(c,.95),gloss=c=>mat(c,.22),wood=(c='#b9824f')=>mat(c,.88),metalM=(c='#d8b46a')=>mat(c,.65,.28);
@@ -279,18 +279,11 @@ function roomShell(g,id,W,D,H,opts={}){
   const st = styles[id] || styles.bedroom;
 
   if (id === 'garden') {
-    const beam = wood('#e8dcc8');
-    const beamH = 0.08;
-    for (let i = -1; i <= 1; i++) {
-      BX(ceil, W + 0.4, beamH, 0.12, beam, i * (W / 3.2), H + 0.15, 0);
-    }
-    for (let i = -2; i <= 2; i++) {
-      BX(ceil, 0.1, beamH, D + 0.3, beam, 0, H + 0.15, i * (D / 4.5));
-    }
-    const canopy = mat('#fff8e6', 0.9, 0, { transparent: true, opacity: 0.35, side: THREE.DoubleSide });
-    const panel = add(ceil, new THREE.PlaneGeometry(W * 0.7, D * 0.55), canopy, 0, H + 0.12, 0.2);
-    panel.rotation.x = -Math.PI / 2;
-    panel.castShadow = false;
+    // Open sky — no ceiling. Soft distant clouds only.
+    const sky = add(ceil, new THREE.PlaneGeometry(W + 4, D + 4), new THREE.MeshBasicMaterial({ map: skyTex(), side: THREE.DoubleSide }), 0, H + 1.2, 0);
+    sky.rotation.x = -Math.PI / 2;
+    sky.castShadow = false;
+    sky.raycast = () => {};
   } else {
     // Thin solid ceiling box so it is visible from the normal camera angle
     const ceilMat = mat(st.color, 0.85, 0, { side: THREE.DoubleSide });
@@ -375,12 +368,12 @@ function fillItems(group,room,W,D,S){
   return out;
 }
 function lights(scene,size,shadowMap){
-  scene.add(new THREE.HemisphereLight(0xfff4ea,0xc9a27e,.55));scene.add(new THREE.AmbientLight(0xffffff,.12));
-  const sun=new THREE.DirectionalLight(0xfff1dd,1.05);sun.position.set(-size*.6,size*1.3,size*1.1);sun.castShadow=true;sun.shadow.mapSize.set(shadowMap,shadowMap);
-  const c=sun.shadow.camera;c.left=-size;c.right=size;c.top=size;c.bottom=-size;c.near=.5;c.far=size*5;sun.shadow.bias=-.0006;sun.shadow.normalBias=.02;sun.shadow.radius=4;scene.add(sun);
-  const fill=new THREE.DirectionalLight(0xe6efff,.25);fill.position.set(size,size*.6,size);scene.add(fill);
+  scene.add(new THREE.HemisphereLight(0xfff6ee,0xd4b89a,.72));scene.add(new THREE.AmbientLight(0xfff8f2,.22));
+  const sun=new THREE.DirectionalLight(0xfff4e6,.85);sun.position.set(-size*.5,size*1.4,size*.9);sun.castShadow=true;sun.shadow.mapSize.set(shadowMap,shadowMap);
+  const c=sun.shadow.camera;c.left=-size;c.right=size;c.top=size;c.bottom=-size;c.near=.5;c.far=size*5;sun.shadow.bias=-.0008;sun.shadow.normalBias=.03;sun.shadow.radius=6;scene.add(sun);
+  const fill=new THREE.DirectionalLight(0xf0e6ff,.32);fill.position.set(size*.8,size*.5,-size*.4);scene.add(fill);
 }
-function makeRenderer(){const R=new THREE.WebGLRenderer({antialias:true,alpha:true});R.setPixelRatio(Math.min(1.75,window.devicePixelRatio||1));R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.05;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;return R;}
+function makeRenderer(){const R=new THREE.WebGLRenderer({antialias:true,alpha:true});R.setPixelRatio(Math.min(1.75,window.devicePixelRatio||1));R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.12;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;return R;}
 function animateItems(list,t){list.forEach(g=>{
   if(g.userData.bob){g.userData.bob.position.y=Math.sin(t*1.6+g.userData.phase)*.15;g.userData.bob.children.forEach((w,i)=>{const s=.35+Math.abs(Math.sin(t*9+i));w.userData.flap[0].scale.x=s;w.userData.flap[1].scale.x=s;});}
   if(g.userData.pet)g.position.y=g.userData.base+Math.abs(Math.sin(t*2.2+g.userData.phase))*.04;
@@ -532,7 +525,7 @@ function edBuild(room){
   reconcileCopies();
   ED.preview=null;ED.moveMode=false;
   const s=new THREE.Scene();ED.scene=s;ED.room=room;const [W,D,H]=ROOM_SIZE[room]||ROOM_SIZE.bedroom;ED.W=W;ED.D=D;ED.H=H;
-  if(room==='garden'){s.background=null;}
+  if(room==='garden'){s.background=new THREE.Color('#bfe3f5');}
   lights(s,Math.max(W,D),1024);
   const shell=new THREE.Group();s.add(shell);roomShell(shell,room,W,D,H);roomIdentity(shell,room,W,D,H);
   if(room!=='garden'){const L=new THREE.PointLight(0xffe2b8,.35,9,2);L.position.set(0,H-.4,.6);s.add(L);}
@@ -545,6 +538,9 @@ function edBuild(room){
       ceilBtn.textContent = ED.ceiling.visible ? '🏠 Hide ceiling' : '🏠 Show ceiling';
     };
   }
+  const zIn = document.getElementById('rk3ZoomIn'), zOut = document.getElementById('rk3ZoomOut');
+  if (zIn) zIn.onclick = () => { ED.zoom = cl(ED.zoom - 0.12, 0.4, 1.6); };
+  if (zOut) zOut.onclick = () => { ED.zoom = cl(ED.zoom + 0.12, 0.4, 1.6); };
   const ring=new THREE.Mesh(new THREE.RingGeometry(.62,.72,48),new THREE.MeshBasicMaterial({color:0xe2457a,transparent:true,opacity:.85,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=.02;ring.visible=false;s.add(ring);ED.ring=ring;
   ED.floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
   const selId=ED.sel;ED.sel=null;if(selId)edSelect(selId,true);
@@ -600,7 +596,30 @@ function edPointers(cv){
       ED.sel=null;ED.ring.visible=false;return;}
     try{localStorage.setItem('rikiReal3dAz',ED.azT);}catch(_){}};
   cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',e=>{ED.drag=null;});
-  cv.addEventListener('wheel',e=>{e.preventDefault();if(ED.storage)return;ED.zoom=cl(ED.zoom+e.deltaY*.001,.55,1.4);},{passive:false});
+  cv.addEventListener('wheel',e=>{e.preventDefault();if(ED.storage)return;ED.zoom=cl(ED.zoom+e.deltaY*.001,.4,1.6);},{passive:false});
+  // Pinch zoom
+  let pinchDist = 0;
+  cv.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') cv.setPointerCapture?.(e.pointerId); });
+  cv.addEventListener('pointermove', e => {
+    if (ED.storage) return;
+    const touches = [];
+    // simple two-pointer pinch via stored positions
+  });
+  const pts = new Map();
+  cv.addEventListener('pointerdown', e => { pts.set(e.pointerId, [e.clientX, e.clientY]); });
+  cv.addEventListener('pointermove', e => {
+    if (!pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, [e.clientX, e.clientY]);
+    if (pts.size === 2) {
+      const [a, b] = [...pts.values()];
+      const d = Math.hypot(a[0]-b[0], a[1]-b[1]);
+      if (pinchDist) ED.zoom = cl(ED.zoom * (pinchDist / d), 0.4, 1.6);
+      pinchDist = d;
+    }
+  });
+  const clearPinch = e => { pts.delete(e.pointerId); if (pts.size < 2) pinchDist = 0; };
+  cv.addEventListener('pointerup', clearPinch);
+  cv.addEventListener('pointercancel', clearPinch);
 }
 function edMount(){
   const box=document.getElementById('dreamRoom');if(!box||!box.classList.contains('rk3-room'))return;
@@ -632,7 +651,7 @@ const prevHtml=G('decorateHtml'),prevBind=G('bindDecor');
 if(typeof prevHtml==='function'&&typeof prevBind==='function'){
   const newHtml=function(){let h=prevHtml.apply(this,arguments);const room=G('currentRoom')||'bedroom';
     h=h.replace(/<div class="dream-room dream3d" id="dreamRoom">\s*<canvas[^>]*><\/canvas>/,`<div class="rk3-room ${room}" id="dreamRoom"><div class="rk3-load">Building your room…</div>`);
-    h=h.replace(/<div class="riki3d-hud">[\s\S]*?<\/div>/,`<div class="riki3d-hud"><span>🏡 ${NICE[room]||'Dream room'}</span><span>Drag to look around</span><button type="button" class="smallbtn" id="rk3CeilingToggle" style="pointer-events:auto;margin-left:auto">🏠 Hide ceiling</button></div>`);
+    h=h.replace(/<div class="riki3d-hud">[\s\S]*?<\/div>/,`<div class="riki3d-hud"><span>🏡 ${NICE[room]||'Dream room'}</span><span>Drag to look around</span><button type="button" class="smallbtn" id="rk3ZoomOut" style="pointer-events:auto" aria-label="Zoom out">−</button><button type="button" class="smallbtn" id="rk3ZoomIn" style="pointer-events:auto" aria-label="Zoom in">+</button><button type="button" class="smallbtn" id="rk3CeilingToggle" style="pointer-events:auto;margin-left:auto">🏠 Hide ceiling</button></div>`);
     h=h.replace(/<p class="riki3d-legend">[\s\S]*?<\/p>/,'<p class="riki3d-legend">Tap something you bought below, then tap the floor to place it. Drag furniture to move it. Drag the empty room to look around.</p>');
     h=h.replace(/<p class="riki3d-legend">[\s\S]*?<\/p>/,`<p class="riki3d-legend">Tap an owned item below, then tap the floor to place it. Tap furniture to select it and drag to move. Drag empty space to look around.</p><div class="rk3-selection-tools" style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0"><strong id="rk3SelectedStatus" role="status" aria-live="polite">✨ Tap furniture to select it, or choose an owned item below</strong><button type="button" class="smallbtn" id="rk3ClearSelection" hidden>✕ Deselect</button></div>`);
     return h;};
