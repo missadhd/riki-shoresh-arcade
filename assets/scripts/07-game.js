@@ -1507,7 +1507,7 @@ if(!document.getElementById('mpCss')){const st=document.createElement('style');s
 @keyframes mpFade{from{opacity:0}to{opacity:1}}`;document.head.appendChild(st);}
 if(!document.getElementById('cgCss')){const st=document.createElement('style');st.id='cgCss';st.textContent=CGCSS;document.head.appendChild(st);}
 
-/* ---------- Hands-on play (Claude, Oct 30): play the skill instead of picking an answer ---------- */
+/* ---------- Drag helpers (Claude, Oct 30) ---------- */
 let hoSel=null;
 function hoDrag(el,targets,onDrop){el.style.touchAction='none';
  const hit=ev=>targets().find(x=>{const b=x.getBoundingClientRect();return ev.clientX>=b.left-8&&ev.clientX<=b.right+8&&ev.clientY>=b.top-8&&ev.clientY<=b.bottom+8;});
@@ -1526,133 +1526,109 @@ function hoHold(btn,ms,{onIn,onDone,label}){const bar=document.createElement('i'
  const end=()=>{if(!btn.classList.contains('ho-holding'))return;btn.classList.remove('ho-holding','ho-full');if(a)a.cancel();if(full)onDone();else label&&label('short');};
  btn.style.touchAction='none';btn.addEventListener('pointerdown',start);btn.addEventListener('pointerup',end);btn.addEventListener('pointerleave',end);btn.addEventListener('pointercancel',end);}
 
-/* Act it out: drag the choice onto Riki and she does it */
-function hoAct(ch,btns,{ask='🎬 Drag what Riki should do onto Riki',isGood=null,skip=null,side='A'}={}){const box=hoBox(ch);const riki=$id('sl'+side);if(!riki)return;hoTapTarget(riki);const who=side==='A'?'Riki':(SL_PEOPLE[slWho.B]||{name:'them'}).name;
- const list=btns.map((b,i)=>[b,i]).filter(([b])=>b!==skip);
- box.innerHTML=`<p class="ho-ask">${ask}</p><small class="ho-tip">Drag a card up to ${who} (or tap a card, then tap ${who})</small><div class="ho-cards">${list.map(([b,i],k)=>`<div class="ho-card c${k%4}" data-h="${i}">${b.textContent}</div>`).join('')}</div>`;
- const cards=[...box.querySelectorAll('.ho-card')];
- const sync=()=>{const open=btns.some(b=>b.isConnected&&!b.disabled);cards.forEach(c=>{const b=btns[+c.dataset.h];const off=!b.isConnected||b.disabled;c.classList.toggle('ho-used',off);if(off&&open&&c.classList.contains('ho-went'))c.classList.add('ho-bad');});};
- cards.forEach(c=>hoDrag(c,()=>[$id('sl'+side)].filter(Boolean),()=>{const b=btns[+c.dataset.h];if(!b||b.disabled)return;c.classList.add('ho-went');b.click();sync();}));
- const ob=new MutationObserver(()=>{if(!box.isConnected){ob.disconnect();return;}sync();});btns.forEach(b=>ob.observe(b,{attributes:true,attributeFilter:['disabled']}));
- if(isGood&&ch.querySelector('.z-hint')){const h=document.createElement('button');h.type='button';h.className='z-hint';h.textContent='💡 Hint';box.appendChild(h);h.onclick=()=>{const c=cards.find(c=>isGood(btns[+c.dataset.h]));if(c){c.classList.remove('z-glow');void c.offsetWidth;c.classList.add('z-glow');}h.disabled=true;sLog(false,true);};}
- sync();}
+/* ---------- Backpack Packer + Clue Hunt (Claude, Oct 30): real games, not questions ---------- */
+/* Backpack Packer: hear the list, it disappears, pack from memory before the bus comes; handle surprise changes */
+const BP_ITEMS={water:['💧','water bottle'],sneakers:['👟','sneakers'],lunch:['🥪','lunchbox'],book:['📚','library book'],folder:['📁','homework folder'],pencils:['✏️','pencil case'],raincoat:['🧥','raincoat'],umbrella:['☂️','umbrella'],smock:['🎨','art smock'],swimsuit:['🩱','swimsuit'],towel:['🧺','towel'],hat:['🧢','sun hat'],snack:['🍎','snack'],recorder:['🎵','recorder'],slip:['📝','permission slip'],
+ dino:['🦖','toy dino'],tablet:['🎮','video game'],teddy:['🧸','teddy bear'],slime:['🫧','slime'],ball:['⚽','soccer ball']};
+const BP_REAL=Object.keys(BP_ITEMS).filter(k=>!['dino','tablet','teddy','slime','ball'].includes(k));
+const BP_LV=[{n:2,t:30},{n:3,t:30},{n:3,t:28,pest:1},{n:3,t:32,add:1},{n:4,t:36,remove:1}];
+const bpName=k=>BP_ITEMS[k][1];
+function drawBackpack(){zCur='backpack';let lv=0,perfect=0;
+ const t=zShell('🎒 Backpack Packer',`${g6Top('mom','Mom')}<div class="bp-bus"><span class="bp-stop">🚏</span><i class="bp-road"></i><span class="bp-van" id="bpVan">🚌</span></div><div class="bp-wrap"><div class="bp-room" id="bpRoom"></div><div class="bp-bag" id="bpBag"><b>🎒</b><div class="bp-in" id="bpIn"></div><small>Drag things in · tap to take out</small></div></div>
+  <div class="bp-row"><button type="button" class="secondary g6-again" id="bpAgain">🔁 Can you say that again, Mom?</button><button type="button" class="sl-big bp-go" id="bpGo">🤐 Zip it & go!</button></div><p class="ag-msg" id="agM"></p>${g6Pips(BP_LV.length,0)}`);
+ const room=$id('bpRoom'),bag=$id('bpBag'),inEl=$id('bpIn');hoTapTarget(bag);
+ const round=async()=>{if(!zLive(t))return;
+  if(lv>=BP_LV.length){audio('good');try{celebrate();}catch(e){}zDone(t,`🎒 You packed for the whole week${perfect>=4?' like a pro':''}!`,drawBackpack,4);return;}
+  const L=BP_LV[lv];let need=zShuf(BP_REAL).slice(0,L.n);let packed=[],asked=0,busy=true,late=false,changed=false,missed=false;
+  const extra=L.add?zShuf(BP_REAL.filter(k=>!need.includes(k))).slice(0,1)[0]:null;
+  const shown=zShuf([...new Set([...need,...(extra?[extra]:[]),...zShuf(BP_REAL.filter(k=>!need.includes(k)&&k!==extra)).slice(0,7-L.n),'dino','tablet','teddy'])]).slice(0,12);
+  room.innerHTML=shown.map(k=>`<div class="bp-item" data-k="${k}"><b>${BP_ITEMS[k][0]}</b><small>${bpName(k)}</small></div>`).join('');
+  const drawBag=()=>{inEl.innerHTML=packed.map(k=>`<button type="button" class="bp-p" data-k="${k}">${BP_ITEMS[k][0]}</button>`).join('');inEl.querySelectorAll('[data-k]').forEach(x=>x.onclick=e=>{if(hoSel&&hoSel.el.isConnected)return;e.stopPropagation();if(busy)return;packed=packed.filter(k=>k!==x.dataset.k);audio('tap');room.querySelector(`[data-k="${x.dataset.k}"]`).classList.remove('bp-gone');drawBag();});};
+  const pack=k=>{if(busy||packed.includes(k))return;packed.push(k);audio('tap');const it=room.querySelector(`[data-k="${k}"]`);if(it)it.classList.add('bp-gone');try{bag.animate([{transform:'scale(1)'},{transform:'scale(1.06)'},{transform:'scale(1)'}],{duration:220,easing:'cubic-bezier(0.23,1,0.32,1)'});}catch(e){}drawBag();};
+  room.querySelectorAll('.bp-item').forEach(el=>hoDrag(el,()=>[bag],()=>pack(el.dataset.k)));
+  drawBag();$id('agM').className='ag-msg';$id('bpAgain').disabled=false;
+  const van=$id('bpVan');let a=null;const startBus=()=>{const W=van.parentNode.clientWidth-50;try{a=van.animate([{transform:'translateX(0)'},{transform:`translateX(-${W}px)`}],{duration:L.t*1000,easing:'linear',fill:'forwards'});a.onfinish=()=>{if(!zLive(t)||lv>=BP_LV.length)return;late=true;audio('tap');g6Msg('🚌 Beep beep! The bus is here. Finish packing quick!',false);};}catch(e){}};
+  const words=`Riki, today you need ${zList(need.map(bpName))}.`;
+  await g6Talk('mom',words,{hideAfter:L.n>=4?2600:2000});if(!zLive(t))return;busy=false;startBus();window.RikiG6.bp=()=>({lv,busy,need:[...need],packed:[...packed],shown});
+  if(L.pest){setTimeout(()=>{if(!zLive(t)||busy)return;const d=room.querySelector('[data-k="dino"]');if(d){d.classList.add('bp-pest');g6Say('friend2','Take my dino! Pleeease?');g6Msg('🦖 Your little sister wants you to bring her dino. Does it go to school?',false);}},3000);}
+  $id('bpAgain').onclick=async()=>{if(asked||busy)return;asked=1;$id('bpAgain').disabled=true;await g6Say('riki','Mom, can you say that again, please?');await g6Talk('mom',changed?changed:words,{hideAfter:2000});};
+  $id('bpGo').onclick=async()=>{if(busy)return;
+   if((L.add||L.remove)&&!changed){busy=true;
+    if(L.add){need=[...need,extra];changed=`Oh wait! You also need your ${bpName(extra)}.`;}else{const out=need[0];need=need.slice(1);changed=`Oh wait! No ${bpName(out)} today. Take it out!`;}
+    await g6Talk('mom',changed,{expr:'surprised',hideAfter:2000});if(!zLive(t))return;g6Msg('🔄 Plans changed! Fix your backpack.',false);busy=false;return;}
+   const miss=need.filter(k=>!packed.includes(k)),ex=packed.filter(k=>!need.includes(k));
+   if(miss.length||ex.length){missed=true;zMiss();audio('tap');dollReact(false);try{bag.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(7px)'},{transform:'none'}],{duration:300});}catch(e){}
+    g6Msg(ex.length?`Hmm, does your ${bpName(ex[0])} go to school today? Take it out.`:`Something’s missing! ${miss.length===1?'One thing':miss.length+' things'} left. Think back…`,false);return;}
+   busy=true;if(a)a.cancel();van.style.transform='';audio('good');dollReact(true);bag.classList.add('bp-zip');
+   if(!missed&&!late){perfect++;slGain(1);}g6Msg(missed||late?'✅ All packed! Onto the bus!':'🌟 Perfect packing from memory!',true);
+   lv++;const pp=document.querySelector('.g6-pips');if(pp)pp.outerHTML=g6Pips(BP_LV.length,lv);setTimeout(()=>{bag.classList.remove('bp-zip');round();},1700);};};
+ setTimeout(round,400);}
 
-/* Story games pick a different way to play each time */
-const hoOptOf=(it,b)=>it.opts.find(o=>o[0]===b.textContent)||[b.textContent,0];
-const hoQuote=s=>{const m=/“([^”]{6,})”/.exec(s);return m?m[1]:null;};
-function hoMode(key,it){const g=it.opts.find(o=>o[1]);const list=['act','stop','sort'];if(g&&hoQuote(g[0])&&hoQuote(g[0]).split(' ').length>=4)list.push('say');if(/calmq|pause|no/.test(key))list.push('cool');zSave.ho=(zSave.ho||0)+1;zPut();return window.RikiHO&&RikiHO.force?RikiHO.force:list[zSave.ho%list.length];}
-function hoPlay(key,it,ch){const btns=[...ch.querySelectorAll('.sl-choice[data-i]')];if(!btns.length)return;const good=b=>!!hoOptOf(it,b)[1];const mode=hoMode(key,it);ch.dataset.mode=mode;window.RikiHO.last=mode;
- const act=(skip,ask)=>hoAct(ch,btns,{isGood:good,skip,ask});
- if(mode==='act')return act();
- if(mode==='stop')return hoStop(ch,btns,good,act);
- if(mode==='sort')return hoSort(ch,btns,good);
- if(mode==='say')return hoSay(ch,btns,good,act);
- if(mode==='cool')return hoCool(ch,()=>act(null,'😌 Calm now. Drag what Riki should do onto Riki'));}
+/* Clue Hunt: slide the magnifying glass over the picture; clues only show under the glass */
+const CH_SETS={play:'linear-gradient(#bfe6ff 0 55%,#a8e08f 55% 100%)',lunch:'linear-gradient(#ffe9d6 0 58%,#e8c9a8 58% 100%)',class:'linear-gradient(#e7f0ff 0 60%,#d9b98f 60% 100%)',hall:'linear-gradient(#f3e8ff 0 60%,#cfc6e0 60% 100%)'};
+const CH_DECOR={play:[['🌳',6,10,54],['🛝',78,30,46],['☁️',40,4,30]],lunch:[['🪟',8,8,40],['🍽️',44,52,28],['🧃',80,50,24]],class:['🖍️','📚'].map((e,i)=>[e,i?82:10,i?40:42,28]).concat([['🟩',38,6,48]]),hall:[['🚪',4,18,48],['🗄️',84,20,44]]};
+const CH_CASES=[
+ {set:'lunch',who:'friend',ev:'Juice spilled all over Riki’s drawing!',face:'surprised',truth:0,clues:[['👟',58,82,'Maya’s shoelace is untied. She tripped!'],['🍌',44,88,'A banana peel on the floor. Slippery!'],['😮',66,30,'Maya looks shocked, not happy.']],think:'Oops! I slipped. I feel so bad!',fix:'It’s okay. Can you help me clean up?'},
+ {set:'play',who:'friend2',ev:'A ball bonked Riki on the head!',face:'nervous',truth:0,clues:[['⚽',30,48,'The ball came from the soccer game.'],['🥅',88,62,'The goal is right behind Riki. Zoe was aiming there!'],['😟',66,30,'Zoe looks worried.']],think:'I kicked it way too hard. Is she okay?',fix:'I’m okay! Be careful next time.'},
+ {set:'class',who:'friend',ev:'Maya didn’t say hi back to Riki.',face:'think',truth:0,clues:[['🎧',62,24,'Maya has headphones on. She didn’t hear!'],['📝',74,66,'A math test on her desk.'],['🤔',52,30,'She looks busy thinking, not mad.']],think:'Hmm, 7 times 8… Oh! I didn’t even see Riki.',fix:'Riki waves and says hi again.'},
+ {set:'hall',who:'friend2',ev:'Zoe took Riki’s pencil case!',face:'neutral',truth:0,clues:[['✏️',48,74,'There are TWO pencil cases that look the same!'],['🏷️',30,64,'Riki’s has her name tag. Zoe’s doesn’t.'],['🙂',66,30,'Zoe looks calm, like nothing is wrong.']],think:'Wait, I thought this was mine!',fix:'I think that one is mine. Is yours in your bag?'},
+ {set:'class',who:'friend2',ev:'Someone keeps kicking Riki’s chair.',face:'happy',truth:1,clues:[['🦶',48,80,'His foot keeps kicking, even after Riki said stop.'],['😏',66,30,'A sneaky smile.'],['💬',80,14,'He whispered: “Watch this, hehe.”']],think:'Hehe, this is funny. I’ll keep going.',fix:'Riki calmly tells the teacher.',name:'Ben'},
+ {set:'play',who:'friend',ev:'Someone knocked down Riki’s sandcastle.',face:'happy',truth:1,clues:[['👣',44,84,'Footprints go right through the middle. Straight at it!'],['😏',66,30,'A smirk. Not a sorry face.'],['💬',82,12,'She said: “Oops… NOT!”']],think:'Hehe. Now she has to start over.',fix:'Riki says “Not okay,” and gets a grown-up.',name:'Kayla'}];
+let chDeck=null,chI=0;
+function drawClueHunt(){zCur='cluehunt';if(!chDeck||chI%CH_CASES.length===0)chDeck=zShuf(CH_CASES);const c=chDeck[chI%CH_CASES.length];const caseNo=chI%CH_CASES.length+1;let found=new Set(),done=false,hintT=null;
+ const t=zShell('🔎 Clue Hunt',`<div class="ch-file"><b>📁 Case ${caseNo} of ${CH_CASES.length}</b><span>${c.ev}</span></div>
+  <div class="ch-stage" id="chStage" style="background:${CH_SETS[c.set]}">${(CH_DECOR[c.set]||[]).map(([e,x,y,s])=>`<span class="ch-dec" style="left:${x}%;top:${y}%;font-size:${s}px">${e}</span>`).join('')}
+   <div class="ch-p" style="left:6%">${slFace('riki','upset')}</div><div class="ch-p" id="chWho" style="left:52%">${slFace(c.who,c.face)}<small>${c.name||SL_PEOPLE[c.who].name}</small></div>
+   ${c.clues.map(([e,x,y],i)=>`<span class="ch-clue" data-c="${i}" style="left:${x}%;top:${y}%">${e}</span>`).join('')}
+   <div class="ch-lens" id="chLens"><i></i></div><div class="ch-think" id="chThink"></div></div>
+  <div class="ch-found" id="chFound">${c.clues.map(()=>'<span class="ch-slot">❔</span>').join('')}</div><p class="ag-msg" id="agM">🔍 Drag the magnifying glass around the picture to find ${c.clues.length} clues!</p>
+  <div class="ch-verdict" id="chV" hidden><button type="button" class="ch-stamp acc" data-v="0">🙈 ACCIDENT</button><button type="button" class="ch-stamp pur" data-v="1">😠 ON PURPOSE</button></div><button class="sl-big" id="chNext" hidden>Next case →</button>`);
+ const st=$id('chStage'),lens=$id('chLens'),clues=[...st.querySelectorAll('.ch-clue')];$id('agM').classList.add('on');
+ let lx=.8,ly=.62;const place=()=>{lens.style.transform=`translate(${lx*st.clientWidth}px,${ly*st.clientHeight}px) translate(-50%,-50%)`;};place();
+ const dwell={};
+ const check=()=>{const R=46;clues.forEach(el=>{const i=+el.dataset.c;if(found.has(i))return;const cx=el.offsetLeft+el.offsetWidth/2,cy=el.offsetTop+el.offsetHeight/2;const d=Math.hypot(cx-lx*st.clientWidth,cy-ly*st.clientHeight);
+   if(d<R){el.classList.add('ch-near');if(!dwell[i])dwell[i]=setTimeout(()=>{if(!zLive(t)||found.has(i))return;found.add(i);el.classList.add('ch-got');audio('good');const sl=$id('chFound').children[[...found].length-1];sl.innerHTML=`<b>${c.clues[i][0]}</b>${c.clues[i][3]}`;sl.classList.add('on');
+     if(found.size===c.clues.length){$id('agM').textContent='🧠 All clues found! Accident or on purpose? Stamp the case!';$id('chV').hidden=false;$id('chV').scrollIntoView({block:'nearest',behavior:'smooth'});}else $id('agM').textContent=`🔍 Nice! ${c.clues.length-found.size} more to find.`;},380);}
+   else{el.classList.remove('ch-near');clearTimeout(dwell[i]);dwell[i]=0;}});};
+ const move=e=>{const r=st.getBoundingClientRect();lx=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));ly=Math.min(1,Math.max(0,(e.clientY-r.top)/r.height));place();check();};
+ st.style.touchAction='none';st.addEventListener('pointerdown',e=>{if(done)return;e.preventDefault();try{st.setPointerCapture(e.pointerId);}catch(_){}move(e);lens.classList.add('on');const mv=ev=>move(ev);const up=()=>{st.removeEventListener('pointermove',mv);st.removeEventListener('pointerup',up);st.removeEventListener('pointercancel',up);lens.classList.remove('on');};st.addEventListener('pointermove',mv);st.addEventListener('pointerup',up);st.addEventListener('pointercancel',up);});
+ hintT=setInterval(()=>{if(!zLive(t)){clearInterval(hintT);return;}const left=clues.find(el=>!found.has(+el.dataset.c));if(!left){clearInterval(hintT);return;}left.classList.remove('ch-twinkle');void left.offsetWidth;left.classList.add('ch-twinkle');},easy('accident')?7000:14000);zInts.push(hintT);
+ window.RikiG6.ch=()=>({clues:c.clues.map(x=>[x[1],x[2]]),found:[...found],truth:c.truth});
+ (async()=>{await slWait(200);try{await g6Say('riki',c.ev);}catch(e){}})();
+ $id('chV').querySelectorAll('[data-v]').forEach(b=>b.onclick=async()=>{if(done)return;const right=+b.dataset.v===c.truth;
+  if(!right){zMiss();audio('tap');b.classList.add('ch-wrong');$id('agM').textContent='🤔 Look at your clues again. What do they tell you?';return;}
+  done=true;audio('good');slGain(1);b.classList.add('ch-ok');$id('chV').querySelectorAll('button').forEach(x=>x.disabled=true);
+  const th=$id('chThink');th.textContent='💭 '+c.think;th.classList.add('on');await slWait(2000);if(!zLive(t))return;
+  const narr=/^Riki /.test(c.fix);$id('agM').textContent=(c.truth?'Case closed: on purpose. ':'Case closed: an accident! ')+(narr?c.fix:'Riki: “'+c.fix+'”');if(!narr){try{await g6Say('riki',c.fix);}catch(e){}}else await slWait(1200);
+  chI++;if(chI%CH_CASES.length===0){zDone(t,'🔎 Super detective! You solved every case.',drawClueHunt,4);return;}const nx=$id('chNext');nx.hidden=false;nx.onclick=()=>{audio('tap');drawClueHunt();};nx.scrollIntoView({block:'nearest',behavior:'smooth'});});}
 
-/* Stop the Oops: catch the impulsive choice before it happens, breathe, then choose */
-function hoStop(ch,btns,good,act){const bads=btns.filter(b=>!good(b));if(!bads.length)return act();const bad=bads[Math.floor(Math.random()*bads.length)];const box=hoBox(ch);const ms=easy(curUnit())?6500:4800;
- box.innerHTML=`<p class="ho-ask">⚠️ Uh-oh! Riki is about to…</p><div class="ho-oops"><span>${bad.textContent}</span><i class="ho-fuse"><b id="hoFuse"></b></i></div><button type="button" class="ho-stop" id="hoStopB">🛑 STOP!</button>`;
- const A=$id('slA');if(A)A.classList.add('ho-lean');slExpr('A','upset');let done=false,a=null;
- try{a=$id('hoFuse').animate([{transform:'scaleX(1)'},{transform:'scaleX(0)'}],{duration:ms,easing:'linear',fill:'forwards'});}catch(_){}
- const tm=setTimeout(()=>{if(done||!box.isConnected)return;done=true;if(A)A.classList.remove('ho-lean');box.innerHTML='<p class="ho-ask">😬 Too late! Watch what happens…</p>';bad.click();
-  const w=setInterval(()=>{if(!box.isConnected){clearInterval(w);return;}if(btns.some(b=>b!==bad&&!b.disabled)){clearInterval(w);act(bad,'Let’s try again. Drag a better choice onto Riki');}},250);},ms);slTimers.push(tm);
- $id('hoStopB').onclick=async()=>{if(done)return;done=true;clearTimeout(tm);if(a)a.pause();if(A)A.classList.remove('ho-lean');audio('good');slFx(['🛑','✨','⭐'],8);
-  box.innerHTML=`<p class="ho-ask">🛑 You stopped! Now take one big breath.</p><button type="button" class="ho-hold" id="hoBr">🎈 Hold to breathe in</button>`;
-  slSay('A','Wait. Let me stop and think.','think');
-  const br=$id('hoBr');hoHold(br,1300,{label:s=>{br.firstChild.textContent=s==='out'?'😮‍💨 Let go to breathe out':'🎈 Keep holding… breathe in';},onDone:()=>{audio('good');slExpr('A','happy','bounce');act(bad,'Great thinking! Drag the BETTER choice onto Riki');}});};}
+Object.assign(ZRUN,{backpack:drawBackpack,cluehunt:drawClueHunt});
+CAT.brain.games=[['backpack','🎒','Backpack Packer'],...CAT.brain.games.filter(g=>g[0]!=='backpack')];
+CAT.accident.games=[['cluehunt','🔎','Clue Hunt'],...CAT.accident.games.filter(g=>g[0]!=='cluehunt')];
+GAME_UNIT.backpack=UNIT.brain?'brain':GAME_UNIT.mem;GAME_UNIT.cluehunt='accident';
 
-/* Sort it: every choice goes in Helps or Makes it worse; then the best one plays out */
-function hoSort(ch,btns,good){const box=hoBox(ch);let missed=false;
- box.innerHTML=`<p class="ho-ask">🧺 Sort the choices! Which ones help?</p><div class="ho-cards">${btns.map((b,i)=>`<div class="ho-card c${i%4}" data-h="${i}">${b.textContent}</div>`).join('')}</div><div class="ho-bins"><div class="ho-bin ok" data-b="1"><b>💚 Helps</b><div class="ho-in"></div></div><div class="ho-bin no" data-b="0"><b>💔 Makes it worse</b><div class="ho-in"></div></div></div>`;
- const bins=[...box.querySelectorAll('.ho-bin')];bins.forEach(hoTapTarget);
- box.querySelectorAll('.ho-card').forEach(c=>hoDrag(c,()=>bins,t=>{const b=btns[+c.dataset.h];const right=(t.dataset.b==='1')===good(b);
-  if(!right){if(!missed){missed=true;zMiss();}audio('tap');hoBounce(c);zNote('🤔 Think: how would the other kid feel if Riki did that?');return;}
-  audio('good');c.classList.add('ho-used');c.remove();const chip=document.createElement('span');chip.className='ho-chip';chip.textContent=b.textContent;t.querySelector('.ho-in').appendChild(chip);
-  if(!box.querySelector('.ho-cards .ho-card')){const n=$id('slNote');if(n)n.hidden=true;box.querySelector('.ho-ask').textContent='✨ Perfect sorting! Watch Riki do the best one…';const g=btns.find(good);setTimeout(()=>{if(g&&g.isConnected)g.click();},600);}}));}
-
-/* Say it: build the kind words in the right order */
-function hoSay(ch,btns,good,act){const g=btns.find(good);const q=g&&hoQuote(g.textContent);if(!q)return act();const box=hoBox(ch);
- const w=q.split(' ');const n=w.length<=5?3:4;const per=Math.ceil(w.length/n);const parts=[];for(let i=0;i<w.length;i+=per)parts.push(w.slice(i,i+per).join(' '));
- const bad=btns.find(b=>!good(b));const bq=bad&&(hoQuote(bad.textContent)||bad.textContent.replace(/^Say\s*/,'').replace(/\.$/,''));const extra=bq?bq.split(' ').slice(0,3).join(' '):'Whatever';
- const pool=zShuf([...parts.map((p,i)=>[p,i]),[extra,-1]]);let built=[];
- box.innerHTML=`<p class="ho-ask">🎤 Build what Riki says, in order</p><div class="ho-sent" id="hoSent"></div><div class="ho-pieces">${pool.map((p,k)=>`<button type="button" class="ho-piece" data-k="${k}">${p[0]}</button>`).join('')}</div><button type="button" class="sl-big ho-sayit" id="hoSayIt" hidden>🎤 Riki, say it!</button>`;
- const draw=()=>{const s=$id('hoSent');if(!s)return;s.innerHTML=built.length?built.map((k,j)=>`<button type="button" class="ho-piece in" data-j="${j}">${pool[k][0]}</button>`).join(''):'<span class="ho-ph">Tap the word bubbles…</span>';
-  s.querySelectorAll('[data-j]').forEach(x=>x.onclick=()=>{built.splice(+x.dataset.j,1);draw();});box.querySelectorAll('.ho-pieces [data-k]').forEach(x=>x.disabled=built.includes(+x.dataset.k));$id('hoSayIt').hidden=built.length<parts.length;};
- box.querySelectorAll('.ho-pieces [data-k]').forEach(x=>x.onclick=()=>{if(x.disabled)return;audio('tap');built.push(+x.dataset.k);draw();});
- $id('hoSayIt').onclick=async()=>{const ok=built.length===parts.length&&built.every((k,j)=>pool[k][1]===j);
-  if(ok){box.classList.add('ho-lock');g.click();return;}
-  zMiss();audio('tap');const rude=built.some(k=>pool[k][1]===-1);slExpr('B',rude?'sad':'think','shake');await slSay('A',built.map(k=>pool[k][0]).join(' '),'neutral');if(!box.isConnected)return;await slSay('B',rude?'Hmm… that part didn’t sound kind.':'Huh? That sounded mixed up.',rude?'sad':'think');if(!box.isConnected)return;zNote(rude?'💜 Take out the part that isn’t kind.':'💡 Which words come first?');built=[];draw();};
- draw();}
-
-/* Cool down first: hot feelings → three balloon breaths → then choose */
-function hoCool(ch,next){const box=hoBox(ch);let n=0;slExpr('A','upset','shake');
- box.innerHTML=`<p class="ho-ask">🌡️ Riki’s feelings got HOT! Cool down before you choose.</p><div class="ho-thermo"><span>😤</span><div class="ho-tb"><i id="hoTi"></i></div><span>😌</span></div><button type="button" class="ho-hold" id="hoBr">🎈 Hold to breathe in</button><small class="ho-tip" id="hoBn">0 of 3 balloon breaths</small>`;
- const br=$id('hoBr'),ti=$id('hoTi');ti.style.transform='scaleX(1)';
- hoHold(br,1200,{label:s=>{br.firstChild.textContent=s==='out'?'😮‍💨 Let go to breathe out':'🎈 Keep holding… breathe in';},onDone:()=>{n++;audio('good');ti.style.transform=`scaleX(${1-n/3})`;ti.style.background=n>=2?'#58c98a':'#ffb347';$id('hoBn').textContent=`${n} of 3 balloon breaths`;br.firstChild.textContent='🎈 Hold to breathe in';
-  if(n===1)slExpr('A','neutral');if(n>=3){slExpr('A','happy','bounce');slFx(['🎈','💨','😌'],8);setTimeout(()=>{if(box.isConnected)next();},700);}}});}
-
-const hoSetPrior=drawSet;drawSet=function(key){hoSetPrior(key);const set=SL_SETS[key];const ch=$id('slCh');if(!set||!ch)return;const it=set.items[slSetStep[key]%set.items.length];
- const go=()=>{if(ch.dataset.ho)return;ch.dataset.ho=1;try{hoPlay(key,it,ch);}catch(e){console.warn(e);ch.classList.remove('ho-on');}};
- if(!ch.hidden)go();else{const ob=new MutationObserver(()=>{if(!ch.isConnected){ob.disconnect();return;}if(!ch.hidden){ob.disconnect();go();}});ob.observe(ch,{attributes:true,attributeFilter:['hidden']});}};
-window.RikiHO={force:null,last:null};
-
-/* Work It Out + Clue Detective “what should Riki do?”: act it out by dragging onto Riki */
-const hoWatchChoices=(ch,getGood)=>{if(!ch)return;const ob=new MutationObserver(()=>{if(!ch.isConnected){ob.disconnect();return;}const bs=[...ch.querySelectorAll(':scope>[data-i]')];if(!bs.length)return;const old=ch.querySelector(':scope>.ho-box');if(old){if(old.dataset.for===bs.map(b=>b.textContent).join('|'))return;old.remove();}const q=ch.querySelector(':scope>.zg-ask');const qt=q?q.textContent:'';const worry=/worried/.test(qt);hoAct(ch,bs,{isGood:getGood,side:worry?'B':'A',ask:qt?'🎬 '+qt+(worry?' Drag it onto '+((SL_PEOPLE[slWho.B]||{}).name||'them')+'.':''):undefined});const nb=ch.querySelector(':scope>.ho-box');if(nb)nb.dataset.for=bs.map(b=>b.textContent).join('|');});ob.observe(ch,{childList:true});};
-const hoCpsPrior=drawCps;drawCps=function(){hoCpsPrior();hoWatchChoices($id('slCh'));};
-
-/* Clue Detective: drag the magnifying glass to the friend's face and words to find the clues */
-const hoAccPrior=drawAccident;drawAccident=function(){hoAccPrior();const ch=$id('slCh'),cl=$id('accClues');if(!ch||!cl)return;let opened=false;
- hoWatchChoices(ch,null);
- const ob=new MutationObserver(()=>{if(opened||cl.hidden||!cl.querySelector('span'))return;opened=true;ob.disconnect();const sp=[...cl.querySelectorAll('span')];sp.forEach(s=>s.classList.add('ho-fog'));ch.classList.add('ho-wait');
-  const bub=$id('slBB');const said=(sp[1]&&sp[1].textContent.replace(/^Words:\s*/,'').replace(/[“”]/g,''))||'';if(bub&&!bub.classList.contains('on')){bub.textContent=said;bub.classList.add('on');}
-  const bar=document.createElement('div');bar.className='ho-mag';bar.innerHTML=`<span class="ho-glass" id="hoGlass">🔍</span><span id="hoMagT">Drag the magnifying glass to their <b>face</b> and their <b>words</b>!</span>`;cl.after(bar);
-  const found=new Set();const tgt=()=>[$id('slFB'),$id('slBB')].filter(Boolean);tgt().forEach(hoTapTarget);
-  hoDrag($id('hoGlass'),tgt,t=>{const i=t.id==='slFB'?0:1;if(found.has(i))return;found.add(i);audio('good');sp[i]&&sp[i].classList.remove('ho-fog');slFx(['🔍','✨'],5);t.classList.add('ho-found');
-   if(found.size>=2){bar.querySelector('#hoMagT').textContent='Clues found! Now decide 👇';$id('hoGlass').classList.add('ho-used');ch.classList.remove('ho-wait');if(window.RikiFit)RikiFit();}
-   else bar.querySelector('#hoMagT').innerHTML=i===0?'Nice! Now check their <b>words</b> 💬':'Nice! Now check their <b>face</b> 🙂';});});
- ob.observe(cl,{attributes:true,childList:true,subtree:true});};
-
-/* Tone of Voice, Riki's turn: mix the voice until it sounds friendly */
-const hoTonePrior=drawTone;drawTone=function(){hoTonePrior();const ch=$id('slCh');if(!ch)return;const it=TN[tnI%TN.length];
- const ob=new MutationObserver(()=>{if(!ch.isConnected){ob.disconnect();return;}const ask=ch.querySelector('.zg-ask');if(!ask||!/Riki’s turn/.test(ask.textContent)||ch.querySelector('.ho-mix'))return;ob.disconnect();hoMixer(ch,it.friendly);});ob.observe(ch,{childList:true});};
-function hoMixer(ch,text){ch.classList.add('ho-on');const box=hoBox(ch);let v=Math.random()<.5?.92:.08,s=Math.random()<.5?.9:.12,f=.12;
- box.innerHTML=`<div class="ho-mix"><p class="ho-ask">🎚️ Riki’s turn! Mix her voice so it sounds <b>friendly</b>.</p>
-  <label>🤫 <input type="range" min="0" max="100" id="hoV"> 📢<small>How loud</small></label>
-  <label>🐢 <input type="range" min="0" max="100" id="hoS"> 🐇<small>How fast</small></label>
-  <label>😠 <input type="range" min="0" max="100" id="hoF"> 😊<small>Face</small></label>
-  <div class="ho-prev" id="hoPrev">“${text}”</div><button type="button" class="sl-big" id="hoGo">🎤 Riki, say it!</button></div>`;
- const V=$id('hoV'),S=$id('hoS'),F=$id('hoF'),P=$id('hoPrev');V.value=v*100;S.value=s*100;F.value=f*100;
- const paint=()=>{v=V.value/100;s=S.value/100;f=F.value/100;P.style.fontSize=(13+v*13)+'px';P.style.letterSpacing=((1-s)*3-.5)+'px';P.style.fontWeight=v>.75?900:700;P.textContent=v>.8?`“${text.toUpperCase()}”`:`“${text}”`;P.style.color=f<.4?'#b3264f':f<.6?'#6b4a5c':'#2f8a57';slExpr('A',f<.35?'upset':f<.6?'neutral':'happy');};
- [V,S,F].forEach(x=>x.oninput=paint);paint();let busy=false;
- $id('hoGo').onclick=async()=>{if(busy)return;busy=true;const B=$id('slBA');if(B){B.className='sl-bubble on'+(f<.4?' t-bossy':s<.25?' t-whiny':'');B.textContent=v>.8?text.toUpperCase():text;}
-  await speakTone(text,'riki',.8+f*.45,.65+s*.7);await slWait(Math.max(700,text.length*35));if(!ch.isConnected)return;
-  const tip=v>.75?['📢 Too loud. That sounds like yelling!','surprised']:v<.25?['🤫 Too quiet. Maya can’t hear Riki!','think']:s>.75?['🐇 Too fast. Slow down a little!','think']:s<.25?['🐢 Too slow and stretchy. That sounds whiny.','sad']:f<.6?['😠 A grumpy face makes it sound bossy. Add a smile!','sad']:null;
-  if(tip){zMiss();audio('tap');slExpr('B',tip[1],'shake');zNote(tip[0]);busy=false;return;}
-  slGain(1);audio('good');slExpr('B','excited','bounce');slFx(['😊','💖','🎤'],8);zNote('🌟 Medium voice, medium speed, friendly face. That’s a friendly tone!');await slSay('B','Sure! Thanks for asking so nicely!','excited');if(!ch.isConnected)return;tnI++;const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=drawTone;nx.scrollIntoView({block:'nearest',behavior:'smooth'});}};}
-Object.assign(ZRUN,{tone:drawTone,cps:drawCps,accident:drawAccident});
-window.RikiHO.mix=()=>({v:$id('hoV')&&$id('hoV').value,s:$id('hoS')&&$id('hoS').value,f:$id('hoF')&&$id('hoF').value});
-
-if(!document.getElementById('hoCss')){const st=document.createElement('style');st.id='hoCss';st.textContent=`
-.ho-on>.sl-choice,.ho-on>.z-hint,.ho-on>.zg-ask{display:none!important}.ho-wait{display:none!important}
-.ho-box{display:flex;flex-direction:column;gap:8px}.ho-ask{margin:2px 0 0;font-weight:900;color:#4a2338;font-size:16px;text-align:center}.ho-tip{display:block;text-align:center;font-weight:800;color:#8a6577;font-size:12px}
-.ho-cards{display:flex;flex-direction:column;gap:8px}.ho-card{position:relative;background:#fff;border-radius:18px;padding:12px 14px;font-weight:900;color:#4a2338;font-size:15px;box-shadow:0 4px 0 #f0bcd3,0 0 0 2px #ffd6e7;cursor:grab;user-select:none;-webkit-user-select:none;transition:transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1)),opacity .2s}
-.ho-card::before{content:'✋';margin-right:6px}.ho-card.c1{box-shadow:0 4px 0 #b9d8f5,0 0 0 2px #d8ecff}.ho-card.c2{box-shadow:0 4px 0 #f5d79a,0 0 0 2px #fff0c9}.ho-card.c3{box-shadow:0 4px 0 #b7e4c4,0 0 0 2px #dff6e6}
-.ho-card.ho-dragging{z-index:60;cursor:grabbing;transition:none;box-shadow:0 14px 28px rgba(160,60,110,.28),0 0 0 3px #ff7eb6}.ho-card.ho-sel{box-shadow:0 0 0 3px #ff7eb6,0 4px 0 #f0bcd3;transform:scale(1.02)}.ho-card.ho-used{opacity:.4;pointer-events:none}.ho-card.ho-bad{text-decoration:line-through;opacity:.35}.ho-card.ho-went:not(.ho-bad){opacity:1;box-shadow:0 0 0 3px #58c98a,0 4px 0 #9fdcb5}.ho-card.ho-went:not(.ho-bad)::before{content:'✅'}
-.ho-target{outline:3px dashed #ff7eb6;outline-offset:4px;border-radius:22px}.ho-over{outline-style:solid;transform:scale(1.06);transition:transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1))}
-.sl-actor.ho-lean{transform:translateX(18px) rotate(4deg);transition:transform 1.2s cubic-bezier(0.77,0,0.175,1)}
-.ho-oops{background:#fff3f6;border-radius:18px;padding:12px;font-weight:900;color:#b3264f;text-align:center;box-shadow:0 0 0 2px #ffc2d6}.ho-fuse{display:block;height:10px;border-radius:9px;background:#ffe0ea;margin-top:8px;overflow:hidden}.ho-fuse b{display:block;height:100%;background:linear-gradient(90deg,#ff5d8f,#ffb347);transform-origin:left}
-.ho-stop{border:0;border-radius:999px;padding:16px;font-size:22px;font-weight:900;color:#fff;background:#e2385f;box-shadow:0 6px 0 #a3203f;cursor:pointer}.ho-stop:active{transform:scale(.97) translateY(3px);box-shadow:0 3px 0 #a3203f}
-.ho-hold{position:relative;overflow:hidden;border:0;border-radius:999px;padding:16px;font-size:18px;font-weight:900;color:#4a2338;background:#e6f4ff;box-shadow:0 5px 0 #a9cdeb;cursor:pointer;user-select:none;-webkit-user-select:none}.ho-hold>i{position:absolute;inset:0;background:#8fd3ff;opacity:.55;transform:scaleX(0);transform-origin:left;pointer-events:none}.ho-hold.ho-holding{transform:scale(.98)}.ho-hold.ho-full{background:#c9f0d6}
-.ho-bins{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ho-bin{min-height:96px;border-radius:20px;padding:8px;background:#effaf2;border:3px dashed #8fd6a6;text-align:center;font-size:14px;color:#2f6b44}.ho-bin.no{background:#fff1f4;border-color:#f3a2b8;color:#a3203f}.ho-in{display:flex;flex-direction:column;gap:4px;margin-top:6px}.ho-chip{background:#fff;border-radius:12px;padding:5px 7px;font-size:11px;font-weight:800;color:#4a2338;animation:hoIn 260ms cubic-bezier(0.23,1,0.32,1)}
-.ho-sent{min-height:52px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;background:#fff;border-radius:18px;padding:8px;box-shadow:inset 0 0 0 2px #ffd6e7}.ho-ph{opacity:.55;font-weight:800}
-.ho-pieces{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.ho-piece{border:0;border-radius:999px;padding:10px 14px;font-weight:900;font-size:15px;color:#4a2338;background:#f3ecff;box-shadow:0 3px 0 #cbb8f2;cursor:pointer}.ho-piece.in{background:#ffe6f1;box-shadow:0 3px 0 #f0bcd3}.ho-piece:disabled{opacity:.3}
-.ho-thermo{display:flex;align-items:center;gap:8px;font-size:24px}.ho-tb{flex:1;height:16px;border-radius:9px;background:#eef2f5;overflow:hidden}.ho-tb i{display:block;height:100%;background:#ff6b6b;transform-origin:left;transition:transform 500ms cubic-bezier(0.23,1,0.32,1),background .4s}
-.ho-mag{display:flex;align-items:center;gap:10px;background:#fff8e6;border-radius:18px;padding:8px 12px;font-weight:800;color:#6b4a1f;margin:6px 0}.ho-glass{font-size:40px;cursor:grab;filter:drop-shadow(0 3px 2px rgba(0,0,0,.18));transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}.ho-glass.ho-sel{transform:scale(1.15)}.ho-glass.ho-used{opacity:.4;pointer-events:none}
-.ho-fog{filter:blur(5px);opacity:.6;transition:filter .3s,opacity .3s}.ho-found{animation:hoIn 300ms cubic-bezier(0.23,1,0.32,1)}
-.ho-mix{display:flex;flex-direction:column;gap:6px}.ho-mix label{display:grid;grid-template-columns:28px 1fr 28px;align-items:center;font-size:22px;gap:6px;background:#fff;border-radius:16px;padding:6px 10px}.ho-mix label small{grid-column:1/-1;text-align:center;font-size:11px;font-weight:900;color:#8a6577;margin-top:-4px}.ho-mix input[type=range]{width:100%;accent-color:#ff5d9e;height:28px}
-.ho-prev{text-align:center;background:#fff;border-radius:18px;padding:12px;font-weight:700;min-height:48px;transition:font-size 160ms cubic-bezier(0.23,1,0.32,1),color .2s,letter-spacing .2s}
+if(!document.getElementById('bpCss')){const st=document.createElement('style');st.id='bpCss';st.textContent=`
+.ho-target{outline:3px dashed #ff7eb6;outline-offset:4px}.ho-over{outline-style:solid}.ho-dragging{position:relative;z-index:60;transition:none!important;filter:drop-shadow(0 10px 14px rgba(160,60,110,.3))}.ho-sel{box-shadow:0 0 0 3px #ff7eb6!important}
+.bp-bus{position:relative;height:40px;background:#f1f4f8;border-radius:999px;margin:4px 0 8px;overflow:hidden}.bp-road{position:absolute;left:44px;right:12px;top:50%;border-top:3px dashed #c9d2de}.bp-stop{position:absolute;left:10px;top:4px;font-size:26px}.bp-van{position:absolute;right:6px;top:3px;font-size:28px;will-change:transform}
+.bp-wrap{display:grid;grid-template-columns:1fr 112px;gap:8px;align-items:start}.bp-room{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:#fff6fb;border-radius:20px;padding:8px}
+.bp-item{background:#fff;border-radius:16px;padding:6px 2px;text-align:center;box-shadow:0 3px 0 #f0bcd3;cursor:grab;user-select:none;-webkit-user-select:none;transition:transform 160ms cubic-bezier(0.23,1,0.32,1),opacity .2s}.bp-item:active{transform:scale(.97)}.bp-item b{display:block;font-size:30px;line-height:1.1}.bp-item small{display:block;font-size:10px;font-weight:900;color:#6b4a5c;line-height:1.1}
+.bp-item.bp-gone{opacity:.18;pointer-events:none}.bp-item.bp-pest{animation:bpWig .5s ease-in-out 4}@keyframes bpWig{50%{transform:rotate(-8deg) scale(1.08)}}
+.bp-bag{position:sticky;top:8px;min-height:230px;border-radius:26px;background:linear-gradient(#ff9cc6,#ff7eb6);color:#fff;text-align:center;padding:8px 6px;box-shadow:0 5px 0 #d65a93}.bp-bag>b{font-size:46px;display:block}.bp-bag small{display:block;font-size:10px;font-weight:800;opacity:.9;margin-top:6px}
+.bp-in{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;min-height:90px;background:rgba(255,255,255,.25);border-radius:16px;padding:6px}.bp-p{border:0;background:#fff;border-radius:12px;font-size:24px;width:42px;height:42px;cursor:pointer;animation:hoIn 240ms cubic-bezier(0.23,1,0.32,1)}
+.bp-bag.bp-zip{animation:bpZip .7s cubic-bezier(0.23,1,0.32,1)}@keyframes bpZip{30%{transform:scale(.92)}60%{transform:scale(1.05)}}
+.bp-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.bp-row .g6-again{margin:0}.bp-go{margin:0!important}
+.ch-file{background:#fff8e6;border-radius:18px;padding:10px 12px;margin-bottom:8px;box-shadow:0 0 0 2px #ffe2a8}.ch-file b{display:block;font-size:12px;color:#a0702a}.ch-file span{font-weight:900;color:#4a2338;font-size:16px}
+.ch-stage{position:relative;height:300px;border-radius:24px;overflow:hidden;box-shadow:inset 0 0 0 3px #fff;cursor:none;user-select:none;-webkit-user-select:none}.ch-dec{position:absolute;pointer-events:none}
+.ch-p{position:absolute;bottom:18px;width:34%;height:72%;pointer-events:none}.ch-p svg,.ch-p img{width:100%;height:100%;object-fit:contain}.ch-p small{position:absolute;bottom:-14px;left:0;right:0;text-align:center;font-weight:900;font-size:11px;color:#4a2338}
+.ch-clue{position:absolute;font-size:26px;transform:translate(-50%,-50%);opacity:0;transition:opacity .25s,transform .25s cubic-bezier(0.23,1,0.32,1);pointer-events:none;z-index:3}.ch-clue.ch-near{opacity:1;transform:translate(-50%,-50%) scale(1.3)}.ch-clue.ch-got{opacity:1;transform:translate(-50%,-50%) scale(1.1);filter:drop-shadow(0 0 6px #ffd84d)}
+.ch-clue.ch-twinkle::after{content:'✨';position:absolute;left:-6px;top:-10px;font-size:18px;animation:chTw 1.4s ease-out}.ch-clue.ch-twinkle{opacity:.35}@keyframes chTw{0%,100%{opacity:0}40%{opacity:1}}
+.ch-lens{position:absolute;left:0;top:0;width:92px;height:92px;border-radius:50%;border:6px solid #8a5a2b;background:radial-gradient(circle,rgba(255,255,255,.15),rgba(255,255,255,.35));box-shadow:0 6px 14px rgba(0,0,0,.25);pointer-events:none;z-index:4;will-change:transform}.ch-lens i{position:absolute;width:12px;height:46px;background:#8a5a2b;border-radius:6px;right:-22px;bottom:-40px;transform:rotate(-45deg)}.ch-lens.on{border-color:#a8703a}
+.ch-think{position:absolute;right:6px;top:8px;max-width:60%;background:#fff;border-radius:16px;padding:8px 10px;font-weight:800;font-size:13px;color:#4a2338;box-shadow:0 0 0 2px #d9c9f5;opacity:0;transform:scale(.95);transition:opacity .25s,transform .25s cubic-bezier(0.23,1,0.32,1);z-index:5}.ch-think.on{opacity:1;transform:none}
+.ch-found{display:grid;gap:6px;margin:8px 0}.ch-slot{background:#f6f2fb;border-radius:14px;padding:8px 10px;font-weight:800;font-size:13px;color:#8a7a99}.ch-slot.on{background:#fff;color:#4a2338;box-shadow:0 0 0 2px #ffd84d;animation:hoIn 260ms cubic-bezier(0.23,1,0.32,1)}.ch-slot b{font-size:20px;margin-right:6px}
+.ch-verdict{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0}.ch-stamp{border:4px solid;border-radius:16px;padding:14px 6px;font-weight:900;font-size:16px;background:#fff;transform:rotate(-3deg);cursor:pointer;transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}.ch-stamp:active{transform:rotate(-3deg) scale(.95)}.ch-stamp.acc{color:#2a7dc2;border-color:#8fc6f2}.ch-stamp.pur{color:#c2304f;border-color:#f3a2b8;transform:rotate(3deg)}
+.ch-stamp.ch-ok{background:#e9fbef;border-color:#58c98a;color:#2f8a57;transform:scale(1.05)}.ch-stamp.ch-wrong{opacity:.4}
 @keyframes hoIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.sl-actor.ho-lean{transform:none}.ho-card,.ho-glass,.ho-prev{transition:opacity .15s}}`;document.head.appendChild(st);}
+@media (prefers-reduced-motion:reduce){.bp-item.bp-pest,.bp-bag.bp-zip{animation:none}.ch-clue,.ch-think{transition:opacity .15s}}`;document.head.appendChild(st);}
 
 window.RikiSocial={state:()=>({boardPick,good:boardPick!==null?scenes[boardPick].good:null,pieces:talks[dialogueStep%talks.length].pieces,sortAnswer:sortCases[sortIndex%sortCases.length][1],sortIndex,planStep,zone:zSave,zCur})};
 selHub=newHub;
