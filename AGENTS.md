@@ -73,3 +73,12 @@ pull requests describing the overlap, and let whoever claimed first finish first
 ## 9. Keep Rachel updated, briefly
 
 After publishing, tell Rachel in a few lines: what changed, what was tested, and whether anything is unresolved.
+
+## 10. Keep context focused without missing dependencies
+
+- Start by reading these rules and `COORDINATION.md`, checking active claims, and checking the latest `main`. These checks are mandatory even for a small task.
+- For a focused task, first inspect the smallest relevant files from the code map in `COORDINATION.md`. Follow imports, shared state, styles, and dependencies as needed; never assume an uninspected module is irrelevant.
+- Avoid dumping entire large files, dependency directories, generated output, or binary assets into conversation context when a targeted read or search will do. Inspect a specific asset when the feature requires it.
+- Keep progress reports short: what changed, tests actually run, risks, and next action. On a new session, summarize the current branch, relevant PR, claimed files, and remaining work rather than repeating long transcripts.
+- Do not confuse Git ignore rules with Codex context controls: `.gitignore` prevents untracked files from being added to Git by default, but does not prevent Codex from reading files.
+- Preserve all coordination, saved-progress, and publishing protections above. Never sacrifice testing quality merely to save tokens.
