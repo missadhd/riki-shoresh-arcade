@@ -587,3 +587,6 @@ body{background:#f7f4f8!important;color:#443247}
 .catalog-collections{margin-top:12px}.catalog-collections .catalog-tabs{display:flex;gap:8px;overflow-x:auto;padding:8px 0}
 .catalog-simple-nav button:focus-visible,.catalog-simple-nav summary:focus-visible{outline:3px solid #9556b4;outline-offset:3px}
 @media(min-width:750px){.catalog-main-choices{grid-template-columns:1fr 1.5fr}.catalog-special-choices{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* No giant product list before Riki chooses a shop section. */
+.catalog-choosing .catalog-tools,.catalog-choosing .catalog-filters,.catalog-choosing #catalogProducts,.catalog-choosing .catalog-collections{display:none}
