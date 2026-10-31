@@ -593,3 +593,6 @@ body{background:#f7f4f8!important;color:#443247}
 
 /* Keep the full hugging-hearts Social Skills illustration inside its atlas cell. */
 #hubSocial .hub-ic::before{background-size:400% 400%;background-position:33.333333% 0%;transform:scale(.83);transform-origin:center center;}
+
+/* Dedicated full-art crop: hearts overlap their original 4x4 sprite cell. */
+#hubSocial .hub-ic::before{background-image:url('../images/clay/social-hearts-complete.svg');background-size:contain;background-position:center;background-repeat:no-repeat;transform:none}
