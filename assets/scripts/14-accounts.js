@@ -11,7 +11,7 @@ function storePlayer(id){sessionStorage.setItem(PLAYER,id);if(durable())localSto
 const BACKUP='rikiGuestProgressBackupV1';
 const DISPLAY='rikiCurrentPlayerNameV1';
 const KEYS=['rickyCoins','rickyHouseInventoryV1','rickyHouseDecorV1','rickyHouseWallsV1','rickyDreamStorageV2','rickyDreamPetsV2','rickyDreamPositionsV2','rickyRoomInteriorsV3','rickyTinyOwnedV1','rickyTinyPlacedV1','rickyAdventureXPV1','rickySpatialMusicV1','riki3dOrbit','rikiReal3dAz','rikiRootProgressV1','rikiDreamRotationV1','rikiClawPlushV1','rikiPlayTokensV1'];
-let session=null,player=null,lastSaved='',interval=null;
+let session=null,player=null,lastSaved='',lastVersion=null,interval=null,saveInFlight=null;
 const $=id=>document.getElementById(id);
 const read=()=>{const x={};KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)x[k]=v;});return x;};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -53,8 +53,9 @@ async function switchTo(id,nickname){
   if(player && player!==id)await save();
   const rows=await api('/rest/v1/arcade_progress?select=version,snapshot&player_id=eq.'+encodeURIComponent(id));
   const stored=rows[0]?.snapshot;
+  const targetVersion=rows[0]?.version??null;
   if(!localStorage.getItem(BACKUP)){try{localStorage.setItem(BACKUP,JSON.stringify(read()))}catch{}}
-  player=id;storePlayer(id);if(nickname)sessionStorage.setItem(DISPLAY,nickname);greet();status('Cloud profile active');
+  player=id;lastSaved='';lastVersion=targetVersion;storePlayer(id);if(nickname)sessionStorage.setItem(DISPLAY,nickname);greet();status('Cloud profile active');
   if(stored && Object.keys(stored).length){
    KEYS.forEach(k=>{if(Object.hasOwn(stored,k))localStorage.setItem(k,String(stored[k]));else localStorage.removeItem(k)});
    status('Cloud profile active');close();location.reload();return;
@@ -67,13 +68,27 @@ async function switchTo(id,nickname){
  }catch(err){status('Account error: '+err.message)}
 }
 async function save(){
+ if(saveInFlight)return saveInFlight;
+ saveInFlight=saveNow().finally(()=>{saveInFlight=null});return saveInFlight;
+}
+async function saveNow(){
  if(!player||!await refresh())return;
+ const savingPlayer=player;
  const snapshot=read(),serialized=JSON.stringify(snapshot);if(serialized===lastSaved)return;
  if(serialized.length>900000)throw Error('Progress is too large to sync');
- const rows=await api('/rest/v1/arcade_progress?select=version&player_id=eq.'+encodeURIComponent(player));
- if(rows.length){await api('/rest/v1/arcade_progress?player_id=eq.'+encodeURIComponent(player),'PATCH',{snapshot,updated_at:new Date().toISOString()})}
- else {await api('/rest/v1/arcade_progress','POST',{player_id:player,snapshot})}
- lastSaved=serialized;status('Cloud progress saved');
+ const rows=await api('/rest/v1/arcade_progress?select=version&player_id=eq.'+encodeURIComponent(savingPlayer));
+ if(player!==savingPlayer)throw Error('Player changed during save');
+ if(rows.length){
+  const remoteVersion=Number(rows[0].version??0);
+  if(lastVersion!==null && remoteVersion!==Number(lastVersion))throw Error('Another device changed this player’s progress. Changes were NOT overwritten. Please stop playing and contact the adult.');
+  const updated=await api('/rest/v1/arcade_progress?player_id=eq.'+encodeURIComponent(savingPlayer)+'&version=eq.'+remoteVersion,'PATCH',{snapshot,version:remoteVersion+1,updated_at:new Date().toISOString()});
+  if(!Array.isArray(updated)||updated.length!==1)throw Error('Save conflict: progress changed on another device. Your changes were not uploaded.');
+  lastVersion=remoteVersion+1;
+ }else{
+  if(lastVersion!==null)throw Error('Cloud progress disappeared; save stopped for safety');
+  const inserted=await api('/rest/v1/arcade_progress','POST',{player_id:savingPlayer,snapshot});lastVersion=inserted[0]?.version??0;
+ }
+ if(player!==savingPlayer)throw Error('Player changed during save');lastSaved=serialized;status('Cloud progress saved');
 }
 async function openRiki(){
  if(!session||!await refresh()){login();status('Adult email sign-in is required before using a cloud player.');return;}
@@ -100,7 +115,7 @@ async function initialize(){
  if(session && await refresh()){
   if(!session.user){try{session.user=await api('/auth/v1/user');storeSession()}catch{logout()}}
   const active=sessionStorage.getItem(PLAYER)||(durable()?localStorage.getItem(PLAYER):null);
-  if(active){try{const owned=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=id');if(owned.length){player=active;storePlayer(active);const names=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=nickname');if(names[0]?.nickname)sessionStorage.setItem(DISPLAY,names[0].nickname);greet();const rows=await api('/rest/v1/arcade_progress?select=snapshot&player_id=eq.'+encodeURIComponent(active));if(rows[0]?.snapshot){const snapshot=rows[0].snapshot;const incoming=JSON.stringify(snapshot);const current=JSON.stringify(read());if(incoming!==current){KEYS.forEach(k=>{if(Object.hasOwn(snapshot,k))localStorage.setItem(k,String(snapshot[k]));else localStorage.removeItem(k)});location.reload();return;}lastSaved=current}}}catch{player=null}}
+  if(active){try{const owned=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=id');if(owned.length){player=active;storePlayer(active);const names=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=nickname');if(names[0]?.nickname)sessionStorage.setItem(DISPLAY,names[0].nickname);greet();const rows=await api('/rest/v1/arcade_progress?select=version,snapshot&player_id=eq.'+encodeURIComponent(active));if(rows[0])lastVersion=rows[0].version??null;if(rows[0]?.snapshot){const snapshot=rows[0].snapshot;const incoming=JSON.stringify(snapshot);const current=JSON.stringify(read());if(incoming!==current){KEYS.forEach(k=>{if(Object.hasOwn(snapshot,k))localStorage.setItem(k,String(snapshot[k]));else localStorage.removeItem(k)});location.reload();return;}lastSaved=current}}}catch{player=null}}
   status(player?'Cloud profile active':'Guardian signed in');if(player)interval=setInterval(()=>save().catch(err=>status('Cloud save error: '+err.message)),15000);
   else if(token.has('access_token'))list();
  }
