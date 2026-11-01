@@ -1127,7 +1127,7 @@ const H={R:null,scene:null,cam:null,look:null,lookT:null,dist:16,rotY:.35,rotX:.
 const RD=3.6,RH=3;
 const ROOMDEF={bedroom:{x:0,y:3.15,w:8.4},living:{x:-2.15,y:0,w:4.2},kitchen:{x:2.15,y:0,w:4.2}};
 function houseBuild(){
-  const s=new THREE.Scene();H.scene=s;lights(s,9,1536);H.items=[];
+  if(H.scene)disposeScene(H.scene);const s=new THREE.Scene();H.scene=s;lights(s,9,1536);H.items=[];
   const yard=add(s,new THREE.BoxGeometry(17,.3,13),mat('#ffffff',.95,0,{map:grassTex()}),0,-.2,3);yard.castShadow=false;
   add(s,new THREE.BoxGeometry(9.2,.25,RD+.5),mat('#e3d6c6',.9,0,{map:stoneTex()}),0,-.05,0);
   Object.entries(ROOMDEF).forEach(([id,d])=>{const g=new THREE.Group();g.position.set(d.x,d.y,0);s.add(g);roomShell(g,id,d.w,RD,RH,{noSides:true,windows:d.w>5?[-2.2,2.2]:[0]});
@@ -1199,7 +1199,15 @@ function roomSnapshot(room,w=960,h=720){if(!window.THREE||!ROOM_SIZE[room])retur
  const spots=items.map(it=>{const b=new THREE.Box3().setFromObject(it),c=b.getCenter(new THREE.Vector3());const f=new THREE.Vector3(c.x,b.min.y,c.z).project(cam),t=new THREE.Vector3(c.x,b.max.y,c.z).project(cam);return {id:it.userData.id,x:(f.x+1)*50,y:(1-f.y)*50,top:(1-t.y)*50,wall:!!it.userData.onWall};});
  const floorY=new THREE.Vector3(0,0,D*.25).project(cam);
  const out={url:R.domElement.toDataURL('image/jpeg',.88),spots,floor:(1-floorY.y)*50};s.traverse(o=>{if(o.geometry&&o.geometry.dispose)o.geometry.dispose();});snapCache[key]=out;return out;}
+/* Grok: free GPU buffers/textures of a scene that is being replaced. Safe for shared/cached
+   geometries, materials and textures: three.js re-uploads them automatically if reused later. */
+function disposeScene(root){if(!root||!root.traverse)return;const seen=new Set();const tex=t=>{if(t&&t.isTexture&&!seen.has(t)){seen.add(t);t.dispose();}};
+ root.traverse(o=>{if(o.geometry&&!seen.has(o.geometry)){seen.add(o.geometry);o.geometry.dispose();}
+  (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(!m||seen.has(m))return;seen.add(m);for(const k in m){if(m[k]&&m[k].isTexture)tex(m[k]);}m.dispose();});
+  if(o.isLight&&o.shadow&&o.shadow.map){o.shadow.map.dispose();o.shadow.map=null;}});
+ if(root.background&&root.background.isTexture)tex(root.background);}
 window.RK3=Object.assign(window.RK3||{},{
+  disposeScene,
   // Read-only view state for real-browser gesture regression tests.
   roomViewState:()=>({
     room:ED.room,zoom:ED.zoom,az:ED.azT,el:ED.elT,

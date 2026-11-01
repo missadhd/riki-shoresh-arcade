@@ -250,6 +250,7 @@ function buildEnv(id){const E=ENV[id];if(!E)return;const g=new THREE.Group();g.u
  const ITEMS=G('ITEMS')||[];(E.items||[]).forEach(([iid,x,z,ry,h,y0])=>{const it=ITEMS.find(i=>i[0]===iid);if(!it||!K.makeItem)return;let m;try{m=K.makeItem(it);}catch(e){return;}m.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}if(o.isLight)o.intensity*=.5;});m.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(m),sz=bb.getSize(new THREE.Vector3()),c=bb.getCenter(new THREE.Vector3());const w2=new THREE.Group();m.position.set(-c.x,-bb.min.y,-c.z);w2.add(m);w2.scale.setScalar(h/Math.max(sz.y,.01));w2.rotation.y=ry;w2.position.set(x,y0||0,z);g.add(w2);});
  scene.add(g);}
 function newScene(def){
+  if(scene&&window.RK3&&RK3.disposeScene)RK3.disposeScene(scene);
   scene=new THREE.Scene();scene.add(new THREE.HemisphereLight(0xfff6ee,0xe8c4b4,.62));
   const key=new THREE.DirectionalLight(0xfff3e6,1.1);key.position.set(3,7,5);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.radius=5;key.shadow.bias=-.0008;key.shadow.normalBias=.02;const c=key.shadow.camera;c.left=-4;c.right=4;c.top=4;c.bottom=-4;c.far=30;scene.add(key);
   const rim=new THREE.DirectionalLight(0xffc4dd,.5);rim.position.set(-4,3,-4);scene.add(rim);
@@ -284,15 +285,17 @@ const snapCache={};
 function snap(key,build){if(snapCache[key])return snapCache[key];const {r,s,c}=snapRig();const g=new THREE.Group();build(g);s.add(g);g.updateMatrixWorld(true);
   const box=new THREE.Box3().setFromObject(g);if(box.isEmpty()){s.remove(g);return '';}const size=box.getSize(new THREE.Vector3()),ctr=box.getCenter(new THREE.Vector3());
   const rad=Math.max(size.x,size.y,size.z)*.62+.02,d=rad/Math.sin(c.fov*Math.PI/360);c.position.set(ctr.x+Math.sin(.5)*d*.94,ctr.y+d*.32,ctr.z+Math.cos(.5)*d*.94);c.lookAt(ctr);c.updateProjectionMatrix();
-  r.render(s,c);const u=r.domElement.toDataURL('image/png');s.remove(g);snapCache[key]=u;return u;}
+  r.render(s,c);const u=r.domElement.toDataURL('image/png');s.remove(g);if(window.RK3&&RK3.disposeScene)RK3.disposeScene(g);snapCache[key]=u;return u;}
 
 /* ================= game flow ================= */
 const IDS=Object.keys(GAMES);
 let S=null;
 function words(){const W=G('W')||[];const idsFn=G('ids');const pool=typeof idsFn==='function'?idsFn():W.map((_,i)=>i);return {W,pool};}
+let studioWebGLOk=false;
 function studioWebGLAvailable(){
+  if(studioWebGLOk)return true; /* probe once: each probe creates (and loses) a WebGL context */
   /* The 3D library is lazy-loaded by K.loadThree; do not treat its absence at menu time as lack of WebGL. */
-  try{const canvas=document.createElement('canvas');const gl=canvas.getContext('webgl2')||canvas.getContext('webgl')||canvas.getContext('experimental-webgl');const available=!!gl;try{gl&&gl.getExtension('WEBGL_lose_context')?.loseContext();}catch(_){}return available;}catch(_){return false;}
+  try{const canvas=document.createElement('canvas');const gl=canvas.getContext('webgl2')||canvas.getContext('webgl')||canvas.getContext('experimental-webgl');const available=studioWebGLOk=!!gl;try{gl&&gl.getExtension('WEBGL_lose_context')?.loseContext();}catch(_){}return available;}catch(_){return false;}
 }
 function startStudio(id){
   if(!studioWebGLAvailable())return false;

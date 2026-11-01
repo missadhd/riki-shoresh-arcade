@@ -43,3 +43,6 @@ jobs:
       - name: Saved-data resilience (wrong-shape localStorage)
         if: always()
         run: node tests/saved-data-resilience-ci.mjs
+      - name: WebGL lifecycle (30 enter/exit cycles)
+        if: always()
+        run: node tests/webgl-lifecycle-ci.mjs
