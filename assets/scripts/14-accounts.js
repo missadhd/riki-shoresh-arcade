@@ -25,7 +25,13 @@ async function refresh(){if(!session)return false;if(session.expires_at && Date.
  try{const x=await api('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:session.refresh_token},null);session={...x,expires_at:Math.floor(Date.now()/1000)+x.expires_in};storeSession();return true}catch{logout();return false}}
 function status(s){const n=$('rkAccountStatus');if(n)n.textContent=s;const b=$('rkAccountOpen');if(b)b.textContent=player?'👤 '+(sessionStorage.getItem(DISPLAY)||'Switch player'):'👤 Choose player'}
 function greet(){const name=sessionStorage.getItem(DISPLAY);const el=document.querySelector('.hub-hi h1');if(el){const desired=name?'Hi '+name+'! 👋':'Hi there! 👋';if(el.textContent!==desired)el.textContent=desired;}document.querySelectorAll('.brand').forEach(el=>{if(el.textContent.includes("Riki's"))el.textContent='🌈 Homework & Social Skills Games';});}
-const greetingObserver=new MutationObserver(greet);
+function neutralHeadings(){
+ document.querySelectorAll('h1,h2,h3').forEach(el=>{
+  if(el.textContent.trim()==="Riki's Big Day")el.textContent='A Big Day Adventure';
+  else if(el.textContent.trim()==="Riki's Dream Dollhouse")el.textContent='My Dream Dollhouse';
+ });
+}
+const greetingObserver=new MutationObserver(()=>{greet();neutralHeadings()});
 function modal(html){$('rkAccountPanel').innerHTML='<button type="button" id="rkDialogDismiss" aria-label="Close account panel">×</button>'+html;$('rkAccountDialog').hidden=false;$('rkDialogDismiss').onclick=close;}
 function close(){$('rkAccountDialog').hidden=true}
 function identity(){return session?.user?.email||'Guardian'}
@@ -105,7 +111,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  const dialog=document.createElement('section');dialog.id='rkAccountDialog';dialog.hidden=true;dialog.innerHTML='<div id="rkAccountPanel"></div>';host.parentElement.insertBefore(dialog,host);
  $('rkAccountOpen').onclick=()=>session?list():login();
 
- greetingObserver.observe(host,{subtree:true,childList:true});greet();
+ greetingObserver.observe(host,{subtree:true,childList:true});greet();neutralHeadings();
  initialize().catch(err=>status('Account unavailable: '+err.message));
  window.addEventListener('pagehide',()=>{if(player)save().catch(()=>{})});
 });
