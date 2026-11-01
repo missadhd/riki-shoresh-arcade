@@ -3,6 +3,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - 'index.html'
       - 'assets/scripts/**'
       - 'assets/styles/**'
       - 'tests/social-detective-ci.mjs'
