@@ -73,7 +73,7 @@ function start(type){
   const seen=new Set();questions=[];
   for(const f of shuffle(facts())){if(seen.has(f.answer))continue;seen.add(f.answer);questions.push(f);if(questions.length===4)break}
  }
- active={type,questions,at:0,built:0,done:false,score:0,selected:null,used:[],answers:shuffle(questions.map(x=>x.answer)),message:''};
+ active={type,questions,at:0,built:0,prepared:0,recipeStage:'prep',done:false,score:0,selected:null,used:[],answers:shuffle(questions.map(x=>x.answer)),message:''};
  render();
 }
 const question=()=>active.questions[active.at];
@@ -83,12 +83,56 @@ function form(){return '<form id="rkMathForm" class="rk-math-answer"><label for=
 function status(){const x=active;return '<p id="rkMathStatus" class="rk-math-status" role="status" aria-live="polite">'+esc(x.message||'Use the picture to help you figure it out.')+'</p>'+(x.done?'<button type="button" id="rkMathNext" class="rk-math-primary">'+(x.at===x.questions.length-1?'See results 🎉':'Next one →')+'</button>':'')}
 function hint(q){const multiples=Array.from({length:q.a},(_,i)=>(i+1)*q.b).join(' → ');return '<button type="button" id="rkMathHint" class="rk-math-link">💡 Show counting hint</button><p id="rkMathHelp" class="rk-math-help" hidden>Count by '+q.b+'s: '+multiples+'.</p>'}
 function recipe(){
- const q=question(),stuff=[['🍪','cookies'],['🧁','cupcakes'],['🥞','pancakes'],['🍓','strawberries'],['🍩','doughnuts']][active.at%5];
- let trays='';for(let i=0;i<q.a;i++)trays+='<div class="rk-math-tray"><b>Tray '+(i+1)+'</b>'+dots(q.b,stuff[0])+'</div>';
- return header('🧁 Recipe Studio','Bakery order '+(active.at+1)+' of '+active.questions.length)+progressBar()+
- '<section class="rk-math-panel"><div class="rk-math-order"><span>👩‍🍳</span><div><small>NEW BAKERY ORDER</small><h2>'+q.a+' trays of '+q.b+' '+stuff[1]+'</h2><p>Each tray has '+q.b+'. How many '+stuff[1]+' altogether?</p></div></div><div class="rk-math-trays">'+trays+'</div>'+
- '<p class="rk-math-equation">'+q.a+' × '+q.b+' = '+(active.done?q.answer:'?')+'</p>'+
- (active.done?'<div class="rk-math-success">✅ Order served! Great job!</div>':form())+status()+hint(q)+'</section>';
+ const q=question(),x=active,food=[
+  {emoji:'🍪',name:'cookies',singular:'cookie'},
+  {emoji:'🧁',name:'cupcakes',singular:'cupcake'},
+  {emoji:'🥞',name:'pancakes',singular:'pancake'},
+  {emoji:'🍓',name:'strawberries',singular:'strawberry'},
+  {emoji:'🍩',name:'doughnuts',singular:'doughnut'}
+ ][x.at%5],stage=x.recipeStage||'prep';
+ const stageText={prep:'Prepare the trays',solve:'Count the whole order',ready:'Ready for the oven',baking:'Baking in the oven',served:'Order served!'}[stage];
+ let trays='';
+ for(let i=0;i<q.a;i++){
+  const filled=i<x.prepared;
+  trays+='<div class="rk-kitchen-tray '+(filled?'filled':'waiting')+'" aria-label="Tray '+(i+1)+': '+(filled?q.b+' '+food.name:'empty')+'">'+
+   '<b>Tray '+(i+1)+'</b><div class="rk-kitchen-tray-food">'+(filled?dots(q.b,food.emoji):'<span class="rk-kitchen-empty">+</span>')+'</div>'+
+   '<small>'+(filled?q.b+' '+food.name:'waiting')+'</small></div>';
+ }
+ const completed=stage==='served';
+ const view='<div class="rk-kitchen-scene" data-recipe-stage="'+stage+'">'+
+  '<div class="rk-kitchen-wall"><div class="rk-kitchen-window" aria-hidden="true"><span>☁️</span><span>🌤️</span></div>'+
+   '<div class="rk-kitchen-shelf" aria-hidden="true"><span class="rk-kitchen-jar">🍯</span><span class="rk-kitchen-jar">🧂</span><span class="rk-kitchen-jar">🥛</span></div>'+
+   '<span class="rk-kitchen-utensil" aria-hidden="true">🥄</span></div>'+
+  '<div class="rk-kitchen-workspace"><div class="rk-kitchen-prep">'+
+   '<div class="rk-kitchen-station"><span class="rk-kitchen-bowl" aria-hidden="true">🥣</span><div><b>Prep counter</b><small>'+x.prepared+' of '+q.a+' trays filled</small></div></div>'+
+   '<div class="rk-kitchen-trays" aria-label="Bakery trays">'+trays+'</div>'+
+   '<div class="rk-kitchen-counter-edge" aria-hidden="true"></div></div>'+
+  '<div class="rk-kitchen-appliances"><div class="rk-kitchen-oven" aria-label="Pink oven">'+
+   '<div class="rk-kitchen-oven-back"><span>♡ Riki Bakery</span><span class="rk-kitchen-knobs" aria-hidden="true">● ● ●</span></div>'+
+   '<div class="rk-kitchen-oven-window" aria-hidden="true"><span class="rk-kitchen-heat">♨</span><span class="rk-kitchen-baked">'+food.emoji+'</span></div>'+
+   '<div class="rk-kitchen-oven-door" aria-hidden="true"><span>oven</span></div>'+
+   '<div class="rk-kitchen-oven-legs" aria-hidden="true"></div></div>'+
+   '<div class="rk-kitchen-pickup"><b>Pickup counter</b><div class="rk-kitchen-plate" aria-label="'+(completed?'Finished '+food.name:'Awaiting finished order')+'">'+(completed?'🍽️ '+food.emoji:'🍽️')+'</div></div></div>'+
+   '</div></div>';
+ let action='';
+ if(stage==='prep')action='<p class="rk-kitchen-instruction">Fill tray '+(x.prepared+1)+' with <strong>'+q.b+' '+food.name+'</strong>. Each tray has the same amount.</p>'+
+  '<button type="button" class="rk-math-primary rk-kitchen-action" id="rkKitchenFill">＋ Fill tray '+(x.prepared+1)+' with '+q.b+' '+food.name+'</button>';
+ else if(stage==='solve')action='<p class="rk-kitchen-instruction">All '+q.a+' trays are ready! Count every '+food.singular+' to find the total.</p>'+form()+hint(q);
+ else if(stage==='ready')action='<p class="rk-kitchen-instruction">You counted <strong>'+q.answer+'</strong> '+food.name+'. Now bake the order!</p>'+
+  '<button type="button" class="rk-math-primary rk-kitchen-action" id="rkKitchenBake">🔥 Put the trays in the oven</button>';
+ else if(stage==='baking')action='<p class="rk-kitchen-instruction">The oven is working! The treats are ready to go to the customer.</p>'+
+  '<button type="button" class="rk-math-primary rk-kitchen-action" id="rkKitchenServe">🍽️ Take out and serve the order</button>';
+ else action='<p class="rk-kitchen-instruction">The customer got '+q.answer+' '+food.name+'. Fantastic work!</p>'+
+  '<div class="rk-math-success">🎉 Order delivered! +6 coins!</div>'+status();
+ return header('🧁 Recipe Studio','Bakery order '+(x.at+1)+' of '+x.questions.length)+progressBar()+
+  '<section class="rk-math-panel rk-kitchen-panel"><div class="rk-kitchen-order"><div class="rk-kitchen-customer" aria-label="Smiling bakery customer">'+(completed?'😊':'👩‍🍳')+'</div>'+
+  '<div class="rk-kitchen-ticket"><small>ORDER #'+(x.at+1)+'</small><h2>'+q.a+' trays × '+q.b+' '+food.name+'</h2>'+
+  '<p>Make '+q.a+' groups of '+q.b+'.</p></div></div>'+
+  '<div class="rk-kitchen-phase" role="status" aria-live="polite"><span>'+stageText+'</span><span>🧁 '+x.prepared+'/'+q.a+' trays</span></div>'+
+  view+'<p class="rk-math-equation">'+q.a+' × '+q.b+' = '+(stage==='prep'||stage==='solve'?'?':q.answer)+'</p>'+
+  '<div class="rk-kitchen-controls">'+action+
+  (x.message&&stage!=='served'?'<p class="rk-math-status" id="rkMathStatus" role="status">'+esc(x.message)+'</p>':'')+
+  '</div></section>';
 }
 function array(){
  const q=question(),x=active;let rows='';
@@ -110,15 +154,41 @@ function render(){
  if(active.at>=active.questions.length)return finish();
  show(active.type==='recipe'?recipe():active.type==='array'?array():matching());
  $('rkMathBack').onclick=startHome;
+ const fill=$('rkKitchenFill');if(fill)fill.onclick=()=>{
+  if(active.type!=='recipe'||active.recipeStage!=='prep')return;
+  const q=question();if(active.prepared>=q.a)return;
+  active.prepared++;sound();
+  if(active.prepared===q.a)active.recipeStage='solve';
+  render();
+ };
+ const bake=$('rkKitchenBake');if(bake)bake.onclick=()=>{
+  if(active.type!=='recipe'||active.recipeStage!=='ready')return;
+  active.recipeStage='baking';sound();render();
+ };
+ const serve=$('rkKitchenServe');if(serve)serve.onclick=()=>{
+  if(active.type!=='recipe'||active.recipeStage!=='baking'||active.done)return;
+  const q=question();active.done=true;active.recipeStage='served';
+  give(q);active.score++;active.message='Correct! '+q.a+' groups of '+q.b+' make '+q.answer+'. +6 coins!';
+  render();
+ };
  const h=$('rkMathHint');if(h)h.onclick=()=>{$('rkMathHelp').hidden=!$('rkMathHelp').hidden;sound()};
  const build=$('rkMathBuild');if(build)build.onclick=()=>{active.built++;sound();render()};
  const f=$('rkMathForm');if(f)f.onsubmit=e=>{
   e.preventDefault();if(active.done)return;
   const q=question(),ans=Number($('rkMathInput').value);
-  if(ans===q.answer){give(q);active.done=true;active.score++;active.message='Correct! '+q.a+' groups of '+q.b+' are '+q.answer+'. +6 coins!';render();}
+  if(ans===q.answer){
+   if(active.type==='recipe'){
+    if(active.recipeStage!=='solve'||active.prepared!==q.a)return;
+    active.recipeStage='ready';active.message='That is right! Put the treats into the oven to finish the order.';
+    sound('good');render();
+   }else{
+    give(q);active.done=true;active.score++;
+    active.message='Correct! '+q.a+' groups of '+q.b+' are '+q.answer+'. +6 coins!';render();
+   }
+  }
   else{wrong(q);active.message='Not yet. Count the groups of '+q.b+', then try again.';$('rkMathStatus').textContent=active.message;$('rkMathHelp').hidden=false;$('rkMathInput').focus();$('rkMathInput').select()}
  };
- const next=$('rkMathNext');if(next)next.onclick=()=>{active.at++;active.built=0;active.done=false;active.message='';render()};
+ const next=$('rkMathNext');if(next)next.onclick=()=>{active.at++;active.built=0;active.prepared=0;active.recipeStage='prep';active.done=false;active.message='';render()};
  app.querySelectorAll('[data-fact]').forEach(b=>b.onclick=()=>{active.selected=Number(b.dataset.fact);active.message='Now choose its answer.';sound();render()});
  app.querySelectorAll('[data-answer]').forEach(b=>b.onclick=()=>{
   if(active.selected===null){active.message='Choose a fact on the left first.';render();return}
