@@ -552,7 +552,14 @@ function makeRenderer(){const R=new THREE.WebGLRenderer({antialias:true,alpha:tr
 function animateItems(list,t){list.forEach(g=>{
   if(g.userData.bob){g.userData.bob.position.y=Math.sin(t*1.6+g.userData.phase)*.15;g.userData.bob.children.forEach((w,i)=>{const s=.35+Math.abs(Math.sin(t*9+i));w.userData.flap[0].scale.x=s;w.userData.flap[1].scale.x=s;});}
   if(g.userData.pet)g.position.y=g.userData.base+Math.abs(Math.sin(t*2.2+g.userData.phase))*.04;
-  if(g.userData.fish)g.userData.fish.position.x=Math.sin(t*1.5)*.12;});}
+  if(g.userData.fish)g.userData.fish.position.x=Math.sin(t*1.5)*.12;
+  if(g.userData.swingSeats){
+    const boost=g.userData.swingBoost||.38;
+    const amp=boost*Math.sin(t*1.35+(g.userData.swingPhase||0));
+    g.userData.swingSeats.forEach((s,i)=>s.rotation.z=amp*(i===0?1:-1)*.85);
+    if(g.userData.swingBoost>.4)g.userData.swingBoost=Math.max(.38,g.userData.swingBoost*.992);
+  }
+});}
 
 /* ================= ROOM EDITOR ================= */
 const ROOM_SIZE={bedroom:[6.4,4.6,3.2],living:[6.4,4.6,3.2],kitchen:[6.4,4.6,3.2],garden:[7.4,5.2,3],bathroom:[6.4,4.6,3.2],playroom:[6.4,4.6,3.2]};
@@ -792,7 +799,7 @@ function edPointers(cv){
     }
     if(ED.preview){if(!d.moved&&!d.item){const v=hitFloor({x:e.clientX,y:e.clientY});if(v&&!ED.preview.group.userData.onWall){ED.preview.group.position.x=v.x;ED.preview.group.position.z=v.z;}else if(v)ED.preview.group.position.x=v.x;}return;}
     if(d.item&&d.moved){const g=d.item;place(g.userData.id,g.position.x,g.userData.onWall?ED.D/2:g.position.z);return;}
-    if(d.item&&!d.moved){edSelect(d.item.userData.id);if(d.item.userData.storage)storageOpen(d.item.userData.id);try{const a=G('audio');a&&a('tap');}catch(_){}return;}
+    if(d.item&&!d.moved){edSelect(d.item.userData.id);if(d.item.userData.storage)storageOpen(d.item.userData.id);if(d.item.userData.swingSeats)d.item.userData.swingBoost=1.15;try{const a=G('audio');a&&a('tap');}catch(_){}return;}
     if(!d.moved&&ED.moveMode&&ED.sel){const v=hitFloor({x:e.clientX,y:e.clientY});ED.moveMode=false;if(v){place(ED.sel,v.x,v.z);return;}}
     if(!d.moved){const sel=G('selectedItem');const owned=G('owned')||[];
       if(sel&&owned.includes(sel)){const v=hitFloor({x:e.clientX,y:e.clientY});if(v){place(sel,v.x,v.z);return;}}
