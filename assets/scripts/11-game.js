@@ -10,7 +10,7 @@ let threeWaiters=null;
 function loadThree(cb,fail){if(window.THREE)return cb();if(threeWaiters){threeWaiters.push([cb,fail]);return;}threeWaiters=[[cb,fail]];const s=document.createElement('script');s.src=THREE_URL;s.onload=()=>{const w=threeWaiters;threeWaiters=null;w.forEach(x=>x[0]());};s.onerror=()=>{const w=threeWaiters;threeWaiters=null;w.forEach(x=>x[1]&&x[1]());};document.head.appendChild(s);}
 
 /* ================= styles ================= */
-const css=`.rk3-room{position:relative;height:clamp(320px,min(64vh,118vw),580px);border-radius:26px;overflow:hidden;touch-action:none;background:linear-gradient(#f7ebe4,#efe0d6);border:3px solid #fff;box-shadow:0 18px 34px -16px #4a233866;margin:10px 0}
+const css=`.rk3-room{position:relative;height:clamp(340px,min(70vh,124vw),600px);width:100%;max-width:840px;border-radius:26px;overflow:hidden;touch-action:none;background:linear-gradient(#f7ebe4,#efe0d6);border:3px solid #fff;box-shadow:0 18px 34px -16px #4a233866;margin:10px auto}
 .rk3-room canvas{display:block;width:100%;height:100%;outline:none}
 .rk3-room .riki3d-hud{position:absolute;left:10px;right:10px;top:10px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;pointer-events:none;z-index:2}
 .rk3-room .riki3d-hud span{background:#ffffffde;border-radius:999px;padding:5px 12px;font-weight:800;font-size:13px;color:#4a2338;box-shadow:0 2px 8px #0001}
@@ -495,54 +495,80 @@ function roomShell(g,id,W,D,H,opts={}){
 function roomIdentity(g,id,W,D,H){
   const soft = c => mat(c, .9);
   const round = c => mat(c, .88);
-  // Distinct architectural details for each room. No unearned furnishings.
-  if(id!=='bedroom' && id!=='garden'){
-    const theme={
-      living:['#f4ded3','#fff6ed','#e7bda7'],
-      kitchen:['#d9e9dd','#fff8e9','#a5caba'],
-      bathroom:['#d5eaf0','#fffdf7','#a6cdd9'],
-      playroom:['#eee0f5','#fffaf3','#d5b7e7']
-    }[id]||['#f4e6df','#fff8ef','#ddc2b9'];
-    const base=mat(theme[0],.9),trim=mat(theme[1],.8),detail=mat(theme[2],.89);
-    const z=-D/2+.105, rail=.89;
-    RB(g,W-.18,.74,.038,.012,base,0,.53,z);
-    RB(g,W-.14,.065,.065,.017,trim,0,rail,z+.04);
-    RB(g,W-.14,.075,.065,.018,trim,0,.17,z+.04);
-    // Shallow wall paneling runs across all three interior walls.
-    const count=id==='bathroom'?7:5,usable=W-.55,step=usable/count;
-    for(let n=0;n<count;n++){
-      const x=-usable/2+(n+.5)*step;
-      RB(g,step-.13,.46,.035,.014,detail,x,.54,z+.055);
-      RB(g,step-.18,.36,.038,.014,base,x,.54,z+.082);
+  // Each room has its own permanent wall language. No earned furniture is added here.
+  const z=-D/2+.105;
+  if(id==='living'){
+    const blush=mat('#e8c5b6',.9),ivory=mat('#fff5e9',.84),bead=mat('#ce9e8a',.9);
+    // Warm, raised woodwork and elegant ivory rails.
+    RB(g,W-.2,.75,.037,.015,blush,0,.53,z);
+    RB(g,W-.15,.075,.075,.018,ivory,0,.94,z+.045);
+    RB(g,W-.15,.085,.075,.02,ivory,0,.16,z+.045);
+    const w=(W-.5)/5;
+    for(let n=0;n<5;n++){
+      const x=-(W-.5)/2+(n+.5)*w;
+      RB(g,w-.12,.52,.035,.015,bead,x,.54,z+.065);
+      RB(g,w-.18,.43,.038,.015,blush,x,.54,z+.09);
     }
-    for(const side of [-1,1]){
+    [-1,1].forEach(side=>{
       const x=side*(W/2-.105);
-      RB(g,.04,.74,D-.20,.012,base,x,.53,0);
-      RB(g,.07,.065,D-.18,.017,trim,x,rail,0);
-      RB(g,.07,.075,D-.18,.018,trim,x,.17,0);
-      const segments=4,span=(D-.42)/segments;
-      for(let n=0;n<segments;n++){
-        const zz=-D/2+.21+(n+.5)*span;
-        RB(g,.04,.45,span-.15,.012,detail,x-side*.035,.54,zz);
-        RB(g,.044,.35,span-.20,.012,base,x-side*.05,.54,zz);
+      RB(g,.04,.75,D-.22,.014,blush,x,.53,0);
+      RB(g,.075,.075,D-.18,.018,ivory,x,.94,0);
+      RB(g,.08,.08,D-.18,.018,ivory,x,.16,0);
+      for(let n=0;n<3;n++){
+        const zz=-D/2+.36+(n+.5)*(D-.72)/3;
+        RB(g,.045,.47,(D-.72)/3-.16,.012,bead,x-side*.032,.54,zz);
+        RB(g,.048,.38,(D-.72)/3-.21,.012,blush,x-side*.052,.54,zz);
       }
-    }
-    // Rooms have unique permanent architecture, separate from purchasable furniture.
-    if(id==='kitchen'){
-      const splash=mat('#f8f1de',.8);
-      RB(g,W-1.2,.28,.035,.012,splash,0,1.08,z+.04);
-      for(let x=-W/2+.48;x<W/2-.2;x+=.49) RB(g,.014,.28,.043,.004,trim,x,1.08,z+.08);
-    }else if(id==='bathroom'){
-      for(let x=-W/2+.30;x<W/2-.15;x+=.45){
-        RB(g,.018,.72,.04,.008,trim,x,.53,z+.08);
-      }
-    }else if(id==='living'){
-      RB(g,W-.24,.08,.065,.018,detail,0,H-.38,z+.04);
-      RB(g,.58,.68,.045,.07,trim,1.1,1.78,z+.025);
-      RB(g,.43,.52,.04,.05,detail,1.1,1.78,z+.07);
-    }else if(id==='playroom'){
-      const colors=['#e7bfcd','#b8dbd1','#e6d49f','#d0bbe1'];
-      for(let i=0;i<4;i++)RB(g,.42,.08,.035,.012,mat(colors[i],.9),-1.05+i*.7,1.18,z+.03);
+    });
+  }else if(id==='kitchen'){
+    const sage=mat('#bdded0',.9),cream=mat('#fffaf0',.85),grout=mat('#f2f8f2',.9);
+    // Brick-patterned backsplash and low subway tile, not generic wall panels.
+    RB(g,W-.2,.78,.036,.012,sage,0,.53,z);
+    for(let y of [.29,.53,.77])RB(g,W-.15,.018,.046,.006,grout,0,y,z+.045);
+    for(let row=0;row<3;row++)
+      for(let x=-W/2+.35+(row%2)*.27;x<W/2-.18;x+=.54)
+        RB(g,.018,.23,.046,.006,grout,x,.40+row*.24,z+.045);
+    RB(g,W-.15,.075,.072,.017,cream,0,.94,z+.052);
+    [-1,1].forEach(side=>{
+      const x=side*(W/2-.105);
+      RB(g,.04,.78,D-.22,.012,sage,x,.53,0);
+      for(let y of [.29,.53,.77])RB(g,.051,.018,D-.18,.006,grout,x-side*.036,y,0);
+      for(let zz=-D/2+.33;zz<D/2-.17;zz+=.54)
+        RB(g,.051,.72,.018,.005,grout,x-side*.036,.53,zz);
+      RB(g,.078,.075,D-.18,.018,cream,x,.94,0);
+    });
+  }else if(id==='bathroom'){
+    const tile=mat('#b9e1e8',.9),white=mat('#fffdfa',.85),seam=mat('#eaf7f9',.87),aqua=mat('#82bfce',.84);
+    // Square ceramic tiles and aqua rails distinguish this from the kitchen.
+    RB(g,W-.2,1.08,.037,.012,tile,0,.62,z);
+    for(let y of [.28,.55,.82,1.07])RB(g,W-.16,.018,.045,.005,seam,0,y,z+.045);
+    for(let x=-W/2+.30;x<W/2-.16;x+=.36)RB(g,.018,1.04,.046,.005,seam,x,.62,z+.046);
+    RB(g,W-.15,.075,.068,.02,white,0,1.18,z+.05);
+    RB(g,W-.17,.035,.04,.012,aqua,0,1.25,z+.04);
+    [-1,1].forEach(side=>{
+      const x=side*(W/2-.105);
+      RB(g,.04,1.08,D-.22,.013,tile,x,.62,0);
+      for(let y of [.28,.55,.82,1.07])RB(g,.05,.018,D-.18,.005,seam,x-side*.036,y,0);
+      for(let zz=-D/2+.3;zz<D/2-.16;zz+=.36)RB(g,.05,1.04,.018,.005,seam,x-side*.036,.62,zz);
+      RB(g,.075,.075,D-.18,.02,white,x,1.18,0);
+    });
+  }else if(id==='playroom'){
+    const lilac=mat('#d9c8ed',.9),ivory=mat('#fff9ef',.84);
+    const colors=['#edb5ce','#b8ddd1','#f2da9e','#c6b6ee','#acd7e8'];
+    // Broad pastel blocks and playful upper-wall bunting instead of adult panel molding.
+    RB(g,W-.2,.95,.04,.012,lilac,0,.60,z);
+    RB(g,W-.15,.072,.068,.018,ivory,0,1.1,z+.045);
+    [-1,1].forEach(side=>{
+      const x=side*(W/2-.105);
+      RB(g,.04,.95,D-.22,.012,lilac,x,.60,0);
+      RB(g,.075,.072,D-.18,.018,ivory,x,1.1,0);
+      for(let n=0;n<3;n++)
+        RB(g,.049,.55,.12,.018,mat(colors[(n+(side+1)*2)%5],.9),x-side*.042,.61,-D/2+.55+n*1.13);
+    });
+    RB(g,W-.2,.03,.04,.01,ivory,0,H-.23,z+.04);
+    for(let n=0;n<7;n++){
+      const c=mat(colors[n%5],.88),x=-W/2+.44+n*(W-.88)/6;
+      const pennant=CO(g,.12,.26,c,x,H-.41,z+.065);pennant.rotation.z=Math.PI;
     }
   }
 if(id==='bedroom'){
@@ -561,7 +587,7 @@ if(id==='bedroom'){
       RB(g,spacing-.09,.045,.052,.016,ivory,x,.78,z+.05);
       RB(g,spacing-.09,.045,.052,.016,ivory,x,.36,z+.05);
       RB(g,.043,.48,.053,.014,ivory,x-(spacing-.09)/2,.57,z+.05);
-      RB(g,.043,.48,.053,.014,ivory,x+(spacing-.09)/2,.66,z+.05);
+      RB(g,.043,.48,.053,.014,ivory,x+(spacing-.09)/2,.57,z+.05);
     }
     // Carry the blush wainscot and ivory rails around BOTH side walls.
     // Keep the molding within the wall surfaces instead of leaving bare strips.
@@ -593,17 +619,6 @@ if(id==='bedroom'){
     RB(g,.75,.68,.042,.09,ivory,1.13,1.83,z+.025);
     RB(g,.59,.51,.035,.08,mat('#f1d4df',.91),1.13,1.83,z+.067);
     SP(g,.18,mat('#f7eee3',.93),1.13,1.84,z+.10,.84,1.08,.12);
-  }else if(id==='playroom'){
-    const cols=['#eeb4c7','#add8d0','#e6d49c','#c8b8df'];
-    // Soft toy bins
-    for(let i=0;i<4;i++){
-      RB(g, 0.55, 0.5, 0.4, 0.12, soft(cols[i]), -1.1+i*0.74, 0.28, -D/2+0.35);
-    }
-    // Bouncy balls
-    for(let i=0;i<5;i++){
-      const a = i/5*Math.PI*2;
-      SP(g, 0.14, soft(cols[i%4]), Math.cos(a)*0.7, 0.14, Math.sin(a)*0.5+0.4, 1, 1, 1);
-    }
   }
 }
 function pctToLocal(p,W,D){const fx=(cl(+p.x||50,8,92)-8)/84,fz=(cl(+p.y||70,26,86)-26)/60;return [(fx-.5)*(W-1.3),-(D-1.3)/2+fz*(D-1.3)];}
@@ -798,12 +813,12 @@ function edBuild(room){
   storageClose(true);
   reconcileCopies();
   ED.preview=null;ED.moveMode=false;
-  // Bedroom opens as a room-filling interior, not a tiny exterior diorama.
-  if(room!=='garden')DIO.on=false;
-  // Centered welcome view of the room
+  // Show the whole room on first entry, not a close-up trapped inside its walls.
+  // Rebuilding the same room retains an explicit "Look inside" choice.
+  if(ED.room!==room)DIO.on=true;
   ED.az = ED.azT = 0;
   ED.el = ED.elT = 0.42;
-  ED.zoom = room==='garden' ? 1.55 : 1.85; // wider initial indoor view
+  ED.zoom = DIO.on ? DIO.zoom : 1.35;
   const s=new THREE.Scene();ED.scene=s;ED.room=room;const [W,D,H]=ROOM_SIZE[room]||ROOM_SIZE.bedroom;ED.W=W;ED.D=D;ED.H=H;
   if(room==='garden'){s.background=new THREE.Color('#bfe3f5');}
   lights(s,Math.max(W,D),1024);
@@ -820,17 +835,17 @@ function edBuild(room){
     };
   }
   const zIn = document.getElementById('rk3ZoomIn'), zOut = document.getElementById('rk3ZoomOut');
-  if (zIn) zIn.onclick = () => { ED.zoom = cl(ED.zoom - 0.12, 0.4, 1.6); };
-  if (zOut) zOut.onclick = () => { ED.zoom = cl(ED.zoom + 0.12, 0.4, 1.6); };
+  if (zIn) zIn.onclick = () => { ED.zoom = cl(ED.zoom - 0.12, 0.4, 1.8); };
+  if (zOut) zOut.onclick = () => { ED.zoom = cl(ED.zoom + 0.12, 0.4, 1.8); };
   const center = document.getElementById('rk3Center');
-  if (center) center.onclick = () => { if(DIO.on){ED.azT=DIO.az;ED.elT=DIO.el;ED.zoom=DIO.zoom;return;} ED.azT = 0; ED.elT = 0.42; ED.zoom = 1.55; };
+  if (center) center.onclick = () => { if(DIO.on){ED.azT=DIO.az;ED.elT=DIO.el;ED.zoom=DIO.zoom;return;} ED.azT = 0; ED.elT = 0.42; ED.zoom = 1.35; };
 
   const ring=new THREE.Mesh(new THREE.RingGeometry(.62,.72,48),new THREE.MeshBasicMaterial({color:0xe2457a,transparent:true,opacity:.85,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=.02;ring.visible=false;s.add(ring);ED.ring=ring;
   ED.floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
   const selId=ED.sel;ED.sel=null;if(selId)edSelect(selId,true);
 }
 /* ===== Diorama view (Claude, Nov 1): look into the room from outside, like a cutaway dollhouse box ===== */
-const DIO={on:true,az:-.62,el:.5,zoom:1,glow:null};
+const DIO={on:true,az:-.62,el:.5,zoom:1.09,glow:null};
 function dioMix(a,b,t){const A=parseInt(a.slice(1),16),Bq=parseInt(b.slice(1),16);const f=(s)=>Math.round(((A>>s)&255)*(1-t)+((Bq>>s)&255)*t);return '#'+((1<<24)|(f(16)<<16)|(f(8)<<8)|f(0)).toString(16).slice(1);}
 function dioWall(room){const owned=G('owned')||[],ri=(G('roomInteriors')||{})[room]||{},INTER=G('INTERIORS')||[];const w=INTER.find(t=>t[0]===ri.wall&&owned.includes(t[0]));if(w&&/^#[0-9a-f]{6}$/i.test(w[3]))return w[3];return roomWallBase(room);}
 function dioGlow(){if(DIO.glow)return DIO.glow;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');const g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,240,200,1)');g.addColorStop(.22,'rgba(255,214,150,.6)');g.addColorStop(1,'rgba(255,200,120,0)');x.fillStyle=g;x.fillRect(0,0,64,64);DIO.glow=new THREE.CanvasTexture(c);return DIO.glow;}
@@ -929,7 +944,7 @@ function edPointers(cv){
     if (!d.moved && !d.item) {
       const now = performance.now();
       if (now - lastTap < 320 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 40) {
-        ED.zoom = cl(ED.zoom - 0.28, 0.35, 1.6);
+        ED.zoom = cl(ED.zoom - 0.28, 0.35, 1.8);
         lastTap = 0;
       } else {
         lastTap = now; lastTapX = e.clientX; lastTapY = e.clientY;
@@ -944,7 +959,7 @@ function edPointers(cv){
       ED.sel=null;ED.ring.visible=false;return;}
     try{localStorage.setItem('rikiReal3dAz',ED.azT);}catch(_){}};
   cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',e=>{ED.drag=null;});
-  cv.addEventListener('wheel',e=>{e.preventDefault();if(ED.storage)return;ED.zoom=cl(ED.zoom+e.deltaY*.001,.4,1.6);},{passive:false});
+  cv.addEventListener('wheel',e=>{e.preventDefault();if(ED.storage)return;ED.zoom=cl(ED.zoom+e.deltaY*.001,.4,1.8);},{passive:false});
   // Pinch zoom
   let pinchDist = 0;
   cv.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') cv.setPointerCapture?.(e.pointerId); });
@@ -961,7 +976,7 @@ function edPointers(cv){
     if (pts.size === 2) {
       const [a, b] = [...pts.values()];
       const d = Math.hypot(a[0]-b[0], a[1]-b[1]);
-      if (pinchDist) ED.zoom = cl(ED.zoom * (pinchDist / d), 0.4, 1.6);
+      if (pinchDist) ED.zoom = cl(ED.zoom * (pinchDist / d), 0.4, 1.8);
       pinchDist = d;
     }
   });
@@ -975,6 +990,8 @@ function edMount(){
   loadThree(()=>{
     try{
       if(!ED.R){ED.R=makeRenderer();ED.cam=new THREE.PerspectiveCamera(42,1,.1,100);ED.ray=new THREE.Raycaster();edPointers(ED.R.domElement);}
+      // A newly mounted room starts in whole-room view even when the last session looked inside.
+      if(ED.R.domElement.parentElement!==box)DIO.on=true;
       const ld=box.querySelector('.rk3-load');if(ld)ld.remove();
       box.prepend(ED.R.domElement);
       edBuild(room);dioToggleBtn(box);
@@ -1026,7 +1043,7 @@ if(typeof prevHtml==='function'&&typeof prevBind==='function'){
     const panel=box.closest('.dream-panel');if(!panel)return;const room=G('currentRoom')||'bedroom';
     box.insertAdjacentHTML('beforeend',`<button type="button" class="rk3-front" id="rk3Front" aria-label="Front view">⟲</button>`);box.insertAdjacentHTML('afterend',`<div class="rk3-bar" id="rk3Bar" hidden><span id="rk3BarName"></span><button type="button" id="rk3BarSmaller" aria-label="Make selected item smaller">− Smaller</button><button type="button" id="rk3BarBigger" aria-label="Make selected item bigger">＋ Bigger</button><button type="button" id="rk3BarRotate">↻ Turn</button><button type="button" id="rk3BarMove">✥ Move</button><button type="button" id="rk3BarOpen" hidden>🗄️ Open</button><button type="button" id="rk3BarAway">🧺 Put away</button><button type="button" id="rk3BarDone">✓ Done</button><button type="button" id="rk3BarCancel" hidden>✕ Cancel</button><button type="button" id="rk3BarPlace" hidden>✓ Place here</button></div>`);
     const $=id=>document.getElementById(id);
-    $('rk3Front').onclick=()=>{ED.azT=0;ED.elT=.5;ED.zoom=1;};
+    $('rk3Front').onclick=()=>{ED.azT=DIO.on?DIO.az:0;ED.elT=DIO.on?DIO.el:.42;ED.zoom=DIO.on?DIO.zoom:1.35;};
     $('rk3BarDone').onclick=()=>{ED.moveMode=false;edSelect(null,true);};
     $('rk3BarMove').onclick=()=>{ED.moveMode=true;rkUpdateBar();};
     $('rk3BarCancel').onclick=()=>rkCancelPreview();
@@ -1063,7 +1080,7 @@ if(typeof prevHtml==='function'&&typeof prevBind==='function'){
     if($('rk3ClearSelection'))$('rk3ClearSelection').onclick=()=>{edSelect(null,true);msg('Selection cleared. Choose an item below to decorate.');};
     if($('orbitLeft'))$('orbitLeft').onclick=()=>{ED.azT=cl(ED.azT-.3,DIO.on?-1.1:-.55,DIO.on?1.1:.55);};
     if($('orbitRight'))$('orbitRight').onclick=()=>{ED.azT=cl(ED.azT+.3,DIO.on?-1.1:-.55,DIO.on?1.1:.55);};
-    if($('orbitReset'))$('orbitReset').onclick=()=>{if(DIO.on){ED.azT=DIO.az;ED.elT=DIO.el;ED.zoom=DIO.zoom;return;}ED.azT=0;ED.elT=.5;ED.zoom=1;};
+    if($('orbitReset'))$('orbitReset').onclick=()=>{if(DIO.on){ED.azT=DIO.az;ED.elT=DIO.el;ED.zoom=DIO.zoom;return;}ED.azT=0;ED.elT=.42;ED.zoom=1.35;};
     if($('openSelected'))$('openSelected').onclick=()=>{const id=ED.sel||G('selectedItem');const isSt=G('isStorage'),sm=G('storageModal');if(id&&typeof isSt==='function'&&isSt(id)&&typeof sm==='function')sm(id);else msg('Tap a shelf, vanity or dresser in the room first, then tap Open.');};
     edMount();try{rkLayout(box);}catch(err){console.warn('decor layout',err);}};
   window.__rk3Html=newHtml;window.__rk3Bind=newBind;
