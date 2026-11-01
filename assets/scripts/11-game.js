@@ -1239,10 +1239,25 @@ function rkCozyLights(scene,o){o=o||{};const box=o.box||4;
  const fill=new THREE.DirectionalLight(0xdfe6ff,.22);fill.position.set(-5,3,4);scene.add(fill);
  const rim=new THREE.DirectionalLight(0xffc4dd,.42);rim.position.set(-4,3,-4);scene.add(rim);
  // cozy glow: opt-in (o.glow) because a point light costs every pixel on slow tablets
- let glow=null;if(o.glow){glow=new THREE.PointLight(0xffc98a,.45,9,2);glow.position.set(1.6,2.6,-1.2);scene.add(glow);}
+ let glow=null;if(o.glow){glow=new THREE.PointLight(0xffbf80,o.glow===true?.7:o.glow,10,2);glow.position.set(...(o.glowAt||[1.6,2.4,-1.4]));scene.add(glow);}
  return {key,fill,rim,glow};}
+// glow halo texture shared by string lights / lamps (one tiny canvas, reused)
+let RK_HALO=null;
+function rkHalo(){if(RK_HALO)return RK_HALO;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,236,200,1)');g.addColorStop(.35,'rgba(255,200,150,.55)');g.addColorStop(1,'rgba(255,180,140,0)');x.fillStyle=g;x.fillRect(0,0,64,64);RK_HALO=new THREE.CanvasTexture(c);return RK_HALO;}
+// cozy string lights along an arc (radius r, height y, from angle a0 for length al): unlit bulbs + additive halos, no real lights (cheap)
+function rkStringLights(parent,o){o=o||{};const r=o.r||3.4,y=o.y||2.6,a0=o.a0??Math.PI*.6,al=o.al??Math.PI*.8,n=o.n||16,sag=o.sag??.14;
+ const cols=o.colors||[0xffd59a,0xffb3c7,0xfff1c2,0xffc58f];const g=new THREE.Group();g.userData.glow=1;
+ const pts=[];for(let i=0;i<=40;i++){const t=i/40,a=a0+al*t;pts.push(new THREE.Vector3(Math.sin(a)*r,y-Math.sin(t*Math.PI*((n>8)?3:2))**2*sag,Math.cos(a)*r));}
+ g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0x9a7a6a})));
+ const halo=new THREE.SpriteMaterial({map:rkHalo(),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.85});
+ const bulbGeo=new THREE.SphereGeometry(.045,10,8);
+ for(let i=0;i<n;i++){const p=pts[Math.round((i+.5)/n*40)];const b=new THREE.Mesh(bulbGeo,new THREE.MeshBasicMaterial({color:cols[i%cols.length]}));b.position.copy(p);b.position.y-=.05;g.add(b);
+  const s=new THREE.Sprite(halo);s.scale.setScalar(o.halo||.55);s.position.copy(b.position);g.add(s);}
+ parent.add(g);return g;}
+// soft vertical gradient for scene.background (top → bottom)
+function rkGradient(top,bottom){const c=document.createElement('canvas');c.width=4;c.height=128;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,128);g.addColorStop(0,top);g.addColorStop(1,bottom);x.fillStyle=g;x.fillRect(0,0,4,128);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;return t;}
 window.RK3=Object.assign(window.RK3||{},{
-  disposeScene,quality:rkQuality,frame:rkFrame,clay:rkClay,clayMat:rkClayMat,cozyLights:rkCozyLights,
+  disposeScene,stringLights:rkStringLights,gradient:rkGradient,halo:rkHalo,quality:rkQuality,frame:rkFrame,clay:rkClay,clayMat:rkClayMat,cozyLights:rkCozyLights,
   // Read-only view state for real-browser gesture regression tests.
   roomViewState:()=>({
     room:ED.room,zoom:ED.zoom,az:ED.azT,el:ED.elT,
