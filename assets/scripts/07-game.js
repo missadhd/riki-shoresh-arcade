@@ -1089,7 +1089,7 @@ const g6Pips=(n,at)=>`<div class="g6-pips">${Array.from({length:n},(_,i)=>`<i cl
 
 /* 1. Classroom Escape: follow multi-step directions the first time; ignore a classmate; accept "not now" */
 const ESC_SPOTS=[['cubby','🎒','cubby','put your backpack in your cubby'],['folder','📁','pink folder','grab the pink folder'],['star','⭐','star table','sit at the star table'],['pencil','✏️','pencil cup','sharpen your pencil'],['books','📚','bookshelf','put a book on the shelf'],['trash','🗑️','trash','throw away your scrap paper'],['board','🧽','whiteboard','erase the whiteboard'],['plant','🪴','plant','water the plant'],['door','🚪','door','line up at the door']];
-const ESC_LV=[{n:1},{n:2},{n:2,distract:1},{n:3},{n:3,notnow:1}];
+const ESC_LV=[{n:1},{n:2},{n:2,distract:1},{n:3},{n:3,notnow:1},{n:3,distract:1},{n:4}];
 function drawEscape(){zCur='escape';let lv=0,code=[],asks=0;const digits=zShuf([1,2,3,4,5,6,7,8,9]).slice(0,5);
  const t=zShell('🗝️ Classroom Escape',`${g6Top('teacher','Ms. Dana')}<div class="esc-code" id="escCode">🔒 ${digits.map(()=>'<b>?</b>').join('')}</div><div class="esc-room" id="escRoom">${zShuf(ESC_SPOTS).map(s=>`<button type="button" class="esc-spot" data-s="${s[0]}"><b>${s[1]}</b><small>${s[2]}</small></button>`).join('')}<button type="button" class="esc-psst" id="escPsst" hidden>👧 Psst! Look at this!</button></div><div class="g6-row"><button class="secondary" id="escAgain" type="button">🔁 Can you say that again?</button></div><div class="sl-choices" id="escCh" hidden></div><div class="ag-msg" id="agM"></div>`);
  const round=async()=>{if(!zLive(t))return;if(lv>=ESC_LV.length){$id('escCode').innerHTML='🔓 '+digits.map(d=>`<b class="on">${d}</b>`).join('')+' <span class="esc-box">🎁✨</span>';audio('good');try{celebrate();}catch(e){}zDone(t,'🗝️ You cracked the code and escaped the classroom!',drawEscape,4);return;}
@@ -2033,7 +2033,7 @@ Object.assign(P3_MAKE,{
 delete P3_MAKE.coffeecup;
 
 /* rooms (3D backdrops) */
-const RPCAM={size:[960,960],cam:{fov:40,pos:[0,3.6,6.2],at:[0,.35,-.1]}};
+const RPCAM={size:[960,960],cam:{fov:46,pos:[0,4.2,7.4],at:[0,.3,0]}};
 Object.assign(SC3_SETS,{
  schoolroom:{wall:'#cfe6f7',low:'#8fb9d9',pat:'stripe',floor:'tile',board:1,win:1,bunt:1,...RPCAM,items:[
   ['rainbowcubbies',-2.1,-1.35,0,.9],
@@ -2048,8 +2048,8 @@ Object.assign(SC3_SETS,{
 /* spots: id -> [hint name, x, yMid, z, radius] */
 const RP_SPOTS={
  helproom:{sink:['sink',-2.15,.65,-1.3,.5],drawer:['dresser',-1.0,.6,-1.35,.5],tv:['TV',.3,.75,-1.4,.5],bin:['toy bin',1.35,.4,-1.25,.5],shelf:['bookshelf',2.35,.9,-1.3,.5],kitty:['kitty',-1.75,.3,.5,.45],plant:['plant',2.0,.55,.45,.4],hamper:['hamper',1.6,.45,1.6,.45],mat:['shoe mat',.75,.05,2.05,.45],box:['craft box',-1.55,.3,1.65,.4]},
- schoolroom:{hook:['hooks',-2.0,.85,-1.4,.3],cubby:['cubbies',-2.1,.5,-1.3,.4],board:['whiteboard',0,1.9,-1.5,.6],door:['door',1.6,.9,-1.45,.4],shelf:['bookshelf',2.3,.9,-1.3,.45],pencil:['pencil cup',0,.55,.6,.3],tray:['teacher desk',-1.4,.55,.6,.3],star:['star desk',1.4,.55,.6,.35],plant:['plant',2.2,.6,1.4,.4],trash:['trash',2.0,.4,1.8,.35],rug:['rug',0,.05,1.6,.4],bin:['toy area',-1.8,.3,1.5,.3],water:['fountain',.8,.6,-1.4,.3],crayons:['crayons',-1.4,.6,.6,.25]}};
-const RP_PROPS={schoolroom:[['door',1.6,0,-1.45,1.6],['trashcan',2.0,0,1.8,.65],['pencilcup',0,.52,.6,.28],['tray',-1.4,.52,.6,.12]]};
+ schoolroom:{hook:['hooks',-2.0,.85,-1.4,.3],cubby:['cubbies',-2.1,.5,-1.3,.4],board:['whiteboard',0,1.9,-1.5,.6],door:['door',1.6,.9,-1.45,.4],shelf:['bookshelf',2.3,.9,-1.3,.45],pencil:['pencil sharpener',.6,.7,.2,.4],tray:['teacher desk',-1.4,.55,.6,.3],star:['star desk',1.4,.55,.6,.35],plant:['plant',2.2,.6,1.4,.4],trash:['trash',2.0,.4,1.8,.35],rug:['rug',0,.05,1.6,.4],bin:['toy area',-1.8,.3,1.5,.3],water:['fountain',.8,.6,-1.4,.3],crayons:['crayons',-1.4,.6,.6,.25]}};
+const RP_PROPS={schoolroom:[['door',1.6,0,-1.45,1.6],['trashcan',2.0,0,1.8,.65],['pencilcup',.6,.55,.2,.5],['tray',-1.4,.52,.6,.12]]};
 const RP_NAMES={schoolroom:[],helproom:[]};
 const RP_FUN={schoolroom:[['hamster',-.95,1.05,-1.35,.25,['Hi, little hamster! 🐹','He’s so fluffy!']],['globe',.25,.75,-.4,.2,['Round and round! 🌍']],['clock',.85,2.75,-1.58,.25,['Tick tock! ⏰']]],helproom:[['kitty',-1.75,.35,.5,.4,['Meow! 🐱','Hi kitty!']],['plant',2.0,.6,.45,.35,['Pretty plant 🌱']]]};
 
@@ -2145,7 +2145,19 @@ function rpClassroom(roomSel,btnSel,keyOf,expect,{onRound}={}){const old=$id(roo
    const [k,[it]]=task,exp=expect();
    if(k==='tray'||k==='worksheet'){if(!sheetDone){R.say('I have to finish it first! Tap my worksheet.');return 'no';}}
    if(Array.isArray(it)){if(exp!==k){click(k);R.say('Oops, that wasn’t the job!');return 'no';}crIn++;audio('good');if(crIn<CR.length){R.say(`${CR.length-crIn} more!`,1000);return 'keep';}click(k);R.say('All picked up! ✨',1300);return 'ok';}
-   if(click(k)){R.say(['Done! ✨','Got it!','On it!'][Math.floor(Math.random()*3)],1300);if(k==='pencil'){R.say('Whirrr! ✏️ Sharp!',1500);}return 'ok';}
+   if(click(k)){
+    R.say(['Done! ✨','Got it!','On it!'][Math.floor(Math.random()*3)],1300);
+    // Visual feedback
+    if(k==='pencil'&&R.items.pencil){
+      const img=R.items.pencil.querySelector('img');
+      if(img){const u=p3Render('pencil');if(u)img.src=u;}
+      R.say('Whirrr! ✏️ Sharp!',1500);
+    }
+    if(k==='plant'&&R.items.wateringcan){R.items.wateringcan.classList.add('done');R.say('The plant looks happy! 🌱',1500);}
+    if(k==='board'&&R.items.eraser){R.items.eraser.classList.add('done');R.say('Board is clean! ✨',1200);}
+    if(k==='trash'&&R.items.paper){R.items.paper.classList.add('gone');R.say('In the trash! 🗑️',1200);}
+    return 'ok';
+  }
    R.say('Oops, that wasn’t the job!');return 'no';}});
  R.ready.then(()=>{
   const need=new Set();Object.keys(byKey).forEach(k=>{const tk=RP_TASK[k];if(!tk||tk[0]==='riki')return;(Array.isArray(tk[0])?tk[0]:[tk[0]]).forEach(i=>need.add(i));});
