@@ -657,7 +657,10 @@ html{scroll-padding-top:240px}
 }
 /* Isolate Hebrew glyph runs from surrounding English punctuation without changing
    the visual order of buttons, card layouts, or left-to-right English instructions. */
-#app .hebrew,#app .he,#app .rk-prog-he,
-#app [lang="he"],#app [dir="rtl"]{
+#app .hebrew,#app .he,#app .rk-prog-he,#app [lang="he"]{
+  direction:rtl!important;
+  unicode-bidi:isolate;
+}
+#app [dir="rtl"]{
   unicode-bidi:isolate;
 }
