@@ -535,14 +535,37 @@ function roomIdentity(g,id,W,D,H){
       SP(g, 0.22, soft('#5fb06a'), x, 0.5, -D/2+0.4, 1, 1.1, 1);
     });
   }else if(id==='bedroom'){
-    const blush=soft('#efbfd1'), cream=round('#fff4e6'), gold=metalM('#d3ad70');
-    // Soft headboard
-    SP(g, 0.9, blush, 0, 1.0, -D/2+0.15, 1.3, 0.9, 0.25);
-    // Pillows
-    SP(g, 0.22, cream, -0.35, 0.55, -D/2+0.35, 1, 0.7, 0.6);
-    SP(g, 0.22, cream, 0.35, 0.55, -D/2+0.35, 1, 0.7, 0.6);
-    // Cute nightstand dots
-    [-1.3, 1.3].forEach(x => SP(g, 0.12, gold, x, 0.55, -D/2+0.3, 1, 0.6, 1));
+    // Bedroom architectural pilot: built-ins only. Earned furniture stays in fillItems().
+    const ivory=mat('#fff8ef',.82), blush=mat('#dfadc3',.91), inset=mat('#f8e4ec',.94);
+    const brass=mat('#c3a270',.55), sage=mat('#b8c6a9',.92);
+    // Framed wainscot attached to the back wall; no floating bed or pillows.
+    const z=-D/2+.105;
+    const panelTop=1.13;
+    RB(g,W-.18,.065,.065,.015,ivory,0,panelTop,z);
+    RB(g,W-.18,.09,.075,.025,ivory,0,.20,z);
+    const columns=5, usable=W-.65, spacing=usable/columns;
+    for(let i=0;i<columns;i++){
+      const x=-usable/2+spacing*(i+.5);
+      RB(g,spacing-.11,.59,.035,.02,inset,x,.66,z+.006);
+      RB(g,spacing-.09,.045,.052,.016,ivory,x,1.00,z+.05);
+      RB(g,spacing-.09,.045,.052,.016,ivory,x,.33,z+.05);
+      RB(g,.043,.70,.053,.014,ivory,x-(spacing-.09)/2,.66,z+.05);
+      RB(g,.043,.70,.053,.014,ivory,x+(spacing-.09)/2,.66,z+.05);
+    }
+    // A slim wallpaper border and restrained floral appliques anchored to the wall.
+    RB(g,W-.22,.075,.04,.016,blush,0,H-.40,z);
+    for(const sign of [-1,1]){
+      const x=sign*(W/2-.49);
+      // Two symmetrical wall sconces, physically supported by a backplate.
+      RB(g,.23,.30,.09,.055,ivory,x,1.75,z+.06);
+      CY(g,.018,.018,.19,brass,x,1.82,z+.15,10).rotation.x=Math.PI/2;
+      SP(g,.11,mat('#fff1d3',.68),x,1.82,z+.26,.88,1.02,.52);
+      SP(g,.043,sage,x,1.38,z+.12,.9,.55,.38);
+    }
+    // A tiny arched picture niche above the panel rail; decorative, not furniture.
+    RB(g,.83,.73,.042,.09,ivory,0,1.83,z+.025);
+    RB(g,.66,.55,.035,.08,mat('#f1d4df',.91),0,1.83,z+.067);
+    SP(g,.18,mat('#f7eee3',.93),0,1.84,z+.10,.84,1.08,.12);
   }else if(id==='playroom'){
     const cols=['#eeb4c7','#add8d0','#e6d49c','#c8b8df'];
     // Soft toy bins
