@@ -940,7 +940,13 @@ function edPointers(cv){
     if(e.pointerType!=='touch')return false;
     touches.set(e.pointerId,[e.clientX,e.clientY]);
     if(touches.size>=2){
-      pinching=true;ED.drag=null;
+      pinching=true;
+      // If the first finger moved furniture a little before the second
+      // arrived, abandon that uncommitted drag and restore the original view.
+      if(ED.drag?.moved&&ED.drag.item&&ED.drag.startPosition){
+        ED.drag.item.position.copy(ED.drag.startPosition);
+      }
+      ED.drag=null;
       if(ED.storage){ED.storage.drag=null;storageDisposeGhost();}
       const pts=[...touches.values()];
       pinchDist=Math.hypot(pts[0][0]-pts[1][0],pts[0][1]-pts[1][1]);
@@ -967,7 +973,7 @@ function edPointers(cv){
     if(!touches.size){pinching=false;pinchDist=0;}
     return swallow;
   };
-  cv.addEventListener('pointerdown',e=>{if(beginTouch(e))return;if(ED.storage){storageDown(e);return;}const pt={x:e.clientX,y:e.clientY};let it=hitItem(pt);if(ED.preview){it=null;ED.ray.setFromCamera(ndc(pt),ED.cam);if(ED.ray.intersectObject(ED.preview.group,true).length)it=ED.preview.group;}ED.drag={sx:e.clientX,sy:e.clientY,lx:e.clientX,ly:e.clientY,item:it,moved:false,id:e.pointerId};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
+  cv.addEventListener('pointerdown',e=>{if(beginTouch(e))return;if(ED.storage){storageDown(e);return;}const pt={x:e.clientX,y:e.clientY};let it=hitItem(pt);if(ED.preview){it=null;ED.ray.setFromCamera(ndc(pt),ED.cam);if(ED.ray.intersectObject(ED.preview.group,true).length)it=ED.preview.group;}ED.drag={sx:e.clientX,sy:e.clientY,lx:e.clientX,ly:e.clientY,item:it,startPosition:it?it.position.clone():null,moved:false,id:e.pointerId};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
   cv.addEventListener('pointermove',e=>{if(moveTouch(e))return;if(ED.storage){storageMove(e);return;}const d=ED.drag;if(!d||d.id!==e.pointerId)return;if(!d.moved&&Math.hypot(e.clientX-d.sx,e.clientY-d.sy)>14){d.moved=true;if(d.item){edSelect(d.item.userData.id,true);}}
     if(!d.moved)return;
     if(d.item&&!d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v){d.item.position.x=v.x;d.item.position.z=v.z;}}
