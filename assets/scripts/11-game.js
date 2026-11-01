@@ -165,11 +165,11 @@ const B={
  unicorn(g){B.teddy(g,'#fbf6ff');const h=CO(g,.045,.26,metalM('#f2c94c'),0,.93,.1);h.rotation.x=.45;['#f7a0bd','#c8a2ff','#7fd1c0'].forEach((c,i)=>SP(g,.06,fabric(c),0,.84-i*.08,-.14+i*.02));},
  piano(g){const p=gloss('#e2457a');RB(g,1.3,.6,.52,.03,p,0,.62,0);RB(g,1.3,.12,.3,.02,p,0,.98,-.11);BX(g,1.16,.05,.22,gloss('#fffdf7'),0,.94,.17);for(let i=0;i<8;i++)BX(g,.05,.04,.12,gloss('#1e1418'),-.5+i*.14,.975,.13);
   [[-.58],[.58]].forEach(([x])=>RB(g,.08,.34,.42,.02,p,x,.17,0));RB(g,.7,.06,.32,.03,fabric('#fff1dc'),0,.46,.55);legs4(g,.66,.28,.42,wood('#8a5a35'),.04,.02);g.children.slice(-4).forEach(o=>o.position.z+=.55);},
- fridge(g,c='#f8f4f0'){
-  const shell=mat(c,.85),inside=mat('#fff9ef',.9),trim=metalM('#d7dde2');
-  RB(g,.78,1.75,.08,.035,shell,0,.88,-.29);
-  [-.35,.35].forEach(x=>RB(g,.08,1.75,.66,.035,shell,x,.88,0));
-  [.045,1.71].forEach(y=>RB(g,.7,.08,.66,.035,shell,0,y,0));
+ fridge(g,c='#f8f0e8'){
+  const shell=mat(c,.9),inside=mat('#fff9ef',.92),trim=metalM('#d7dde2');
+  RB(g,.82,1.8,.12,.08,shell,0,.9,-.3);
+  [-.38,.38].forEach(x=>RB(g,.1,1.8,.7,.08,shell,x,.9,0));
+  [.05,1.75].forEach(y=>RB(g,.74,.1,.7,.08,shell,0,y,0));
   [.48,.92,1.34].forEach(y=>RB(g,.64,.035,.54,.012,inside,0,y,0));
   const door=new THREE.Group();door.position.set(.39,0,.34);g.add(door);
   RB(door,.78,1.69,.09,.04,shell,-.39,.88,0);
@@ -179,7 +179,7 @@ const B={
   SP(door,.04,gloss('#ffc943'),-.24,1.5,.055);SP(door,.04,gloss('#e2457a'),-.19,.75,.055);
   g.userData.fridgeDoor=door;g.userData.setFridgeOpen=on=>{door.rotation.y=on?Math.PI*.57:0;};
  },
- stove(g){const w=mat('#f8f0e8',.6);RB(g,.9,.9,.68,.08,w,0,.45,0);BX(g,.86,.04,.62,gloss('#3a3530'),0,.89,0);[[-.2,-.13],[.2,-.13],[-.2,.15],[.2,.15]].forEach(([x,z])=>{const r=add(g,new THREE.TorusGeometry(.08,.012,8,24),metalM('#8f8f8f'),x,.885,z);r.rotation.x=Math.PI/2;});
+ stove(g){const w=mat('#f8f0e8',.85);RB(g,.95,.95,.72,.12,w,0,.48,0);BX(g,.9,.06,.66,gloss('#4a4038'),0,.92,0);[[-.2,-.13],[.2,-.13],[-.2,.15],[.2,.15]].forEach(([x,z])=>{const r=add(g,new THREE.TorusGeometry(.08,.012,8,24),metalM('#8f8f8f'),x,.885,z);r.rotation.x=Math.PI/2;});
   BX(g,.6,.36,.02,mat('#2a2328',.1,0,{transparent:true,opacity:.85}),0,.42,.32);RB(g,.5,.03,.04,.015,metalM('#d7dde2'),0,.66,.34);[-.3,-.15,0,.15,.3].forEach(x=>CY(g,.025,.025,.03,gloss('#4a2338'),x,.77,.33,12).rotation.x=Math.PI/2);},
  cake(g){B.table(g);const pl=gloss('#ffffff');CY(g,.3,.28,.02,pl,0,.7,0,32);CY(g,.24,.24,.18,mat('#f7a0bd',.6),0,.8,0,32);CY(g,.16,.16,.14,mat('#fff1dc',.6),0,.96,0,32);
   for(let i=0;i<14;i++){const a=i/14*Math.PI*2;SP(g,.025,mat('#ffffff',.5),Math.cos(a)*.24,.88,Math.sin(a)*.24,1,1.5,1);}CY(g,.012,.012,.12,mat('#7cc4f2',.5),0,1.09,0,8);SP(g,.025,mat('#ffd25e',.5,0,{emissive:new THREE.Color('#ffb020'),emissiveIntensity:1.4}),0,1.17,0,1,1.6,1);},
@@ -408,11 +408,11 @@ function roomShell(g,id,W,D,H,opts={}){
   } else {
     const flChoice = floorFor(id);
     const fl=floorTex(flChoice.id).clone();fl.needsUpdate=true;fl.repeat.set(W/2.2,D/2.2);
-    const floor=add(g,new THREE.BoxGeometry(W,.12,D),mat('#ffffff',.55,0,{map:fl}),0,-.06,0);floor.castShadow=false;
+    const floor=add(g,new THREE.BoxGeometry(W,.16,D),mat('#ffffff',.75,0,{map:fl}),0,-.08,0);floor.castShadow=false;
     const wt=wallFor(id).clone();wt.needsUpdate=true;wt.repeat.set(W/2,H/2);const wtS=wallFor(id).clone();wtS.needsUpdate=true;wtS.repeat.set(D/2,H/2);
     const wm=mat('#ffffff',.92,0,{map:wt}),wms=mat('#ffffff',.92,0,{map:wtS});
-    const back=add(g,new THREE.BoxGeometry(W,H,.12),wm,0,H/2,-D/2-.06);back.castShadow=false;
-    if(!opts.noSides){const L=add(g,new THREE.BoxGeometry(.12,H,D),wms,-W/2-.06,H/2,0);const R=add(g,new THREE.BoxGeometry(.12,H,D),wms,W/2+.06,H/2,0);L.castShadow=R.castShadow=false;}
+    const back=add(g,new THREE.BoxGeometry(W,H,.18),wm,0,H/2,-D/2-.09);back.castShadow=false;
+    if(!opts.noSides){const L=add(g,new THREE.BoxGeometry(.18,H,D),wms,-W/2-.09,H/2,0);const R=add(g,new THREE.BoxGeometry(.18,H,D),wms,W/2+.09,H/2,0);L.castShadow=R.castShadow=false;}
     const trim=mat('#fffaf4',.5);
     BX(g,W,.16,.04,trim,0,.08,-D/2+.02);BX(g,W,.08,.08,trim,0,H-.04,-D/2+.04);BX(g,W,.04,.03,trim,0,1.0,-D/2+.015);
     if(!opts.noSides)[-1,1].forEach(s=>{BX(g,.04,.16,D,trim,s*(W/2-.02),.08,0);BX(g,.08,.08,D,trim,s*(W/2-.04),H-.04,0);});
