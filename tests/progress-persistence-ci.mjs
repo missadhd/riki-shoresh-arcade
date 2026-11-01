@@ -63,7 +63,7 @@ try{
   let remote={version:7,snapshot:{rickyCoins:'100'}};
   let updates=0;
   await context.route('https://hmkcfmogpgljfasvefvs.supabase.co/**',async route=>{
-   const req=route.request(),url=new URL(req.url());
+   const req=route.request(),url=new globalThis.URL(req.url());
    const data=(body)=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
    if(url.pathname.endsWith('/arcade_players'))return data(url.searchParams.has('select')&&url.searchParams.get('select')==='nickname'?[{nickname:'Riki'}]:[{id:PLAYER}]);
    if(url.pathname.endsWith('/arcade_progress')){
