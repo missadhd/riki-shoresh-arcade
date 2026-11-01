@@ -535,11 +535,11 @@ const SET=c=>{try{(0,eval)(c)}catch(e){}};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const KEY='rikiRootProgressV1';
-let P={};try{P=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){P={};}
+let P={};try{P=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){P={};}if(!P||typeof P!=='object'||Array.isArray(P))P={};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(P));}catch(e){}};
 const today=()=>new Date().toISOString().slice(0,10);
 const rec=id=>P[id]||(P[id]={seen:0,first:0,miss:0,hist:[],days:[]});
-function mastered(id){const r=P[id];if(!r||r.hist.length<3)return false;const last=r.hist.slice(-3);return last.every(x=>x===1)&&(r.days||[]).length>=2;}
+function mastered(id){const r=P[id];if(!r||!Array.isArray(r.hist)||r.hist.length<3)return false;const last=r.hist.slice(-3);return last.every(x=>x===1)&&(r.days||[]).length>=2;}
 function priority(id){const r=P[id];if(!r||!r.seen)return 1.1;const acc=r.first/r.seen;return (mastered(id)?.25:1)*(1.6-acc)+Math.min(r.miss,6)*.08;}
 function pick(pool,n){
   const ranked=shuffle(pool).map(id=>({id,p:priority(id)*(0.7+Math.random()*.6)})).sort((a,b)=>b.p-a.p).map(x=>x.id);

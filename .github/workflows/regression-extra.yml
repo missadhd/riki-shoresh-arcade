@@ -40,3 +40,6 @@ jobs:
       - name: Riki joint attachments
         if: always()
         run: node tests/riki-joint-attachments.cjs
+      - name: Saved-data resilience (wrong-shape localStorage)
+        if: always()
+        run: node tests/saved-data-resilience-ci.mjs
