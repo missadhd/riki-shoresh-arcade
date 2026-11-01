@@ -135,6 +135,10 @@ function finish(){
 }
 const tab=document.createElement('button');tab.type='button';tab.id='rkMathShortcut';tab.className='smallbtn';tab.textContent='✖️ Multiply';tab.onclick=()=>{sound();startHome()};
 const house=$('houseShortcut');if(house){house.textContent='🏠 Dollhouse';nav.insertBefore(tab,house)}else nav.appendChild(tab);
+// A legacy rule uses many :not(#id) selectors and !important to hide shortcuts.
+// Inline importance wins that specificity without editing another assistant's stylesheet.
+tab.style.setProperty('display','flex','important');
+if(house)house.style.setProperty('display','flex','important');
 function addTile(){
  const grid=app.querySelector('.hub-grid');if(grid&&!$('hubMath')){
   const button=document.createElement('button');button.type='button';button.className='hub-tile hub-math';button.id='hubMath';
