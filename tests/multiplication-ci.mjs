@@ -31,10 +31,19 @@ try {
   await page.locator('#rkMathRecipe').click();
   let eq=await page.locator('.rk-math-equation').innerText();
   let m=eq.match(/(\d+)\s*×\s*(\d+)/);assert.ok(m,'Recipe displays a real multiplication fact');
+  assert.equal(await page.locator('.rk-kitchen-scene').getAttribute('data-recipe-stage'),'prep');
+  assert.equal(await page.locator('.rk-kitchen-tray.filled').count(),0);
+  assert.equal(await page.locator('#rkMathInput').count(),0,'recipe must build trays before answering');
+  for(let i=0;i<Number(m[1]);i++)await page.locator('#rkKitchenFill').click();
+  assert.equal(await page.locator('.rk-kitchen-tray.filled').count(),Number(m[1]));
   await page.locator('#rkMathInput').fill(String(Number(m[1])*Number(m[2])));
   await page.locator('#rkMathForm button').click();
+  await page.locator('#rkKitchenBake').waitFor();
+  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'100','no reward until order is served');
+  await page.locator('#rkKitchenBake').click();
+  await page.locator('#rkKitchenServe').click();
   await page.locator('#rkMathNext').waitFor();
-  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'106','first correct answer gives 6 coins');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'106','served correct order gives 6 coins exactly once');
   assert.match(await page.locator('#rkMathStatus').innerText(),/Correct/);
   // Array Builder: explicit row construction before the number answer becomes available.
   await page.locator('#rkMathShortcut').click();

@@ -1,0 +1,42 @@
+name: Recipe Studio full kitchen flow
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'assets/scripts/15-multiplication.js'
+      - 'assets/styles/18-multiplication.css'
+      - 'tests/recipe-studio-flow-ci.mjs'
+      - '.github/workflows/recipe-studio-flow.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kitchen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Serve the arcade
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/riki-kitchen.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0; sleep 1; done
+          exit 1
+      - name: Prepare, bake and serve five orders on desktop and phone
+        run: node tests/recipe-studio-flow-ci.mjs
+      - name: Save actual kitchen screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: recipe-kitchen-desktop-phone
+          path: recipe-*.png
+          if-no-files-found: warn
+          retention-days: 7

@@ -126,3 +126,117 @@ html body .top .stats>#coins{position:absolute!important;grid-row:auto!important
  #app .rk-math-matchcard{min-height:64px}
 }
 @media(prefers-reduced-motion:reduce){#app .rk-math-bar>span{transition:none}}
+
+
+/* Interactive Recipe Studio — a true cook/bake/serve flow, intentionally 2D.
+   Warm surfaces rather than an opaque black 3D canvas. */
+#app .rk-kitchen-panel{padding:clamp(10px,2.5vw,18px);overflow:hidden}
+#app .rk-kitchen-order{display:flex;gap:12px;align-items:center;background:#fff6ee;border:2px solid #eccdbd;border-radius:19px;padding:10px 13px;margin-bottom:12px}
+#app .rk-kitchen-customer{display:grid;place-items:center;flex:0 0 66px;width:66px;height:66px;background:#ffe1e9;border-radius:50%;box-shadow:inset 0 3px 5px #fff;border:3px solid #fff;font-size:38px}
+#app .rk-kitchen-ticket{min-width:0;flex:1}
+#app .rk-kitchen-ticket small{color:#a65275;font-size:11px;font-weight:950;letter-spacing:.09em}
+#app .rk-kitchen-ticket h2{font-size:clamp(17px,3.5vw,23px);margin:2px 0 3px}
+#app .rk-kitchen-ticket p{margin:2px 0;font-size:14px;color:#825c67;font-weight:700}
+#app .rk-kitchen-phase{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 3px 10px;font-size:13px;font-weight:900;color:#754259}
+#app .rk-kitchen-phase>span{background:#f9e8ef;border-radius:999px;padding:5px 11px}
+#app .rk-kitchen-phase>span:first-child{background:#dff3e8;color:#315f4f}
+#app .rk-kitchen-scene{position:relative;isolation:isolate;border:4px solid #fffaf2;border-radius:27px;overflow:hidden;
+ background:linear-gradient(180deg,#fff7ed 0%,#ffe9ec 51%,#e8b9b7 52%,#cb969e 100%);box-shadow:0 9px 22px #8a556a38,inset 0 3px 5px #fff}
+#app .rk-kitchen-wall{height:108px;position:relative;background:repeating-linear-gradient(90deg,transparent 0 46px,#eacfd4 47px 49px),repeating-linear-gradient(0deg,#fff0e9 0 47px,#edced6 48px 50px);
+ border-bottom:8px solid #d79caf}
+#app .rk-kitchen-window{position:absolute;top:9px;left:6%;width:145px;height:86px;display:flex;align-items:center;justify-content:center;gap:4px;
+ background:linear-gradient(145deg,#bdeef1,#ecfaff);border:9px solid #fff9ef;border-radius:23px 23px 12px 12px;box-shadow:inset 0 0 0 2px #92c8d1,0 4px 0 #d6a9ac;font-size:29px}
+#app .rk-kitchen-window:after{content:"";position:absolute;left:50%;top:-4px;bottom:0;width:7px;background:#fff9ef}
+#app .rk-kitchen-shelf{position:absolute;right:6%;top:20px;height:53px;min-width:135px;display:flex;align-items:end;justify-content:space-around;gap:12px;padding:0 10px;border-bottom:9px solid #d2a08c;border-radius:0 0 8px 8px}
+#app .rk-kitchen-jar{font-size:32px;filter:drop-shadow(1px 2px 0 #b8898b66)}
+#app .rk-kitchen-utensil{position:absolute;right:30%;top:12px;font-size:30px;transform:rotate(-25deg)}
+#app .rk-kitchen-workspace{display:grid;grid-template-columns:minmax(0,1fr) 185px;gap:15px;padding:0 15px 14px;align-items:end;position:relative;margin-top:-12px}
+#app .rk-kitchen-prep{min-width:0;position:relative;border-radius:18px 18px 9px 9px;background:#f3cbd3;border:3px solid #cf99aa;box-shadow:inset 0 8px 0 #fff7f2,0 6px 0 #b87e95;padding:13px 9px 15px}
+#app .rk-kitchen-station{display:flex;gap:10px;align-items:center;padding:0 6px 5px;border-bottom:3px dashed #cf9db2}
+#app .rk-kitchen-bowl{font-size:42px;filter:drop-shadow(0 4px 2px #88506b55)}
+#app .rk-kitchen-station b,#app .rk-kitchen-station small{display:block}
+#app .rk-kitchen-station b{font:900 17px "Trebuchet MS",system-ui,sans-serif;color:#713c58}
+#app .rk-kitchen-station small{font-size:12px;font-weight:850;color:#805b64;margin-top:3px}
+#app .rk-kitchen-trays{display:grid;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:8px;padding:12px 0 3px;max-height:305px;overflow:auto;scrollbar-color:#bc8499 #fff5f0;scrollbar-width:thin}
+#app .rk-kitchen-tray{min-width:0;min-height:78px;background:linear-gradient(130deg,#a9798c,#c293a3);border:4px solid #a97686;border-radius:15px;text-align:center;padding:3px;
+ box-shadow:inset 0 2px 5px #54344855,0 3px 0 #b98493;transition:background .2s,transform .2s}
+#app .rk-kitchen-tray b{display:block;font-size:11px;font-weight:950;color:#fff8ec;text-shadow:0 1px #71445b}
+#app .rk-kitchen-tray small{display:block;font-size:9px;font-weight:800;color:#fff7ed;min-height:12px}
+#app .rk-kitchen-tray .rk-kitchen-tray-food{display:flex;justify-content:center;align-items:center;min-height:38px;padding:2px}
+#app .rk-kitchen-tray .rk-math-dots{gap:1px}
+#app .rk-kitchen-tray .rk-math-dots>span{font-size:clamp(12px,2vw,18px);line-height:1.15;filter:drop-shadow(0 1px #fff6)}
+#app .rk-kitchen-tray.waiting{opacity:.65;background:linear-gradient(#d8b4b8,#c69aa1)}
+#app .rk-kitchen-empty{font-weight:900;font-size:26px;color:#ffeced}
+#app .rk-kitchen-tray.filled{background:linear-gradient(#d4a1aa,#a77384);animation:rkTrayFill .35s ease-out}
+#app .rk-kitchen-counter-edge{position:absolute;height:12px;bottom:-9px;left:-4px;right:-4px;background:#a86f87;border-radius:0 0 9px 9px}
+#app .rk-kitchen-appliances{display:flex;flex-direction:column;justify-content:end;gap:12px;min-width:0}
+#app .rk-kitchen-oven{position:relative;margin:auto;background:linear-gradient(145deg,#e7a2b9,#ca7f9d);width:155px;max-width:100%;height:188px;border:5px solid #a65d80;border-radius:20px 20px 12px 12px;
+ box-shadow:inset 4px 4px 6px #ffe9f188,0 7px 0 #a2697d,4px 12px 15px #6b3f5255;overflow:visible}
+#app .rk-kitchen-oven-back{padding:6px;text-align:center;color:#783f5a;font-size:11px;font-weight:950}
+#app .rk-kitchen-oven-back>span{display:block}
+#app .rk-kitchen-knobs{font-size:14px;letter-spacing:11px;margin-left:9px;color:#fff0d4}
+#app .rk-kitchen-oven-window{position:absolute;top:54px;left:10px;right:10px;height:92px;background:linear-gradient(#644f63,#453648);
+ border:8px solid #ffe4e4;border-radius:16px;display:grid;place-items:center;overflow:hidden;box-shadow:inset 0 0 15px #241629}
+#app .rk-kitchen-heat{position:absolute;font-size:63px;color:#ffa95c;opacity:0;transform:translateY(20px);transition:opacity .3s,transform .3s}
+#app .rk-kitchen-baked{font-size:38px;opacity:0;position:absolute;transform:scale(.75);transition:opacity .3s,transform .3s}
+#app .rk-kitchen-oven-door{position:absolute;top:151px;left:17px;right:17px;border-top:5px solid #fff2e4;text-align:center;color:#833e5b;font-size:12px;font-weight:900}
+#app .rk-kitchen-oven-legs:before,#app .rk-kitchen-oven-legs:after{content:"";position:absolute;bottom:-11px;background:#84475f;width:18px;height:10px;border-radius:0 0 6px 6px}
+#app .rk-kitchen-oven-legs:before{left:16px}#app .rk-kitchen-oven-legs:after{right:16px}
+#app .rk-kitchen-pickup{padding:6px 8px;background:#fff5e5;border:3px solid #dcb5ad;min-height:90px;border-radius:16px;text-align:center;box-shadow:0 4px 0 #c994a5}
+#app .rk-kitchen-pickup>b{display:block;font-size:12px;color:#80576c}
+#app .rk-kitchen-plate{height:49px;display:grid;place-items:center;font-size:26px;transition:transform .3s}
+#app .rk-kitchen-scene[data-recipe-stage="baking"] .rk-kitchen-oven-window{background:linear-gradient(#855366,#c26e5e 60%,#f9a95b)}
+#app .rk-kitchen-scene[data-recipe-stage="baking"] .rk-kitchen-heat{opacity:.86;transform:translateY(0);animation:rkOvenHeat 1.1s ease-in-out infinite alternate}
+#app .rk-kitchen-scene[data-recipe-stage="baking"] .rk-kitchen-baked{opacity:1;transform:scale(1.08)}
+#app .rk-kitchen-scene[data-recipe-stage="served"] .rk-kitchen-plate{transform:scale(1.18);animation:rkServe .55s ease-out}
+#app .rk-kitchen-scene[data-recipe-stage="served"] .rk-kitchen-oven-window{background:linear-gradient(#684e61,#443443)}
+#app .rk-kitchen-instruction{text-align:center;color:#745067;font-size:clamp(15px,3.5vw,18px);font-weight:800;line-height:1.5;margin:12px 0}
+#app .rk-kitchen-controls{padding:8px 3px 0;text-align:center}
+#app .rk-kitchen-action{max-width:95%;min-width:min(100%,280px);margin:3px auto 8px;box-shadow:0 4px 0 #82384f!important;transition:transform .12s}
+#app .rk-kitchen-action:active{transform:translateY(3px)}
+#app .rk-kitchen-controls .rk-math-success{margin:8px auto}
+#app .rk-kitchen-panel>.rk-math-equation{margin:12px 0 4px}
+@keyframes rkTrayFill{0%{transform:scale(.94)}70%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes rkOvenHeat{0%{transform:translateY(12px);opacity:.55}100%{transform:translateY(-5px);opacity:.95}}
+@keyframes rkServe{from{transform:translateY(16px) scale(.8);opacity:.2}to{transform:scale(1.18);opacity:1}}
+@media(max-width:650px){
+ #app .rk-kitchen-workspace{grid-template-columns:minmax(0,1fr) 120px;gap:8px;padding:0 7px 12px}
+ #app .rk-kitchen-wall{height:85px}
+ #app .rk-kitchen-window{width:105px;height:66px;border-width:6px;font-size:20px;top:8px}
+ #app .rk-kitchen-shelf{top:10px;min-width:95px;gap:4px;padding:0 5px;height:48px}
+ #app .rk-kitchen-jar{font-size:22px}
+ #app .rk-kitchen-utensil{display:none}
+ #app .rk-kitchen-prep{padding:8px 5px 12px}
+ #app .rk-kitchen-station{gap:4px;padding:0 2px 4px}
+ #app .rk-kitchen-bowl{font-size:24px}
+ #app .rk-kitchen-station b{font-size:13px}
+ #app .rk-kitchen-station small{font-size:10px}
+ #app .rk-kitchen-trays{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;max-height:300px}
+ #app .rk-kitchen-tray{border-width:2px;border-radius:10px;min-height:63px;padding:2px}
+ #app .rk-kitchen-tray b{font-size:9px}
+ #app .rk-kitchen-tray small{font-size:8px}
+ #app .rk-kitchen-tray .rk-kitchen-tray-food{min-height:28px}
+ #app .rk-kitchen-tray .rk-math-dots>span{font-size:11px}
+ #app .rk-kitchen-oven{width:116px;height:149px;border-width:4px;border-radius:15px}
+ #app .rk-kitchen-oven-back{font-size:9px}
+ #app .rk-kitchen-knobs{letter-spacing:5px}
+ #app .rk-kitchen-oven-window{top:43px;left:5px;right:5px;height:70px;border-width:5px;border-radius:9px}
+ #app .rk-kitchen-heat{font-size:38px}
+ #app .rk-kitchen-baked{font-size:26px}
+ #app .rk-kitchen-oven-door{top:118px}
+ #app .rk-kitchen-pickup{padding:5px 3px;min-height:74px}
+ #app .rk-kitchen-pickup>b{font-size:10px}
+ #app .rk-kitchen-plate{height:40px;font-size:22px}
+ #app .rk-kitchen-customer{flex-basis:49px;width:49px;height:49px;font-size:28px}
+ #app .rk-kitchen-order{gap:7px;padding:8px}
+ #app .rk-kitchen-ticket p{font-size:12px}
+}
+@media(max-width:350px){
+ #app .rk-kitchen-workspace{grid-template-columns:minmax(0,1fr) 105px;gap:5px;padding:0 4px 10px}
+ #app .rk-kitchen-oven{width:100px}
+ #app .rk-kitchen-tray .rk-math-dots>span{font-size:10px}
+ #app .rk-kitchen-station small{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+ #app .rk-kitchen-tray.filled,#app .rk-kitchen-heat,#app .rk-kitchen-scene[data-recipe-stage="served"] .rk-kitchen-plate{animation:none!important;transition:none!important}
+}
