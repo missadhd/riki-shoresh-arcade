@@ -4,7 +4,6 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
-| Grok | grok/clay-rehaul | assets/scripts/01-game.js, assets/scripts/07-game.js, assets/scripts/12-game.js, index.html, COORDINATION.md | In progress — clay rehaul |
 
 ## Map of the code
 
