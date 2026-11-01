@@ -2063,7 +2063,7 @@ Object.assign(P3_MAKE,{
 delete P3_MAKE.coffeecup;
 
 /* rooms (3D backdrops) */
-const RPCAM={size:[960,960],cam:{fov:34,pos:[0,3.4,5.2],at:[0,.45,0]}};
+const RPCAM={size:[960,960],cam:{fov:42,pos:[0,4.0,6.7],at:[0,.35,0]}};
 Object.assign(SC3_SETS,{
  schoolroom:{wall:'#cfe6f7',low:'#8fb9d9',pat:'stripe',floor:'tile',board:1,win:1,bunt:1,...RPCAM,items:[
   ['rainbowcubbies',-2.1,-1.35,0,1.3],
