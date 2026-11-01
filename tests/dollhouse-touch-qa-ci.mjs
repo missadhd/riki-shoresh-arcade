@@ -71,6 +71,15 @@ try {
           assert.equal(controls.overlaps,false,'phone HUD buttons must not overlap front view');
           assert.equal(controls.undersized,false,'phone camera controls must remain touch-sized');
         }
+        // The real selected-item toolbar should rotate and resize a placed
+        // object, saving those changes under the existing progress keys.
+        await page.locator('[data-dream-inventory="heartkitchencabinet"]').click();
+        await page.locator('#rk3BarRotate').click();
+        const angle=await page.evaluate(()=>JSON.parse(localStorage.getItem('rikiDreamRotationV1')||'{}')['kitchen:heartkitchencabinet']);
+        assert.equal(angle,45,'Turn must save a 45 degree furniture rotation');
+        await page.locator('#rk3BarSmaller').click();
+        const size=await page.evaluate(()=>JSON.parse(localStorage.getItem('rickyDreamPositionsV2')||'{}').kitchen?.heartkitchencabinet?.scale);
+        assert.ok(size<1&&size>=.65,'Smaller button should save an actual nonzero scale');
         // Exercise two-finger movement without adding unintended furniture drags/placements.
         const before=await page.evaluate(()=>({
           view:window.RK3.roomViewState(),
@@ -126,8 +135,9 @@ try {
         assert.equal(after.positions,before.positions,'pinch cannot rewrite saved furniture positions');
         assert.equal(after.decor,before.decor,'pinch cannot create placements');
         // Opening a placed cabinet should present real storage, without changing other rooms.
-        const open=await page.evaluate(()=>window.RK3.openStorage('heartkitchencabinet'));
-        assert.equal(open,true,'tap/open cabinet must enter its actual furniture storage interface');
+        await page.locator('[data-dream-inventory="heartkitchencabinet"]').click();
+        await page.locator('#rk3BarOpen').click();
+        assert.equal(await page.locator('.rk-storage-toolbar').count(),1,'Open button must enter real 3D furniture storage');
         await page.locator('.rk-storage-toolbar button').waitFor({state:'visible',timeout:12000});
         const utensil=page.locator('[data-storage-object="utensilcrock"]');
         await utensil.waitFor({state:'visible',timeout:12000});
