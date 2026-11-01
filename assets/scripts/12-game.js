@@ -306,13 +306,29 @@ M.swing=g=>{const timber=wood('#d9b18e'),pink=mat('#f7a0bd',.88),rope=mat('#e6d2
     seats.push(pivot);
   }
   // Seated clay doll on the left seat (rides with the pivot)
-  const doll=new THREE.Group();doll.position.set(0,-.72,0);seats[0].add(doll);
-  SP(doll,.16,dress,0,.18,0,1,.85,1);
-  SP(doll,.13,skin,0,.42,0);
-  SP(doll,.135,hair,0,.48,-.02,1,.6,1);
-  [-1,1].forEach(k=>CY(doll,.025,.025,.2,skin,k*.14,.22,0,8).rotation.z=k*.4);
-  [-1,1].forEach(k=>{const leg=CY(doll,.03,.03,.18,skin,k*.08,.02,.06,8);leg.rotation.x=.6;});
-  SP(doll,.012,eye(),-.04,.44,.1);SP(doll,.012,eye(),.04,.44,.1);
+  const doll=new THREE.Group();doll.position.set(0,-.68,0);seats[0].add(doll);
+  // Dress / body
+  SP(doll,.17,dress,0,.2,0,1.05,.9,1);
+  // Head
+  SP(doll,.14,skin,0,.46,0);
+  SP(doll,.145,hair,0,.52,-.02,1,.55,1);
+  // Arms resting forward
+  [-1,1].forEach(k=>{
+    const arm=CY(doll,.028,.028,.22,skin,k*.16,.22,.04,8);
+    arm.rotation.z=k*.55;arm.rotation.x=.3;
+  });
+  // Bent sitting legs
+  [-1,1].forEach(k=>{
+    const thigh=CY(doll,.032,.032,.16,skin,k*.07,.04,.08,8);
+    thigh.rotation.x=.85;
+    const shin=CY(doll,.028,.028,.14,skin,k*.07,-.06,.16,8);
+    shin.rotation.x=-.4;
+  });
+  // Face
+  SP(doll,.014,eye(),-.045,.48,.11);
+  SP(doll,.014,eye(),.045,.48,.11);
+  const smile=add(doll,new THREE.TorusGeometry(.03,.006,6,10,Math.PI),eye(),0,.44,.12);
+  smile.rotation.x=Math.PI;
   g.userData.swingSeats=seats;
   g.userData.swingPhase=Math.random()*6;
 };
