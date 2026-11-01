@@ -753,13 +753,15 @@ function hub(){
   app.innerHTML=`<section class="hub"><div class="hub-hi"><h1>Hi there! 👋</h1><p>What do you want to do?</p></div>
    <button type="button" class="hub-today" id="hubToday"><span class="hub-today-tag">⭐ Today's pick</span><b>${NAMES[pick]}</b><span>Tap to play</span></button>
    <div class="hub-grid">${tile('hubGames','<span class="hub-alef" lang="he">אב</span>','Shoresh Games','Learn Hebrew roots')}${tile('hubSocial','💖','Social Skills','Feelings & friends')}${tile('hubHouse','🏠','My Dollhouse','Decorate your rooms')}${tile('hubShop','🛍️','Shop',`🪙 ${coins} coins to spend`)}${tile('hubPlay','🎀','Play with Dolls',`🎟️ ${window.RikiPlay?window.RikiPlay.state().tokens:0} plays · dolls & pets`,'hub-play')}</div>
-   <button type="button" class="hub-progress" id="hubProgress">📊 Progress for grown-ups</button></section>`;
+   <div class="hub-quick"><button type="button" class="hub-progress" id="hubContinueSocial">💖 Continue Social Skills</button><button type="button" class="hub-progress" id="hubSeeFurniture">🏡 Preview dollhouse rewards</button></div><button type="button" class="hub-progress" id="hubProgress">📊 Progress for grown-ups</button></section>`;
   const $=id=>document.getElementById(id);const tap=()=>{try{const a=G('audio');a&&a('tap');}catch(_){}};
   $('hubGames').onclick=()=>{tap();const m=G('menu');m&&m();window.scrollTo(0,0);};
   $('hubSocial').onclick=()=>{tap();const s=G('selHub');s&&s();window.scrollTo(0,0);};
   $('hubHouse').onclick=()=>{tap();const h=G('houseHome');h&&h();window.scrollTo(0,0);};
   $('hubShop').onclick=()=>{tap();const h=G('houseHome');h&&h();SET("housePage='shop';");const r=G('houseRender');r&&r();window.scrollTo(0,0);};
   $('hubPlay').onclick=()=>{tap();window.RikiPlay&&window.RikiPlay.open();};$('hubProgress').onclick=()=>{tap();window.RikiProgress&&window.RikiProgress.show();};
+  $('hubContinueSocial').onclick=()=>{tap();const social=G('selHub');if(social)social();window.scrollTo(0,0);};
+  $('hubSeeFurniture').onclick=()=>{tap();const house=G('houseHome');if(house)house();const shop=G('houseRender');if(shop){SET("housePage='shop';");shop()}window.scrollTo(0,0);};
   $('hubToday').onclick=()=>{tap();window.RikiStudio&&window.RikiStudio.start(pick);};
   window.scrollTo(0,0);
 }

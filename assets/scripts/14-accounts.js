@@ -8,10 +8,32 @@ const REMEMBER='rikiRememberGuardianV1',PENDING='rikiRememberPendingV1',PLAYER='
 const durable=()=>localStorage.getItem(REMEMBER)==='yes';
 function storeSession(){if(!session)return;sessionStorage.setItem(AUTH,JSON.stringify(session));if(durable())localStorage.setItem(AUTH,JSON.stringify(session));}
 function storePlayer(id){sessionStorage.setItem(PLAYER,id);if(durable())localStorage.setItem(PLAYER,id);}
+const DEMO_COINS='rikiGuestDemo500GrantedV1';
+function grantGuestDemo(){
+ if(session||localStorage.getItem(DEMO_COINS)==='yes')return;
+ const current=Math.max(0,Number(localStorage.getItem('rickyCoins'))||0);
+ if(current<500)localStorage.setItem('rickyCoins','500');
+ localStorage.setItem(DEMO_COINS,'yes');
+ if(current<500)location.reload();
+}
+async function awardCoins(id,amount){
+ if(!session||!await refresh())throw Error('Adult sign-in required');
+ if(!Number.isSafeInteger(amount)||amount<1||amount>500)throw Error('Choose 1 to 500 coins');
+ if(player===id)await save();
+ const rows=await api('/rest/v1/arcade_progress?select=version,snapshot&player_id=eq.'+encodeURIComponent(id));
+ if(!rows.length)throw Error('Start this player first, then award coins');
+ const old=rows[0];const version=Number(old.version);const snapshot={...old.snapshot};
+ const before=Math.max(0,Number(snapshot.rickyCoins)||0);
+ snapshot.rickyCoins=String(Math.min(100000, before+amount));
+ const updated=await api('/rest/v1/arcade_progress?player_id=eq.'+encodeURIComponent(id)+'&version=eq.'+version,'PATCH',{version:version+1,snapshot,updated_at:new Date().toISOString()});
+ if(updated.length!==1)throw Error('Another save happened. No coins awarded; please retry.');
+ if(player===id){lastVersion=version+1;localStorage.setItem('rickyCoins',snapshot.rickyCoins);lastSaved=JSON.stringify(read());location.reload()}
+ return Number(snapshot.rickyCoins)-before;
+}
 const BACKUP='rikiGuestProgressBackupV1';
 const DISPLAY='rikiCurrentPlayerNameV1';
 const KEYS=['rickyCoins','rickyHouseInventoryV1','rickyHouseDecorV1','rickyHouseWallsV1','rickyDreamStorageV2','rickyDreamPetsV2','rickyDreamPositionsV2','rickyRoomInteriorsV3','rickyTinyOwnedV1','rickyTinyPlacedV1','rickyAdventureXPV1','rickySpatialMusicV1','riki3dOrbit','rikiReal3dAz','rikiRootProgressV1','rikiDreamRotationV1','rikiClawPlushV1','rikiPlayTokensV1'];
-let session=null,player=null,lastSaved='',interval=null;
+let session=null,player=null,lastSaved='',lastVersion=null,interval=null,saveInFlight=null;
 const $=id=>document.getElementById(id);
 const read=()=>{const x={};KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)x[k]=v;});return x;};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -41,9 +63,11 @@ async function list(){
  const guardians=await api('/rest/v1/arcade_guardians?select=user_id&limit=1');
  if(!guardians?.length)await api('/rest/v1/arcade_guardians','POST',{user_id:session.user.id});
  const players=await api('/rest/v1/arcade_players?select=id,nickname&order=created_at.asc');
+ const awardOptions=players.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nickname)+'</option>').join('');
  const choices=players.map(p=>'<button class="rk-profile-card" type="button" data-player="'+esc(p.id)+'"><span class="rk-profile-avatar" aria-hidden="true">'+esc(p.nickname.slice(0,1).toUpperCase())+'</span><span>'+esc(p.nickname)+'</span></button>').join('');
- modal('<h2>Who is playing?</h2><p>Signed in as '+esc(identity())+'</p><p>Select a player to continue with their own coins, learning progress, and dollhouse.</p><div class="rk-account-players">'+choices+'</div><form id="rkAddPlayer"><label>New player nickname <input name="nickname" maxlength="40" required autocomplete="off"></label><button type="submit">Create player</button></form><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="rkRememberNow" style="width:auto" '+(durable()?'checked':'')+'> Remember my adult sign-in on this trusted computer</label><button type="button" id="rkAccountLogout">Sign out</button><button type="button" id="rkAccountClose">Keep playing here</button><p class="rk-account-message" id="rkAccountMsg" role="status"></p>');
+ modal('<h2>Who is playing?</h2><p>Signed in as '+esc(identity())+'</p><p>Select a player to continue with their own coins, learning progress, and dollhouse.</p><div class="rk-account-players">'+choices+'</div><details class="rk-parent-coins"><summary>🪙 Adult tools: Give coins</summary><p>Choose a player and award bonus coins. This changes only the selected cloud balance.</p><form id="rkAwardCoins"><label>Player <select name="recipient" required>'+awardOptions+'</select></label><label>Bonus coins <input type="number" name="amount" min="1" max="500" step="1" value="100" required></label><button type="submit">Give coins</button></form></details><form id="rkAddPlayer"><label>New player nickname <input name="nickname" maxlength="40" required autocomplete="off"></label><button type="submit">Create player</button></form><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="rkRememberNow" style="width:auto" '+(durable()?'checked':'')+'> Remember my adult sign-in on this trusted computer</label><button type="button" id="rkAccountLogout">Sign out</button><button type="button" id="rkAccountClose">Keep playing here</button><p class="rk-account-message" id="rkAccountMsg" role="status"></p>');
  document.querySelectorAll('[data-player]').forEach(b=>b.onclick=()=>switchTo(b.dataset.player,b.textContent));
+ $('rkAwardCoins').onsubmit=async e=>{e.preventDefault();const form=e.target;const button=form.querySelector('button[type="submit"]');button.disabled=true;try{const amount=Number(form.elements.amount.value);const awarded=await awardCoins(form.elements.recipient.value,amount);$('rkAccountMsg').textContent='Added '+awarded+' coins to the selected player.'}catch(err){$('rkAccountMsg').textContent=err.message}finally{button.disabled=false}};
  $('rkRememberNow').onchange=e=>{if(e.target.checked){localStorage.setItem(REMEMBER,'yes');storeSession();if(player)storePlayer(player)}else{localStorage.removeItem(REMEMBER);localStorage.removeItem(AUTH);localStorage.removeItem(PLAYER)};};
  $('rkAccountLogout').onclick=()=>{logout();close()};$('rkAccountClose').onclick=close;
  $('rkAddPlayer').onsubmit=async e=>{e.preventDefault();const name=e.target.nickname.value.trim();if(!name)return;try{const created=await api('/rest/v1/arcade_players','POST',{guardian_id:session.user.id,nickname:name});await switchTo(created[0].id,name)}catch(err){$('rkAccountMsg').textContent=err.message}};
@@ -53,8 +77,9 @@ async function switchTo(id,nickname){
   if(player && player!==id)await save();
   const rows=await api('/rest/v1/arcade_progress?select=version,snapshot&player_id=eq.'+encodeURIComponent(id));
   const stored=rows[0]?.snapshot;
+  const targetVersion=rows[0]?.version??null;
   if(!localStorage.getItem(BACKUP)){try{localStorage.setItem(BACKUP,JSON.stringify(read()))}catch{}}
-  player=id;storePlayer(id);if(nickname)sessionStorage.setItem(DISPLAY,nickname);greet();status('Cloud profile active');
+  player=id;lastSaved='';lastVersion=targetVersion;storePlayer(id);if(nickname)sessionStorage.setItem(DISPLAY,nickname);greet();status('Cloud profile active');
   if(stored && Object.keys(stored).length){
    KEYS.forEach(k=>{if(Object.hasOwn(stored,k))localStorage.setItem(k,String(stored[k]));else localStorage.removeItem(k)});
    status('Cloud profile active');close();location.reload();return;
@@ -67,13 +92,27 @@ async function switchTo(id,nickname){
  }catch(err){status('Account error: '+err.message)}
 }
 async function save(){
+ if(saveInFlight)return saveInFlight;
+ saveInFlight=saveNow().finally(()=>{saveInFlight=null});return saveInFlight;
+}
+async function saveNow(){
  if(!player||!await refresh())return;
+ const savingPlayer=player;
  const snapshot=read(),serialized=JSON.stringify(snapshot);if(serialized===lastSaved)return;
  if(serialized.length>900000)throw Error('Progress is too large to sync');
- const rows=await api('/rest/v1/arcade_progress?select=version&player_id=eq.'+encodeURIComponent(player));
- if(rows.length){await api('/rest/v1/arcade_progress?player_id=eq.'+encodeURIComponent(player),'PATCH',{snapshot,updated_at:new Date().toISOString()})}
- else {await api('/rest/v1/arcade_progress','POST',{player_id:player,snapshot})}
- lastSaved=serialized;status('Cloud progress saved');
+ const rows=await api('/rest/v1/arcade_progress?select=version&player_id=eq.'+encodeURIComponent(savingPlayer));
+ if(player!==savingPlayer)throw Error('Player changed during save');
+ if(rows.length){
+  const remoteVersion=Number(rows[0].version??0);
+  if(lastVersion!==null && remoteVersion!==Number(lastVersion))throw Error('Another device changed this player’s progress. Changes were NOT overwritten. Please stop playing and contact the adult.');
+  const updated=await api('/rest/v1/arcade_progress?player_id=eq.'+encodeURIComponent(savingPlayer)+'&version=eq.'+remoteVersion,'PATCH',{snapshot,version:remoteVersion+1,updated_at:new Date().toISOString()});
+  if(!Array.isArray(updated)||updated.length!==1)throw Error('Save conflict: progress changed on another device. Your changes were not uploaded.');
+  lastVersion=remoteVersion+1;
+ }else{
+  if(lastVersion!==null)throw Error('Cloud progress disappeared; save stopped for safety');
+  const inserted=await api('/rest/v1/arcade_progress','POST',{player_id:savingPlayer,snapshot});lastVersion=inserted[0]?.version??0;
+ }
+ if(player!==savingPlayer)throw Error('Player changed during save');lastSaved=serialized;status('Cloud progress saved');
 }
 async function openRiki(){
  if(!session||!await refresh()){login();status('Adult email sign-in is required before using a cloud player.');return;}
@@ -100,7 +139,7 @@ async function initialize(){
  if(session && await refresh()){
   if(!session.user){try{session.user=await api('/auth/v1/user');storeSession()}catch{logout()}}
   const active=sessionStorage.getItem(PLAYER)||(durable()?localStorage.getItem(PLAYER):null);
-  if(active){try{const owned=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=id');if(owned.length){player=active;storePlayer(active);const names=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=nickname');if(names[0]?.nickname)sessionStorage.setItem(DISPLAY,names[0].nickname);greet();const rows=await api('/rest/v1/arcade_progress?select=snapshot&player_id=eq.'+encodeURIComponent(active));if(rows[0]?.snapshot){const snapshot=rows[0].snapshot;const incoming=JSON.stringify(snapshot);const current=JSON.stringify(read());if(incoming!==current){KEYS.forEach(k=>{if(Object.hasOwn(snapshot,k))localStorage.setItem(k,String(snapshot[k]));else localStorage.removeItem(k)});location.reload();return;}lastSaved=current}}}catch{player=null}}
+  if(active){try{const owned=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=id');if(owned.length){player=active;storePlayer(active);const names=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=nickname');if(names[0]?.nickname)sessionStorage.setItem(DISPLAY,names[0].nickname);greet();const rows=await api('/rest/v1/arcade_progress?select=version,snapshot&player_id=eq.'+encodeURIComponent(active));if(rows[0])lastVersion=rows[0].version??null;if(rows[0]?.snapshot){const snapshot=rows[0].snapshot;const incoming=JSON.stringify(snapshot);const current=JSON.stringify(read());if(incoming!==current){KEYS.forEach(k=>{if(Object.hasOwn(snapshot,k))localStorage.setItem(k,String(snapshot[k]));else localStorage.removeItem(k)});location.reload();return;}lastSaved=current}}}catch{player=null}}
   status(player?'Cloud profile active':'Guardian signed in');if(player)interval=setInterval(()=>save().catch(err=>status('Cloud save error: '+err.message)),15000);
   else if(token.has('access_token'))list();
  }
@@ -112,7 +151,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  $('rkAccountOpen').onclick=()=>session?list():login();
 
  greetingObserver.observe(host,{subtree:true,childList:true});greet();neutralHeadings();
- initialize().catch(err=>status('Account unavailable: '+err.message));
+ initialize().then(()=>grantGuestDemo()).catch(err=>status('Account unavailable: '+err.message));
  window.addEventListener('pagehide',()=>{if(player)save().catch(()=>{})});
 });
 })();
