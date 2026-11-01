@@ -264,7 +264,9 @@ function slActionSetup(it){const p=$id('slProp');if(!p)return;const kind=slActio
 function slActionPlay(it,text,good){const p=$id('slProp');if(!p)return;const kind=slActionKind(it),s=String(text).toLowerCase();p.className='sl-prop sl-action-prop on';p.dataset.kind=kind;p.innerHTML=slActionArt(kind);let action=good?'help':'bad';if(kind==='tower')action=good?'rebuild':/knock|push|kick/.test(s)?'knock':'bad';else if(kind==='blockhouse')action=good?'build':'bad';else if(kind==='cards')action=/throw/.test(s)?'scatter':good?'reset':'bad';else if(kind==='tablet')action=/hide|keep playing|run/.test(s)?'hide':good?'putaway':'bad';else if(kind==='markers')action=/hide/.test(s)?'hide':good?'share':'bad';else if(kind==='drawing')action=good?'repair':/walk/.test(s)?'away':'bad';else if(kind==='crayon')action=/snap/.test(s)?'snap':good?'share':'bad';else if(kind==='swing')action=good?'turns':'stuck';else if(kind==='juice')action=good?'clean':/pretend/.test(s)?'ignore':'laugh';else if(kind==='tag')action=good?'join':/push/.test(s)?'push':'wait';void p.offsetWidth;p.classList.add('act-'+action);}
 function drawSet(key){
   const set=SL_SETS[key];const it=set.items[slSetStep[key]%set.items.length];const who=it.who||set.who;slWho={A:'riki',B:who};const step=slSetStep[key];let opts=[...it.opts].sort(()=>Math.random()-.5);opts=trimOpts(opts,o=>o[1]);
-  slShell(set.title,`${slMeterHTML()}${slSceneHTML('riki',who)}<div class="sl-choices" id="slCh" hidden>${opts.map((o,i)=>`<button class="sl-choice c${i}" data-i="${i}">${o[0]}</button>`).join('')}</div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Next →</button>`);
+  const roomKey=key==='no'||key==='cookiejar'?'kitchen':key==='calmq'?'calmroom':'helproom';
+  slShell(set.title,`${slMeterHTML()}<div id="setHost"></div><div class="sl-choices" id="slCh" hidden>${opts.map((o,i)=>`<button class="sl-choice c${i}" data-i="${i}">${o[0]}</button>`).join('')}</div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Next →</button>`);
+  rpLoad(()=>{const R=rpWithChars('setHost',roomKey,[['riki',.4,1.6],[who,-.4,1.2]]);});
   const scene=$id('slScene'),live=()=>!!scene&&scene.isConnected&&$id('slScene')===scene;slActionSetup(it);
   (async()=>{await slWait(250);await slSay('B',it.say,it.mood);if(!live()||slSetStep[key]!==step)return;const ch=$id('slCh');if(ch){ch.hidden=false;if(easy(curUnit()))hintBtn(ch,()=>[...ch.querySelectorAll('.sl-choice')].find(b=>opts[+b.dataset.i]&&opts[+b.dataset.i][1]));if(window.RikiFit)RikiFit();}})();
   document.querySelectorAll('#slCh .sl-choice').forEach(b=>b.onclick=async()=>{if(b.disabled||!live())return;const o=opts[+b.dataset.i];document.querySelectorAll('#slCh .sl-choice').forEach(x=>x.disabled=true);slHush('B');slActionPlay(it,o[0],!!o[1]);
@@ -657,8 +659,9 @@ const CPS=[{who:'mom',ask:'Time to turn off the game and set the table.',calm:[[
  {who:'mom',ask:'Bedtime! Lights out now.',calm:[['“Can I read one more page first?”',1],['Scream and run around.',0],['Hide under the blanket with a flashlight.',0]],worry:[['I need sleep to feel good tomorrow.',1],['She wants to stop my fun.',0],['She doesn’t like books.',0]],fix:[['One page, then lights out.',1,1],['Read until midnight.',1,0],['No book ever again.',0,1]]}];
 let cpsI=0;
 function drawCps(){zCur='cps';const c=CPS[cpsI%CPS.length];slWho={A:'riki',B:c.who};const nm=SL_PEOPLE[c.who].name;
- const t=zShell('🤝 Let’s Work It Out',`${slSceneHTML('riki',c.who)}<div class="cps-meters"><span>💗 Riki</span><span class="bar"><i id="cmA" style="width:20%"></i></span><span>💗 ${nm}</span><span class="bar"><i id="cmB" style="width:20%"></i></span></div><div class="cps-steps"><span class="on" id="cs1">1 Say it calmly</span><span id="cs2">2 Their worry</span><span id="cs3">3 Make a deal</span></div><div class="sl-choices" id="slCh" hidden></div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Next problem →</button>`);
+ const t=zShell('🤝 Let’s Work It Out',`<div id="cpsHost"></div><div class="cps-meters"><span>💗 Riki</span><span class="bar"><i id="cmA" style="width:20%"></i></span><span>💗 ${nm}</span><span class="bar"><i id="cmB" style="width:20%"></i></span></div><div class="cps-steps"><span class="on" id="cs1">1 Say it calmly</span><span id="cs2">2 Their worry</span><span id="cs3">3 Make a deal</span></div><div class="sl-choices" id="slCh" hidden></div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Next problem →</button>`);
  const step=n=>{[1,2,3].forEach(i=>$id('cs'+i).classList.toggle('on',i===n));};
+ rpLoad(()=>{rpWithChars('cpsHost','helproom',[['riki',.3,1.5],[c.who,-.3,1.2]]);});
  const meter=(a,b)=>{$id('cmA').style.width=a+'%';$id('cmB').style.width=b+'%';};
  const choose=(q,opts,isR,onOk,onBad)=>{const o2=trimOpts(zShuf(opts),isR);const ch=$id('slCh');ch.hidden=false;ch.innerHTML=`<p class="zg-ask">${q}</p>`+o2.map((o,i)=>`<button class="sl-choice c${i}" data-i="${i}">${o[0]}</button>`).join('');if(easy(curUnit()))hintBtn(ch,()=>[...ch.querySelectorAll('[data-i]')].find(b=>isR(o2[+b.dataset.i])));if(window.RikiFit)RikiFit();
   ch.querySelectorAll('[data-i]').forEach(b=>b.onclick=async()=>{const o=o2[+b.dataset.i];if(isR(o)){ch.querySelectorAll('button').forEach(x=>x.disabled=true);audio('good');await onOk(o);}else{zMiss();audio('tap');b.disabled=true;await onBad(o);}});};
@@ -1156,6 +1159,22 @@ function drawHelper(){zCur='helper';const jobs=zShuf(HM_JOBS).slice(0,3);let don
 
 /* 4. Cookie Jar Trust: accepting no; calm answers fill the jar and earn a yes-later */
 const CJ_ASK=[['Can I have a cookie?','Not right now, it’s almost dinner.'],['Can I stay up late tonight?','No, it’s a school night.'],['Can I have more tablet time?','Not today, tablet time is done.'],['Can I have a sleepover this weekend?','Not this weekend, we have plans.'],['Can I have candy?','No candy today.'],['Can we go to the toy store?','Not today, sweetie.'],['Can I skip my bath?','No, bath time is important.'],['Can I have ice cream for breakfast?','No, silly! Ice cream is a treat.']];
+
+function rpWithChars(hostId, roomKey, chars, start=[0,1.8]){
+  const host=$id(hostId); if(!host) return null;
+  const R=rpRoom(host, roomKey, {start});
+  R.ready.then(()=>{if(!R.st)return;
+    chars.forEach(([who,x,z])=>{
+      const el=document.createElement('div'); el.className='rp-kid';
+      el.innerHTML=`<div class="rp-img">${slFace(who==='riki'?'riki':who==='mom'?'mom':who==='teacher'?'teacher':'friend','happy')}</div>`;
+      R.st.appendChild(el);
+      const P=(xx,yy,zz)=>sc3Proj(roomKey,xx,yy,zz);
+      const f=P(x,0,z), t=P(x,1.2,z);
+      el.style.left=f[0]+'%'; el.style.top=f[1]+'%'; el.style.height=Math.max(8,f[1]-t[1])+'%';
+    });
+  });
+  return R;
+}
 function drawCookieJar(){zCur='cookiejar';let marbles=0;const GOAL=10;const asks=zShuf(CJ_ASK);let i=0;
  const t=zShell('🍪 Cookie Jar Trust',`<div id="cjHost"></div><div class="cj-marbles"><div class="cj-glass" id="cjGlass"></div><small><b id="cjN">0</b>/${GOAL} trust marbles</small></div><div class="sl-choices" id="cjCh" hidden></div><div class="ag-msg" id="agM"></div>`);
  const paint=()=>{$id('cjN').textContent=marbles;$id('cjGlass').innerHTML=Array.from({length:marbles},(_,k)=>`<i style="background:${['#ff8fbd','#8fd3ff','#b79bff','#ffd34d','#a6e3a1'][k%5]}"></i>`).join('');};
