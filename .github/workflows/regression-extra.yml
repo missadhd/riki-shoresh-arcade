@@ -46,3 +46,6 @@ jobs:
       - name: WebGL lifecycle (30 enter/exit cycles)
         if: always()
         run: node tests/webgl-lifecycle-ci.mjs
+      - name: Bakery Shift conveyor (#281)
+        if: always()
+        run: node tests/bakery-conveyor-ci.mjs

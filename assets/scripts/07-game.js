@@ -1112,32 +1112,86 @@ function drawEscape(){zCur='escape';let lv=0,code=[],asks=0;const digits=zShuf([
    else{miss++;zMiss();audio('tap');b.classList.remove('no');void b.offsetWidth;b.classList.add('no');dollReact(false);g6Msg(asks?'Not that one. What did Ms. Dana say?':'Not that one. You can ask her to say it again.',false);}});};
  setTimeout(round,400);}
 
-/* 2. Bakery Shift: remember the order after it disappears; stay flexible when it changes */
-const BK_BASE=[['cupcake','🧁'],['donut','🍩'],['cookie','🍪']],BK_ICE=[['pink','#ff9cc6'],['blue','#8fd3ff'],['purple','#b79bff'],['yellow','#ffd34d']],BK_TOP=[['sprinkles','✨'],['a cherry','🍒'],['a heart','💖'],['a star','⭐']];
-const BK_LV=[{p:2},{p:3},{p:3,change:1},{p:3,two:1},{p:3,grumpy:1}];
+/* 2. Bakery Shift: remember the order after it disappears; stay flexible when it changes.
+   Conveyor-belt redesign (Grok, Nov 1, #281): the treat rides a belt past machines in the scene; Riki picks at each machine.
+   Levels add machines, items and options a little at a time. No timers, no failing: wrong orders get a gentle hint. */
+const BK_BASE=[['cupcake','🧁'],['donut','🍩'],['cookie','🍪'],['cake slice','🍰'],['croissant','🥐']],BK_ICE=[['pink','#ff9cc6'],['blue','#8fd3ff'],['purple','#b79bff'],['yellow','#ffd34d'],['mint','#9fe6c4'],['chocolate','#9a6a52']],BK_TOP=[['sprinkles','✨'],['a cherry','🍒'],['a heart','💖'],['a star','⭐'],['a strawberry','🍓']],BK_EXTRA=[['a candle','🕯️'],['a bow','🎀'],['a flag','🚩'],['a leaf','🌿']];
+const BK_ST=[['b','🔥','Oven',()=>BK_BASE],['c','🍦','Icing',()=>BK_ICE],['p','🍒','Toppings',()=>BK_TOP],['x','🎀','Extras',()=>BK_EXTRA]];
+// m = machines used, n = items per order, o = options per machine, sp = belt speed (ms)
+const BK_LV=[{m:2,n:1,o:3,sp:700},{m:3,n:1,o:3,sp:650},{m:3,n:1,o:4,sp:600,change:1},{m:4,n:1,o:4,sp:560},{m:3,n:2,o:4,sp:520},{m:4,n:1,o:5,sp:500,change:1},{m:4,n:2,o:5,sp:480,grumpy:1},{m:3,n:3,o:5,sp:460}];
 const BK_CUST=['friend','friend2','mom','teacher'];
 function drawBakery(){zCur='bakery';let lv=0,tips=0;
- const t=zShell('🧁 Bakery Shift',`${g6Top('friend','Customer')}<div class="bk-wrap"><div class="bk-tray" id="bkTray"></div><div class="bk-pal"><div><small>1. Treat</small>${BK_BASE.map(b=>`<button type="button" data-b="${b[0]}">${b[1]}</button>`).join('')}</div><div><small>2. Frosting</small>${BK_ICE.map(c=>`<button type="button" data-c="${c[0]}" style="background:${c[1]}"></button>`).join('')}</div><div><small>3. Topping</small>${BK_TOP.map(p=>`<button type="button" data-p="${p[0]}">${p[1]}</button>`).join('')}</div></div></div><div class="g6-row"><button class="secondary" id="bkAsk" type="button">🔁 Sorry, can you repeat that?</button><button class="sl-big" id="bkServe" type="button">🛎️ Serve!</button></div><div class="sl-choices" id="bkCh" hidden></div><div class="ag-msg" id="agM"></div><div class="g6-tips">🪙 Tips: <b id="bkTips">0</b> ${g6Pips(BK_LV.length,0)}</div>`);
- const sayOrder=o=>o.map(x=>`a ${x.c?x.c+' ':''}${x.b}${x.p?' with '+x.p:''}`).join(' and ');
- const draw=(cur,idx)=>{const tray=$id('bkTray');tray.innerHTML=cur.map((x,i)=>`<div class="bk-item ${i===idx?'on':''}" data-i="${i}"><span class="bk-base">${x.b?BK_BASE.find(b=>b[0]===x.b)[1]:'⬜'}</span>${x.c?`<i class="bk-ice" style="background:${BK_ICE.find(c=>c[0]===x.c)[1]}"></i>`:''}<span class="bk-top">${x.p?BK_TOP.find(p=>p[0]===x.p)[1]:''}</span></div>`).join('');tray.querySelectorAll('[data-i]').forEach(el=>el.onclick=()=>{sel=+el.dataset.i;draw(cur,sel);});};
- let sel=0;
+ const t=zShell('🧁 Bakery Shift',`${g6Top('friend','Customer')}<div class="bk-wrap"><div class="bk-scene" id="bkScene"></div></div><div class="g6-row"><button class="secondary" id="bkAsk" type="button">🔁 Sorry, can you repeat that?</button><button class="sl-big" id="bkServe" type="button">🛎️ Serve!</button></div><div class="sl-choices" id="bkCh" hidden></div><div class="ag-msg" id="agM"></div><div class="g6-tips">🪙 Tips: <b id="bkTips">0</b> ${g6Pips(BK_LV.length,0)}</div>`);
+ const nm=(k,v)=>{const r=BK_ST.find(s=>s[0]===k)[3]().find(o=>o[0]===v);return r||['',''];};
+ const sayOrder=o=>o.map(x=>`a ${x.c?x.c+' ':''}${x.b}${x.p?' with '+x.p:''}${x.x?(x.p?' and ':' with ')+x.x:''}`).join(', and ');
+ const treatHTML=x=>`<span class="bk-t-base">${x.b?nm('b',x.b)[1]:'<i class="bk-t-empty"></i>'}</span>${x.c?`<i class="bk-t-ice" style="background:${nm('c',x.c)[1]}"></i>`:''}${x.p?`<span class="bk-t-top">${nm('p',x.p)[1]}</span>`:''}${x.x?`<span class="bk-t-ex">${nm('x',x.x)[1]}</span>`:''}`;
+ let L,order,cur,sel,st,opts,asked,changed,first,who;
+ const draw=()=>{const sc=$id('bkScene');if(!sc)return;const M=BK_ST.slice(0,L.m),done=i=>!!cur[sel][M[i][0]];const pos=Math.min(st,L.m);
+  sc.style.setProperty('--sp',L.sp+'ms');sc.style.setProperty('--n',L.m+1);
+  sc.innerHTML=`<div class="bk-belt"><div class="bk-rollers"></div><div class="bk-treat" id="bkTreat" style="--pos:${pos}">${treatHTML(cur[sel])}</div><div class="bk-out" title="Ready">📦</div></div>
+  <div class="bk-machines" style="grid-template-columns:repeat(${L.m},1fr)">${M.map((m,i)=>`<button type="button" class="bk-mach ${i===st?'on':''} ${done(i)?'done':''}" data-st="${i}"><b>${m[1]}</b><small>${m[2]}</small>${done(i)?'<i>✓</i>':''}</button>`).join('')}</div>
+  ${st<L.m?`<div class="bk-panel" data-panel="${M[st][0]}"><small>${M[st][1]} ${M[st][2]} — pick one</small><div class="bk-opts">${opts[st].map(o=>`<button type="button" data-k="${M[st][0]}" data-v="${o[0]}" aria-label="${o[0]}" class="${cur[sel][M[st][0]]===o[0]?'pick':''}" ${M[st][0]==='c'?`style="background:${o[1]}"`:''}>${M[st][0]==='c'?'':o[1]}</button>`).join('')}</div></div>`:`<div class="bk-panel bk-ready"><small>✨ Ready! Tap 🛎️ Serve, or tap a machine to change something.</small></div>`}
+  <div class="bk-box" id="bkBox">${cur.map((x,i)=>`<button type="button" class="bk-boxed ${i===sel?'on':''}" data-i="${i}" aria-label="treat ${i+1}">${treatHTML(x)}</button>`).join('')}</div>`;
+  sc.querySelectorAll('.bk-mach').forEach(el=>el.onclick=()=>{st=+el.dataset.st;audio('tap');draw();});
+  sc.querySelectorAll('button[data-k]').forEach(b=>b.onclick=()=>{const i=BK_ST.findIndex(s=>s[0]===b.dataset.k);st=i;cur[sel][b.dataset.k]=b.dataset.v;audio('tap');
+    // move along the belt to the next empty machine
+    let nx=st+1;while(nx<L.m&&cur[sel][M[nx][0]])nx++;st=nx;
+    if(st>=L.m){const ni=cur.findIndex(x=>M.some(m=>!x[m[0]]));if(ni>=0&&ni!==sel){draw();setTimeout(()=>{sel=ni;st=M.findIndex(m=>!cur[sel][m[0]]);draw();},BK_REDUCE()?0:L.sp);maybeChange();return;}}
+    draw();maybeChange();});
+  sc.querySelectorAll('[data-i]').forEach(el=>el.onclick=()=>{sel=+el.dataset.i;st=0;audio('tap');draw();});
+  $id('bkServe').disabled=!cur.every(x=>M.every(m=>x[m[0]]));};
+ const maybeChange=async()=>{if(!L.change||changed||!cur[0].b)return;changed=true;await slWait(400);const nc=opts[1].filter(c=>c[0]!==order[0].c)[0][0];order[0].c=nc;await g6Talk(who,`Oops, I changed my mind! Can it be ${nc} icing instead?`,{hideAfter:2200,expr:'nervous'});g6Msg('🔄 Order changed! Tap the Icing machine to fix it.',true);};
  const round=async()=>{if(!zLive(t))return;if(lv>=BK_LV.length){zDone(t,`🧁 Shift over! You earned ${tips} tips.`,drawBakery,Math.max(2,tips));return;}
-  const L=BK_LV[lv],who=BK_CUST[lv%BK_CUST.length];const mk=()=>({b:BK_BASE[Math.floor(Math.random()*3)][0],c:BK_ICE[Math.floor(Math.random()*4)][0],p:L.p>2?BK_TOP[Math.floor(Math.random()*4)][0]:null});
-  let order=L.two?[mk(),mk()]:[mk()];window.RikiG6.bk=()=>({order,sel});let cur=order.map(()=>({}));sel=0;let asked=false,changed=false,first=true;draw(cur,sel);$id('bkAsk').disabled=false;$id('bkServe').disabled=false;
+  L=BK_LV[lv];who=BK_CUST[lv%BK_CUST.length];const M=BK_ST.slice(0,L.m);
+  opts=M.map(m=>zShuf(m[3]()).slice(0,L.o));const pick=a=>a[Math.floor(Math.random()*a.length)][0];
+  order=Array.from({length:L.n},()=>{const o={};M.forEach((m,i)=>o[m[0]]=pick(opts[i]));return o;});
+  opts=opts.map((a,i)=>BK_ST[i][3]().filter(o=>a.includes(o)));// keep a stable order on the machines
+  cur=order.map(()=>({}));sel=0;st=0;asked=false;changed=false;first=true;
+  const lvNow=lv;window.RikiG6.bk=()=>({order,sel,st,cur,level:lvNow,m:L.m});
+  draw();$id('bkAsk').disabled=false;$id('bkServe').disabled=true;
   const name=SL_PEOPLE[who]?SL_PEOPLE[who].name:'Customer';document.querySelector('#g6Bub small').textContent=name;
-  await g6Talk(who,`Hi! Can I please have ${sayOrder(order)}?`,{hideAfter:1800+order.length*1200});
-  $id('bkAsk').onclick=async()=>{if(asked){g6Msg('You already asked once. Try your best!',false);return;}asked=true;$id('bkAsk').disabled=true;await g6Say('riki','Sorry, can you repeat that?');await g6Talk(who,`Sure! ${sayOrder(order)}.`,{hideAfter:2200});};
-  document.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{cur[sel].b=b.dataset.b;audio('tap');draw(cur,sel);maybeChange();});
-  document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{cur[sel].c=b.dataset.c;audio('tap');draw(cur,sel);maybeChange();});
-  document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{cur[sel].p=b.dataset.p;audio('tap');draw(cur,sel);maybeChange();});
-  const maybeChange=async()=>{if(!L.change||changed||!cur[0].b)return;changed=true;await slWait(400);const nc=BK_ICE.filter(c=>c[0]!==order[0].c)[0][0];order[0].c=nc;await g6Talk(who,`Oops, I changed my mind! Can it be ${nc} frosting instead?`,{hideAfter:2200,expr:'nervous'});g6Msg('🔄 Order changed! Be flexible and fix it.',true);};
-  $id('bkServe').onclick=async()=>{const ok=cur.every((x,i)=>x.b===order[i].b&&x.c===order[i].c&&(order[i].p?x.p===order[i].p:true));
-   if(!ok){zMiss();first=false;audio('tap');dollReact(false);g6Msg('Hmm, that’s not quite the order. Think back… what did they ask for?',false);return;}
-   $id('bkServe').disabled=true;audio('good');dollReact(true);if(L.grumpy){await g6Talk(who,'Ugh! That’s WRONG!',{expr:'upset'});if(!zLive(t))return;const ch=$id('bkCh');ch.hidden=false;ch.innerHTML=`<p class="zg-ask">It’s actually right. What do you say?</p>${zShuf([['“I made what you asked. Want me to show you?”',1],['“You’re wrong! It IS right!”',0],['Throw the cupcake away',0]]).map((o,i)=>`<button class="sl-choice c${i}" data-ok="${o[1]}">${o[0]}</button>`).join('')}`;
+  await g6Talk(who,`Hi! Can I please have ${sayOrder(order)}?`,{hideAfter:2200+order.length*1300});
+  $id('bkAsk').onclick=async()=>{if(asked){g6Msg('You already asked once. Try your best!',false);return;}asked=true;$id('bkAsk').disabled=true;await g6Say('riki','Sorry, can you repeat that?');await g6Talk(who,`Sure! ${sayOrder(order)}.`,{hideAfter:2600});};
+  $id('bkServe').onclick=async()=>{const ok=cur.every((x,i)=>M.every(m=>x[m[0]]===order[i][m[0]]));
+   if(!ok){zMiss();first=false;audio('tap');dollReact(false);g6Msg('Hmm, that’s not quite the order. Think back… tap a machine to fix it.',false);return;}
+   $id('bkServe').disabled=true;audio('good');dollReact(true);if(L.grumpy){await g6Talk(who,'Ugh! That’s WRONG!',{expr:'upset'});if(!zLive(t))return;const ch=$id('bkCh');ch.hidden=false;ch.innerHTML=`<p class="zg-ask">It’s actually right. What do you say?</p>${zShuf([['“I made what you asked. Want me to show you?”',1],['“You’re wrong! It IS right!”',0],['Throw the treat away',0]]).map((o,i)=>`<button class="sl-choice c${i}" data-ok="${o[1]}">${o[0]}</button>`).join('')}`;
      ch.querySelectorAll('[data-ok]').forEach(x=>x.onclick=async()=>{if(x.dataset.ok==='1'){ch.hidden=true;audio('good');await g6Talk(who,'Oh! You’re right. Sorry, I was grumpy. Thank you!',{expr:'happy'});finish();}else{zMiss();audio('tap');x.disabled=true;g6Msg('Stay calm and polite, even when someone is grumpy.',false);}});return;}
    finish();};
   const finish=async()=>{const tip=first?(asked?2:3):1;tips+=tip;if(first)slGain(1);$id('bkTips').textContent=tips;document.querySelector('.g6-tips .g6-pips').outerHTML=g6Pips(BK_LV.length,lv+1);await g6Talk(who,['Yum! Thank you!','It’s perfect!','Best bakery ever!'][lv%3],{expr:'excited'});g6Msg(`+${tip} 🪙 tip!`,true);lv++;setTimeout(round,1200);};};
  setTimeout(round,400);}
+const BK_REDUCE=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(!document.getElementById('bkBeltCss')){const s=document.createElement('style');s.id='bkBeltCss';s.textContent=`
+.bk-scene{--sp:600ms;--n:4;display:grid;gap:8px;padding:10px;border-radius:24px;background:linear-gradient(180deg,#fff4ec,#ffe6ee);box-shadow:inset 0 -6px 0 #ffd1e4,0 10px 22px -14px #8a4a6066}
+.bk-belt{position:relative;height:92px;border-radius:18px;background:linear-gradient(#fffaf5,#fbe9df)}
+.bk-rollers{position:absolute;left:6px;right:6px;bottom:8px;height:20px;border-radius:12px;background:repeating-linear-gradient(90deg,#d8c3d6 0 14px,#c4aac4 14px 18px);box-shadow:inset 0 3px 0 #ffffff99,0 4px 0 #b994b2;animation:bkRoll 1.4s linear infinite}
+@keyframes bkRoll{to{background-position:36px 0}}
+.bk-treat{position:absolute;bottom:22px;width:68px;height:68px;left:calc((100% - 12px) / var(--n) * (var(--pos) + .5) - 28px);transition:left var(--sp) cubic-bezier(.4,.1,.3,1);display:block;z-index:2}
+.bk-out{position:absolute;right:10px;bottom:28px;font-size:28px;opacity:.85}
+.bk-t-base{position:absolute;left:4px;right:4px;bottom:0;height:52px;display:grid;place-items:center;font-size:44px;line-height:1}
+.bk-t-base .bk-3d{width:56px;height:56px}
+.bk-t-empty{display:block;width:52px;height:12px;border-radius:50%;background:#fff;box-shadow:0 3px 0 #e8cfd8}
+.bk-t-ice{position:absolute;left:14px;right:14px;top:14px;height:13px;border-radius:12px 12px 8px 8px;box-shadow:inset 0 -3px 0 #0001,0 1px 0 #fff8;opacity:.95}
+.bk-t-top{position:absolute;left:50%;top:-4px;transform:translateX(-50%);font-size:20px;line-height:1}
+.bk-t-top .bk-3d,.bk-t-ex .bk-3d{width:24px;height:24px}
+.bk-t-ex{position:absolute;right:-4px;top:4px;font-size:16px;line-height:1}
+.bk-machines{display:grid;gap:6px;margin-right:calc((100% - 12px) / var(--n))}
+.bk-mach{position:relative;min-height:56px;border:0;border-radius:16px;padding:4px 2px;background:linear-gradient(#ffffff,#fdeef3);box-shadow:0 4px 0 #ecd2de;display:grid;place-items:center;cursor:pointer;opacity:.7;transition:opacity .2s,transform .2s;min-width:0}
+.bk-mach b{font-size:22px;line-height:1}.bk-mach small{font-size:11px;font-weight:900;color:#8a6577}
+.bk-mach i{position:absolute;top:2px;right:6px;font-style:normal;color:#3fa96b;font-weight:900}
+.bk-mach.on{opacity:1;box-shadow:0 0 0 3px #ff8fb8,0 4px 0 #ecd2de;transform:translateY(-2px)}
+.bk-mach.done{opacity:.9}
+.bk-panel{border-radius:18px;padding:8px;background:#fff;box-shadow:inset 0 -4px 0 #ffe0ea}
+.bk-panel small{display:block;text-align:center;font-weight:900;color:#8a6577;font-size:13px}
+.bk-opts{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:6px}
+.bk-opts button{width:52px;height:52px;border:0;border-radius:16px;background:#fff7f1;font-size:28px;box-shadow:0 3px 0 #e9cdd8;padding:0;display:grid;place-items:center;cursor:pointer}
+.bk-opts button .bk-3d{width:40px;height:40px}
+.bk-opts button.pick{outline:3px solid #ff5c9a;outline-offset:1px}
+.bk-box{display:flex;justify-content:center;gap:12px;min-height:0}
+.bk-box:has(.bk-boxed:only-child){display:none}
+.bk-boxed{position:relative;width:68px;height:72px;border:0;border-radius:16px;background:#fff;box-shadow:0 3px 0 #ecd2de;padding:0;cursor:pointer}
+.bk-boxed.on{box-shadow:0 0 0 3px #ff8fb8}
+@media (min-width:700px){.bk-belt{height:120px}.bk-treat{transform:scale(1.35);transform-origin:50% 100%}.bk-opts button{width:60px;height:60px}}
+@media (prefers-reduced-motion:reduce){.bk-treat,.bk-mach{transition:none}.bk-rollers{animation:none}}`;document.head.appendChild(s);}
 
 /* 3. Helper Mission: stay on task, finish the chores while distractions tempt you; first chores, then TV */
 const HM_JOBS=[['sock','🧦','hamper','🧺','Put your socks in the hamper'],['bowl','🥣','kitty','🐱','Feed the kitty'],['bear','🧸','bin','🗃️','Put your teddy in the toy bin'],['book','📕','shelf','📚','Put your book on the shelf'],['cup','🥤','sink','🚰','Put your cup in the sink'],['shoe','👟','mat','🟫','Put your shoes on the mat']];
@@ -2353,7 +2407,7 @@ Object.assign(P3_MAKE,{
  starc:g=>{const s=new THREE.Shape();for(let i=0;i<10;i++){const a=i/10*Math.PI*2-Math.PI/2,r=i%2?.2:.45;i?s.lineTo(Math.cos(a)*r,-Math.sin(a)*r):s.moveTo(Math.cos(a)*r,-Math.sin(a)*r);}g.add(new THREE.Mesh(new THREE.ExtrudeGeometry(s,{depth:.1,bevelEnabled:true,bevelSize:.04,bevelThickness:.04}),p3M(0xffc21a,{roughness:.35})));}});
 const bkPrior=drawBakery;drawBakery=function(){const go=()=>{const im=(k,th)=>{const u=th&&window.RK3&&RK3.thumb?RK3.thumb(th):p3Render(k);return u?`<img class="bk-3d" alt="" src="${u}">`:null;};
  const B={cupcake:im(null,'cupcake'),donut:im('donut'),cookie:im('cookie')},T={sprinkles:im('sprinkles'),'a cherry':im('cherry'),'a heart':im('heartc'),'a star':im('starc')};
- BK_BASE.forEach(b=>{if(B[b[0]])b[1]=B[b[0]];});BK_TOP.forEach(p=>{if(T[p[0]])p[1]=T[p[0]];});bkPrior();const plate=im('plate');const tray=$id('bkTray');if(tray&&plate){const fix=()=>tray.querySelectorAll('.bk-base').forEach(e=>{if(e.textContent.trim()==='⬜')e.innerHTML=plate;});fix();new MutationObserver(fix).observe(tray,{childList:true,subtree:true});}};
+ BK_BASE.forEach(b=>{if(B[b[0]])b[1]=B[b[0]];});BK_TOP.forEach(p=>{if(T[p[0]])p[1]=T[p[0]];});bkPrior();};/* Grok #281: no plate/MutationObserver swap any more — the belt draws each treat as fixed layers */
  if(window.THREE)go();else if(window.RK3&&RK3.loadThree)RK3.loadThree(go,go);else go();};
 ZRUN.bakery=drawBakery;
 if(!document.getElementById('bk3Css')){const st=document.createElement('style');st.id='bk3Css';st.textContent='.bk-3d{width:34px;height:34px;object-fit:contain;display:block;margin:auto;filter:drop-shadow(0 3px 2px rgba(80,40,40,.2))}.bk-item .bk-base .bk-3d{width:64px;height:64px}.bk-item .bk-top .bk-3d{width:30px;height:30px}';document.head.appendChild(st);}
