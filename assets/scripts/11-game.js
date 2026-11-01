@@ -447,37 +447,67 @@ function roomShell(g,id,W,D,H,opts={}){
   ceil.visible = true;
 }
 function roomIdentity(g,id,W,D,H){
+  const soft = c => mat(c, .9);
+  const round = c => mat(c, .88);
   if(id==='bathroom'){
-    const tile=mat('#d8eef0',.75),white=mat('#f7fbfc',.45), porcelain=mat('#f4f8f9',.35);
-    // Simple tile wainscot (not a grid of floating squares)
-    RB(g, W - 0.2, 1.1, 0.04, 0.02, tile, 0, 0.6, -D/2 + 0.06);
-    // Vanity + sink on left
-    RB(g, 1.3, 0.7, 0.48, 0.04, white, -W/2 + 1.0, 0.38, -D/2 + 0.36);
-    CY(g, 0.16, 0.14, 0.06, porcelain, -W/2 + 1.0, 0.76, -D/2 + 0.28, 24);
-    // Mirror above vanity
-    RB(g, 0.6, 0.75, 0.03, 0.02, mat('#c5e4ec', 0.25), -W/2 + 1.0, 1.4, -D/2 + 0.07);
-    // Tub on right
-    RB(g, 1.5, 0.42, 0.65, 0.05, porcelain, W/2 - 1.1, 0.26, -D/2 + 0.4);
-    // Toilet at back-center
-    RB(g, 0.38, 0.38, 0.48, 0.04, porcelain, 0, 0.22, D/2 - 0.5);
-    CY(g, 0.14, 0.14, 0.05, porcelain, 0, 0.45, D/2 - 0.46, 20);
+    const tile=soft('#d4eef2'), white=round('#f7fbfc'), porc=round('#f4f8f9'), blush=soft('#f7c0cf');
+    // Soft tile band
+    RB(g, W-0.3, 0.9, 0.06, 0.04, tile, 0, 0.55, -D/2+0.05);
+    // Rounded vanity
+    RB(g, 1.2, 0.65, 0.5, 0.12, white, -W/2+1.05, 0.36, -D/2+0.38);
+    SP(g, 0.16, porc, -W/2+1.05, 0.72, -D/2+0.3, 1, 0.35, 0.8);
+    // Mirror
+    SP(g, 0.32, soft('#c5e4ec'), -W/2+1.05, 1.35, -D/2+0.08, 1.1, 1.3, 0.15);
+    // Cute tub
+    RB(g, 1.4, 0.38, 0.7, 0.16, porc, W/2-1.15, 0.24, -D/2+0.42);
+    SP(g, 0.12, blush, W/2-1.15, 0.42, -D/2+0.2, 1.4, 0.3, 0.6);
+    // Toilet
+    RB(g, 0.36, 0.36, 0.46, 0.1, porc, 0.1, 0.2, D/2-0.48);
+    SP(g, 0.14, porc, 0.1, 0.42, D/2-0.44, 1, 0.4, 0.9);
   }else if(id==='kitchen'){
-    const mint=mat('#b9d9cf',.86),cream=mat('#fff3df',.7),gold=metalM('#c9a565');
-    RB(g,W-1,.72,.58,.05,mint,0,.38,-D/2+.36);RB(g,W-1,.09,.68,.035,cream,0,.78,-D/2+.39);
-    for(let x=-W/2+.8;x<W/2-.3;x+=.82){BX(g,.035,.58,.02,gold,x,.38,-D/2+.68);SP(g,.025,gold,x+.35,.4,-D/2+.71);}
-    for(let x=-W/2+.45;x<W/2;x+=.45)for(let y=1.02;y<1.92;y+=.45)RB(g,.41,.41,.018,.018,mat((Math.round(x*10)+Math.round(y*10))%2?'#f7dfcf':'#f6f0dc',.9),x,y,-D/2+.075);
+    const mint=soft('#b9d9cf'), cream=round('#fff3df'), woodM=wood('#d4a574');
+    // Soft counter
+    RB(g, W-1.2, 0.7, 0.55, 0.1, mint, 0, 0.38, -D/2+0.38);
+    RB(g, W-1.2, 0.08, 0.62, 0.04, cream, 0, 0.76, -D/2+0.4);
+    // Cute stove
+    RB(g, 0.7, 0.55, 0.5, 0.08, round('#f7f4ef'), -0.4, 0.3, -D/2+0.55);
+    SP(g, 0.08, soft('#2a2328'), -0.55, 0.62, -D/2+0.5, 1, 0.2, 1);
+    SP(g, 0.08, soft('#2a2328'), -0.25, 0.62, -D/2+0.5, 1, 0.2, 1);
+    // Fridge
+    RB(g, 0.55, 1.4, 0.45, 0.1, round('#f7fbfc'), W/2-0.7, 0.72, -D/2+0.35);
+    SP(g, 0.04, soft('#e2457a'), W/2-0.48, 0.9, -D/2+0.55, 1, 1.2, 0.5);
   }else if(id==='living'){
-    const stone=mat('#ead7c2',.9),dark=mat('#6c4c43',.95),woodM=wood('#b7855e');
-    RB(g,1.55,1.45,.24,.06,stone,0,.73,-D/2+.18);RB(g,.9,.68,.08,.025,dark,0,.46,-D/2+.34);RB(g,1.85,.13,.42,.035,woodM,0,1.42,-D/2+.26);
-    [-1.35,1.35].forEach(x=>{CY(g,.24,.3,.42,mat('#d7b18d',.9),x,.21,-D/2+.35,28);SP(g,.24,mat('#7bad78',.9),x,.62,-D/2+.35,1,1.25,1);});
+    const blush=soft('#f7c0cf'), cream=round('#fff8ed'), woodM=wood('#d4a574');
+    // Soft sofa
+    RB(g, 1.6, 0.45, 0.7, 0.16, blush, 0, 0.28, 0.3);
+    SP(g, 0.28, blush, -0.55, 0.55, 0.15, 1, 1.1, 0.7);
+    SP(g, 0.28, blush, 0.55, 0.55, 0.15, 1, 1.1, 0.7);
+    SP(g, 0.22, cream, 0, 0.48, 0.35, 1.2, 0.6, 0.8);
+    // Round plants
+    [-1.4, 1.4].forEach(x => {
+      CY(g, 0.16, 0.18, 0.28, woodM, x, 0.16, -D/2+0.4, 20);
+      SP(g, 0.22, soft('#5fb06a'), x, 0.5, -D/2+0.4, 1, 1.1, 1);
+    });
   }else if(id==='bedroom'){
-    const blush=mat('#efbfd1',.94),gold=metalM('#d3ad70');
-    RB(g,2.3,1.8,.08,.18,blush,0,1.03,-D/2+.12);for(let x=-.9;x<=.9;x+=.3)CY(g,.025,.025,1.55,gold,x,1.05,-D/2+.18,10);
-    [-1,1].forEach(s=>SP(g,.16,mat('#f7dbe7',.92),s*1.45,1.75,-D/2+.2,1,1.4,.45));
+    const blush=soft('#efbfd1'), cream=round('#fff4e6'), gold=metalM('#d3ad70');
+    // Soft headboard
+    SP(g, 0.9, blush, 0, 1.0, -D/2+0.15, 1.3, 0.9, 0.25);
+    // Pillows
+    SP(g, 0.22, cream, -0.35, 0.55, -D/2+0.35, 1, 0.7, 0.6);
+    SP(g, 0.22, cream, 0.35, 0.55, -D/2+0.35, 1, 0.7, 0.6);
+    // Cute nightstand dots
+    [-1.3, 1.3].forEach(x => SP(g, 0.12, gold, x, 0.55, -D/2+0.3, 1, 0.6, 1));
   }else if(id==='playroom'){
     const cols=['#eeb4c7','#add8d0','#e6d49c','#c8b8df'];
-    for(let i=0;i<4;i++){RB(g,.7,.72,.42,.06,mat(cols[i],.9),-1.1+i*.74,.4,-D/2+.28);RB(g,.55,.48,.04,.03,mat('#fff8ed',.8),-1.1+i*.74,.42,-D/2+.51);}
-    for(let i=0;i<7;i++){const a=i/7*Math.PI*2;SP(g,.13,mat(cols[i%4],.95),Math.cos(a)*.78,.035,Math.sin(a)*.78+.5,1.2,.18,1);}
+    // Soft toy bins
+    for(let i=0;i<4;i++){
+      RB(g, 0.55, 0.5, 0.4, 0.12, soft(cols[i]), -1.1+i*0.74, 0.28, -D/2+0.35);
+    }
+    // Bouncy balls
+    for(let i=0;i<5;i++){
+      const a = i/5*Math.PI*2;
+      SP(g, 0.14, soft(cols[i%4]), Math.cos(a)*0.7, 0.14, Math.sin(a)*0.5+0.4, 1, 1, 1);
+    }
   }
 }
 function pctToLocal(p,W,D){const fx=(cl(+p.x||50,8,92)-8)/84,fz=(cl(+p.y||70,26,86)-26)/60;return [(fx-.5)*(W-1.3),-(D-1.3)/2+fz*(D-1.3)];}
@@ -509,7 +539,7 @@ function fillItems(group,room,W,D,S){
   return out;
 }
 function lights(scene,size,shadowMap){
-  scene.add(new THREE.HemisphereLight(0xfff6ee,0xd4b89a,.72));scene.add(new THREE.AmbientLight(0xfff8f2,.22));
+  scene.add(new THREE.HemisphereLight(0xfff8f2,0xe0c4a8,.8));scene.add(new THREE.AmbientLight(0xfffaf6,.28));
   const sun=new THREE.DirectionalLight(0xfff4e6,.85);sun.position.set(-size*.5,size*1.4,size*.9);sun.castShadow=true;sun.shadow.mapSize.set(shadowMap,shadowMap);
   const c=sun.shadow.camera;c.left=-size;c.right=size;c.top=size;c.bottom=-size;c.near=.5;c.far=size*5;sun.shadow.bias=-.0008;sun.shadow.normalBias=.03;sun.shadow.radius=6;scene.add(sun);
   const fill=new THREE.DirectionalLight(0xf0e6ff,.32);fill.position.set(size*.8,size*.5,-size*.4);scene.add(fill);
@@ -717,7 +747,7 @@ function edResize(){if(!ED.R)return;const c=ED.R.domElement.parentElement;if(!c)
 function edLoop(){
   if(!ED.R||!ED.R.domElement.isConnected){ED.looping=false;return;}
   requestAnimationFrame(edLoop);
-  ED.az+=(ED.azT-ED.az)*.12;ED.el+=(ED.elT-ED.el)*.12;edCamera();
+  ED.az+=(ED.azT-ED.az)*.08;ED.el+=(ED.elT-ED.el)*.08;edCamera();
   const t=performance.now()/1000;animateItems(ED.items,t);if(window.RK3.animateStorage)ED.items.forEach(g=>window.RK3.animateStorage(g));
   if(ED.ring.visible){ED.ring.material.opacity=.55+Math.sin(t*4)*.3;const g=ED.preview?ED.preview.group:ED.items.find(x=>x.userData.id===ED.sel);if(g&&!g.userData.onWall)ED.ring.position.set(g.position.x,.02,g.position.z);}
   ED.R.render(ED.scene,ED.cam);
@@ -738,11 +768,11 @@ function edSelect(id,quiet){
 function place(id,X,Z){const room=G('currentRoom')||ED.room||'bedroom',already=Object.values((G('decor')||{})[room]||{}).includes(id);if(!already&&availableCopies(id,room)<1){msg('That copy is already in another room. Buy another one in the shop to place it here.');try{const a=G('audio');a&&a('bad');}catch(_){}return false;}const p=localToPct(X,Z,ED.W,ED.D),scale=rkScale(room,id);ED.internal=true;try{ORIG_PLACE(id,p.x,p.y);rkScaleSet(room,id,scale);}finally{ED.internal=false;}return true;}
 function edPointers(cv){
   cv.addEventListener('pointerdown',e=>{if(ED.storage){storageDown(e);return;}const pt={x:e.clientX,y:e.clientY};let it=hitItem(pt);if(ED.preview){it=null;ED.ray.setFromCamera(ndc(pt),ED.cam);if(ED.ray.intersectObject(ED.preview.group,true).length)it=ED.preview.group;}ED.drag={sx:e.clientX,sy:e.clientY,lx:e.clientX,ly:e.clientY,item:it,moved:false,id:e.pointerId};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
-  cv.addEventListener('pointermove',e=>{if(ED.storage){storageMove(e);return;}const d=ED.drag;if(!d||d.id!==e.pointerId)return;if(!d.moved&&Math.hypot(e.clientX-d.sx,e.clientY-d.sy)>8){d.moved=true;if(d.item){edSelect(d.item.userData.id,true);}}
+  cv.addEventListener('pointermove',e=>{if(ED.storage){storageMove(e);return;}const d=ED.drag;if(!d||d.id!==e.pointerId)return;if(!d.moved&&Math.hypot(e.clientX-d.sx,e.clientY-d.sy)>14){d.moved=true;if(d.item){edSelect(d.item.userData.id,true);}}
     if(!d.moved)return;
     if(d.item&&!d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v){d.item.position.x=v.x;d.item.position.z=v.z;}}
     else if(d.item&&d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v)d.item.position.x=v.x;}
-    else{ED.azT=cl(ED.azT-(e.clientX-d.lx)*.006,-.55,.55);ED.elT=cl(ED.elT+(e.clientY-d.ly)*.004,.18,.95);ED.az=ED.azT;ED.el=ED.elT;}
+    else{ED.azT=cl(ED.azT-(e.clientX-d.lx)*.0028,-.5,.5);ED.elT=cl(ED.elT+(e.clientY-d.ly)*.0022,.2,.85);}
     d.lx=e.clientX;d.ly=e.clientY;});
   let lastTap = 0, lastTapX = 0, lastTapY = 0;
   const up=e=>{if(ED.storage){storageUp(e);return;}const d=ED.drag;if(!d||d.id!==e.pointerId)return;ED.drag=null;
