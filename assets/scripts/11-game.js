@@ -540,17 +540,17 @@ function roomIdentity(g,id,W,D,H){
     const brass=mat('#c3a270',.55), sage=mat('#b8c6a9',.92);
     // Framed wainscot attached to the back wall; no floating bed or pillows.
     const z=-D/2+.105;
-    const panelTop=1.13;
+    const panelTop=.88; // below the existing window sill (about 1.02)
     RB(g,W-.18,.065,.065,.015,ivory,0,panelTop,z);
     RB(g,W-.18,.09,.075,.025,ivory,0,.20,z);
     const columns=5, usable=W-.65, spacing=usable/columns;
     for(let i=0;i<columns;i++){
       const x=-usable/2+spacing*(i+.5);
-      RB(g,spacing-.11,.59,.035,.02,inset,x,.66,z+.006);
-      RB(g,spacing-.09,.045,.052,.016,ivory,x,1.00,z+.05);
-      RB(g,spacing-.09,.045,.052,.016,ivory,x,.33,z+.05);
-      RB(g,.043,.70,.053,.014,ivory,x-(spacing-.09)/2,.66,z+.05);
-      RB(g,.043,.70,.053,.014,ivory,x+(spacing-.09)/2,.66,z+.05);
+      RB(g,spacing-.11,.42,.035,.02,inset,x,.57,z+.006);
+      RB(g,spacing-.09,.045,.052,.016,ivory,x,.78,z+.05);
+      RB(g,spacing-.09,.045,.052,.016,ivory,x,.36,z+.05);
+      RB(g,.043,.48,.053,.014,ivory,x-(spacing-.09)/2,.57,z+.05);
+      RB(g,.043,.48,.053,.014,ivory,x+(spacing-.09)/2,.66,z+.05);
     }
     // A slim wallpaper border and restrained floral appliques anchored to the wall.
     RB(g,W-.22,.075,.04,.016,blush,0,H-.40,z);
@@ -563,9 +563,9 @@ function roomIdentity(g,id,W,D,H){
       SP(g,.043,sage,x,1.38,z+.12,.9,.55,.38);
     }
     // A tiny arched picture niche above the panel rail; decorative, not furniture.
-    RB(g,.83,.73,.042,.09,ivory,0,1.83,z+.025);
-    RB(g,.66,.55,.035,.08,mat('#f1d4df',.91),0,1.83,z+.067);
-    SP(g,.18,mat('#f7eee3',.93),0,1.84,z+.10,.84,1.08,.12);
+    RB(g,.75,.68,.042,.09,ivory,1.13,1.83,z+.025);
+    RB(g,.59,.51,.035,.08,mat('#f1d4df',.91),1.13,1.83,z+.067);
+    SP(g,.18,mat('#f7eee3',.93),1.13,1.84,z+.10,.84,1.08,.12);
   }else if(id==='playroom'){
     const cols=['#eeb4c7','#add8d0','#e6d49c','#c8b8df'];
     // Soft toy bins
