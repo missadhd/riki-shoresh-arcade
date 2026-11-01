@@ -552,6 +552,22 @@ function roomIdentity(g,id,W,D,H){
       RB(g,.043,.48,.053,.014,ivory,x-(spacing-.09)/2,.57,z+.05);
       RB(g,.043,.48,.053,.014,ivory,x+(spacing-.09)/2,.66,z+.05);
     }
+    // Carry the blush wainscot and ivory rails around BOTH side walls.
+    // Keep the molding within the wall surfaces instead of leaving bare strips.
+    const lowerPink=mat('#f3cadb',.92);
+    for(const side of [-1,1]){
+      const x=side*(W/2-.105);
+      RB(g,.035,.78,D-.22,.012,lowerPink,x,.54,0);
+      RB(g,.072,.06,D-.18,.016,ivory,x,.89,0);
+      RB(g,.072,.085,D-.18,.02,ivory,x,.17,0);
+      const sections=4,step=(D-.55)/sections;
+      for(let n=0;n<sections;n++){
+        const zz=-D/2+.28+(n+.5)*step;
+        RB(g,.045,.055,step-.14,.015,ivory,x-side*.035,.76,zz);
+        RB(g,.045,.055,step-.14,.015,ivory,x-side*.035,.34,zz);
+        for(const e of [-1,1]) RB(g,.048,.45,.045,.012,ivory,x-side*.035,.55,zz+e*(step-.14)/2);
+      }
+    }
     // A slim wallpaper border and restrained floral appliques anchored to the wall.
     RB(g,W-.22,.075,.04,.016,blush,0,H-.40,z);
     for(const sign of [-1,1]){
@@ -771,6 +787,8 @@ function edBuild(room){
   storageClose(true);
   reconcileCopies();
   ED.preview=null;ED.moveMode=false;
+  // Bedroom opens as a room-filling interior, not a tiny exterior diorama.
+  if(room==='bedroom')DIO.on=false;
   // Centered welcome view of the room
   ED.az = ED.azT = 0;
   ED.el = ED.elT = 0.42;
