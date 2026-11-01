@@ -664,3 +664,8 @@ html{scroll-padding-top:240px}
 #app [dir="rtl"]{
   unicode-bidi:isolate;
 }
+
+/* Grok (L3): Social Skills "Grown-ups" button meets the 44px minimum tap target on phones. */
+@media (max-width: 820px){
+  .sk .sk-grown,#scGrown{min-height:44px;min-width:44px;padding-top:10px;padding-bottom:10px;display:inline-flex;align-items:center;justify-content:center}
+}
