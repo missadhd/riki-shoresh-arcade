@@ -32,7 +32,7 @@ async function awardCoins(id,amount){
 }
 const BACKUP='rikiGuestProgressBackupV1';
 const DISPLAY='rikiCurrentPlayerNameV1';
-const KEYS=['rickyCoins','rickyHouseInventoryV1','rickyHouseDecorV1','rickyHouseWallsV1','rickyDreamStorageV2','rickyDreamPetsV2','rickyDreamPositionsV2','rickyRoomInteriorsV3','rickyTinyOwnedV1','rickyTinyPlacedV1','rickyAdventureXPV1','rickySpatialMusicV1','riki3dOrbit','rikiReal3dAz','rikiRootProgressV1','rikiDreamRotationV1','rikiClawPlushV1','rikiPlayTokensV1'];
+const KEYS=['rickyCoins','rickyHouseInventoryV1','rickyHouseDecorV1','rickyHouseWallsV1','rickyDreamStorageV2','rickyDreamPetsV2','rickyDreamPositionsV2','rickyRoomInteriorsV3','rickyTinyOwnedV1','rickyTinyPlacedV1','rickyAdventureXPV1','rickySpatialMusicV1','riki3dOrbit','rikiReal3dAz','rikiRootProgressV1','rikiDreamRotationV1','rikiClawPlushV1','rikiPlayTokensV1','rikiMathProgressV1'];
 let session=null,player=null,lastSaved='',lastVersion=null,interval=null,saveInFlight=null;
 const $=id=>document.getElementById(id);
 const read=()=>{const x={};KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)x[k]=v;});return x;};
