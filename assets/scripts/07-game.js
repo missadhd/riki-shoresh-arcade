@@ -1157,19 +1157,29 @@ function drawHelper(){zCur='helper';const jobs=zShuf(HM_JOBS).slice(0,3);let don
 /* 4. Cookie Jar Trust: accepting no; calm answers fill the jar and earn a yes-later */
 const CJ_ASK=[['Can I have a cookie?','Not right now, it’s almost dinner.'],['Can I stay up late tonight?','No, it’s a school night.'],['Can I have more tablet time?','Not today, tablet time is done.'],['Can I have a sleepover this weekend?','Not this weekend, we have plans.'],['Can I have candy?','No candy today.'],['Can we go to the toy store?','Not today, sweetie.'],['Can I skip my bath?','No, bath time is important.'],['Can I have ice cream for breakfast?','No, silly! Ice cream is a treat.']];
 function drawCookieJar(){zCur='cookiejar';let marbles=0;const GOAL=10;const asks=zShuf(CJ_ASK);let i=0;
- const t=zShell('🍪 Cookie Jar Trust',`${g6Top('mom','Mom')}<div class="cj-shelf"><div class="cj-jar" id="cjJar">🍪<small>Cookie jar</small></div><div class="cj-marbles"><div class="cj-glass" id="cjGlass"></div><small><b id="cjN">0</b>/${GOAL} trust marbles</small></div></div><div class="sl-choices" id="cjCh" hidden></div><div class="ag-msg" id="agM"></div><p class="sl-note">Calm answers when Mom says no fill the jar. Fill it for a surprise!</p>`);
+ const t=zShell('🍪 Cookie Jar Trust',`<div id="cjHost"></div><div class="cj-marbles"><div class="cj-glass" id="cjGlass"></div><small><b id="cjN">0</b>/${GOAL} trust marbles</small></div><div class="sl-choices" id="cjCh" hidden></div><div class="ag-msg" id="agM"></div>`);
  const paint=()=>{$id('cjN').textContent=marbles;$id('cjGlass').innerHTML=Array.from({length:marbles},(_,k)=>`<i style="background:${['#ff8fbd','#8fd3ff','#b79bff','#ffd34d','#a6e3a1'][k%5]}"></i>`).join('');};
- const round=async()=>{if(!zLive(t))return;if(marbles>=GOAL){$id('cjJar').classList.add('open');audio('good');try{celebrate();}catch(e){}await g6Talk('mom','You handled every no so well. Surprise! Movie night with popcorn on Friday!',{expr:'excited'});zDone(t,'🍪 Trust jar full! You earned a yes-later surprise.',drawCookieJar,4);return;}
-  const [ask,no]=asks[i%asks.length];i++;const yes=Math.random()<.2;
-  await g6Say('riki',ask);if(!zLive(t))return;
-  if(yes){await g6Talk('mom','Sure, just this once!',{expr:'happy'});const ch=$id('cjCh');ch.hidden=false;ch.innerHTML=`<p class="zg-ask">Mom said yes! What do you say?</p><button class="sl-choice c0" data-v="2">“Thank you, Mom!”</button><button class="sl-choice c1" data-v="0">Grab it and run</button>`;ch.querySelectorAll('[data-v]').forEach(x=>x.onclick=()=>{ch.hidden=true;if(x.dataset.v==='2'){marbles=Math.min(GOAL,marbles+1);audio('good');dollReact(true);g6Msg('💖 Saying thank you counts too! +1',true);}else{audio('tap');g6Msg('A thank-you makes Mom want to say yes again.',false);}paint();setTimeout(round,900);});return;}
-  await g6Talk('mom',no,{expr:'neutral'});if(!zLive(t))return;const ch=$id('cjCh');ch.hidden=false;
-  ch.innerHTML=`<p class="zg-ask">Mom said no. How do you react?</p>`+zShuf([['😌 “Okay. Maybe another time?”',2],['😩 “Pleeease? Pleeease?”',0],['😤 “That’s not FAIR!”',-1]]).map((o,k)=>`<button class="sl-choice c${k}" data-v="${o[1]}">${o[0]}</button>`).join('');
-  ch.querySelectorAll('[data-v]').forEach(x=>x.onclick=async()=>{ch.hidden=true;const v=+x.dataset.v;
-   if(v>0){marbles=Math.min(GOAL,marbles+v);slGain(1);audio('good');dollReact(true);g6Msg('😌 Calm! +2 trust marbles. Clink, clink!',true);await g6Talk('mom','Thank you for taking no so nicely.',{expr:'happy'});}
-   else{zMiss();audio('tap');dollReact(false);marbles=Math.max(0,marbles+v);g6Msg(v<0?'😤 Arguing lost a marble.':'😩 Begging doesn’t change a no.',false);await g6Talk('mom','The answer is still no.',{expr:'sad'});}
-   paint();setTimeout(round,700);});};
- paint();setTimeout(round,400);}
+ rpLoad(()=>{if(!zLive(t))return;const R=rpRoom($id('cjHost'),'kitchen',{start:[.6,1.6]});
+  R.ready.then(()=>{if(!zLive(t))return;
+   const mom=document.createElement('div');mom.className='rp-kid';mom.innerHTML=`<div class="rp-img">${slFace('mom','happy')}</div>`;
+   R.st.appendChild(mom);const P=(x,y,z)=>sc3Proj('kitchen',x,y,z);const f=P(-.4,0,1.2),tt=P(-.4,1.2,1.2);
+   mom.style.left=f[0]+'%';mom.style.top=f[1]+'%';mom.style.height=Math.max(8,f[1]-tt[1])+'%';
+   const jar=document.createElement('div');jar.className='rp-prop';jar.textContent='🍪';jar.style.fontSize='36px';
+   const jf=P(.3,.55,.8);jar.style.left=jf[0]+'%';jar.style.top=jf[1]+'%';R.st.appendChild(jar);
+   const round=async()=>{if(!zLive(t))return;if(marbles>=GOAL){jar.textContent='🍪✨';audio('good');R.say('Yay!');zDone(t,'🍪 Trust jar full! You earned a yes-later surprise.',drawCookieJar,4);return;}
+    const [ask,no]=asks[i%asks.length];i++;const yes=Math.random()<.2;
+    R.say(ask);await slWait(1200);if(!zLive(t))return;
+    if(yes){const ch=$id('cjCh');ch.hidden=false;ch.innerHTML=`<p class="zg-ask">Mom said yes! What do you say?</p><button class="sl-choice c0" data-v="2">“Thank you, Mom!”</button><button class="sl-choice c1" data-v="0">Grab it and run</button>`;
+     ch.querySelectorAll('[data-v]').forEach(x=>x.onclick=()=>{ch.hidden=true;if(x.dataset.v==='2'){marbles=Math.min(GOAL,marbles+1);audio('good');R.say('Thank you!');}else{audio('tap');R.say('Oops...');}paint();setTimeout(round,900);});return;}
+    const ch=$id('cjCh');ch.hidden=false;
+    ch.innerHTML=`<p class="zg-ask">Mom said no. How do you react?</p>`+zShuf([['😌 “Okay. Maybe another time?”',2],['😩 “Pleeease? Pleeease?”',0],['😤 “That’s not FAIR!”',-1]]).map((o,k)=>`<button class="sl-choice c${k}" data-v="${o[1]}">${o[0]}</button>`).join('');
+    ch.querySelectorAll('[data-v]').forEach(x=>x.onclick=async()=>{ch.hidden=true;const v=+x.dataset.v;
+     if(v>0){marbles=Math.min(GOAL,marbles+v);audio('good');R.say('Okay, maybe later.');}
+     else{zMiss();audio('tap');marbles=Math.max(0,marbles+v);R.say(v<0?'That’s not fair!':'Pleeease?');}
+     paint();setTimeout(round,700);});};
+   paint();setTimeout(round,400);
+  });
+ });}
 
 /* 5. Field Trip Day: self-control in public (stay seated, hands off, wait in line, no buying) */
 function drawFieldTrip(){zCur='fieldtrip';let stop=0,stamps=0;const STOPS=['🚌','🏛️','🦁','🎁'];
@@ -2044,11 +2054,22 @@ Object.assign(SC3_SETS,{
   ['plant',2.2,1.4,0,1.0],
   ['sparklerug',0,1.6,0,.04]
 ]},
- helproom:{wall:'#ffe3ee',low:'#ffb8d2',pat:'dot',floor:'wood',win:0,size:[960,900],cam:{fov:40,pos:[0,4.1,5.5],at:[0,.15,.1]},items:[['sink',-2.15,-1.3,0,.9],['dresser',-1.0,-1.35,0,.85],['tvcabinet',.3,-1.4,0,.95],['toybox',1.35,-1.25,0,.6],['bookshelfplay',2.35,-1.3,-.15,1.3],['petbedpink',-1.75,.5,.3,.28],['petkitten',-1.75,.5,.3,.38,.1],['plant',2.0,.35,0,1.2],['hamper',1.6,1.6,-.2,.62],['bathmat',.75,2.05,0,.04],['crafts',-1.55,1.65,.2,.4],['sparklerug',0,.95,0,.04],['coffeetable',0,.6,0,.38]]}});
+ helproom:{wall:'#ffe3ee',low:'#ffb8d2',pat:'dot',floor:'wood',win:0,size:[960,900],cam:{fov:40,pos:[0,4.1,5.5],at:[0,.15,.1]},items:[['sink',-2.15,-1.3,0,.9],['dresser',-1.0,-1.35,0,.85],['tvcabinet',.3,-1.4,0,.95],['toybox',1.35,-1.25,0,.6],['bookshelfplay',2.35,-1.3,-.15,1.3],['petbedpink',-1.75,.5,.3,.28],['petkitten',-1.75,.5,.3,.38,.1],['plant',2.0,.35,0,1.2],['hamper',1.6,1.6,-.2,.62],['bathmat',.75,2.05,0,.04],['crafts',-1.55,1.65,.2,.4],['sparklerug',0,.95,0,.04],['coffeetable',0,.6,0,.38]]},
+ kitchen:{wall:'#fff3e0',low:'#ffd9a8',pat:'none',floor:'tile',win:1,...RPCAM,items:[
+  ['sink',-2.0,-1.3,0,.9],['fridge',2.2,-1.3,0,1.1],['stove',.6,-1.35,0,.9],
+  ['tablewood',0,.8,0,.7],['chairmint',-.6,1.4,Math.PI,.55],['chairmint',.6,1.4,Math.PI,.55],
+  ['plant',2.0,1.2,0,.8]
+ ]},
+ calmroom:{wall:'#e8f5e9',low:'#c8e6c9',pat:'dot',floor:'carpet',win:1,...RPCAM,items:[
+  ['bed',-1.8,-1.2,0,1.0],['bookshelfplay',2.2,-1.3,-.1,1.1],
+  ['sparklerug',0,1.4,0,.05],['plant',1.8,1.0,0,.8],['chairmint',-.4,.6,0,.5]
+ ]}});
 /* spots: id -> [hint name, x, yMid, z, radius] */
 const RP_SPOTS={
  helproom:{sink:['sink',-2.15,.65,-1.3,.5],drawer:['dresser',-1.0,.6,-1.35,.5],tv:['TV',.3,.75,-1.4,.5],bin:['toy bin',1.35,.4,-1.25,.5],shelf:['bookshelf',2.35,.9,-1.3,.5],kitty:['kitty',-1.75,.3,.5,.45],plant:['plant',2.0,.55,.45,.4],hamper:['hamper',1.6,.45,1.6,.45],mat:['shoe mat',.75,.05,2.05,.45],box:['craft box',-1.55,.3,1.65,.4]},
- schoolroom:{hook:['hooks',-2.0,.85,-1.4,.3],cubby:['cubbies',-2.1,.5,-1.3,.4],board:['whiteboard',0,1.9,-1.5,.6],door:['door',1.6,.9,-1.45,.4],shelf:['bookshelf',2.3,.9,-1.3,.45],pencil:['pencil sharpener',.6,.7,.2,.4],tray:['teacher desk',-1.4,.55,.6,.3],star:['star desk',1.4,.55,.6,.35],plant:['plant',2.2,.6,1.4,.4],trash:['trash',2.0,.4,1.8,.35],rug:['rug',0,.05,1.6,.4],bin:['toy area',-1.8,.3,1.5,.3],water:['fountain',.8,.6,-1.4,.3],crayons:['crayons',-1.4,.6,.6,.25]}};
+ schoolroom:{hook:['hooks',-2.0,.85,-1.4,.3],cubby:['cubbies',-2.1,.5,-1.3,.4],board:['whiteboard',0,1.9,-1.5,.6],door:['door',1.6,.9,-1.45,.4],shelf:['bookshelf',2.3,.9,-1.3,.45],pencil:['pencil sharpener',.6,.7,.2,.4],tray:['teacher desk',-1.4,.55,.6,.3],star:['star desk',1.4,.55,.6,.35],plant:['plant',2.2,.6,1.4,.4],trash:['trash',2.0,.4,1.8,.35],rug:['rug',0,.05,1.6,.4],bin:['toy area',-1.8,.3,1.5,.3],water:['fountain',.8,.6,-1.4,.3],crayons:['crayons',-1.4,.6,.6,.25]},
+ kitchen:{jar:['cookie jar',.3,.6,.8,.4],sink:['sink',-2.0,.6,-1.3,.4],table:['table',0,.5,.8,.5]},
+ calmroom:{bed:['bed',-1.8,.5,-1.2,.5],rug:['rug',0,.05,1.4,.4],chair:['chair',-.4,.5,.6,.3],plant:['plant',1.8,.6,1.0,.3]}};
 const RP_PROPS={schoolroom:[['door',1.6,0,-1.45,1.6],['trashcan',2.0,0,1.8,.65],['pencilcup',.6,.55,.2,.5],['tray',-1.4,.52,.6,.12]]};
 const RP_NAMES={schoolroom:[
   ['Riki','hook'],['Zoe','hookZ'],['Maya','hookM'],
@@ -2179,6 +2200,10 @@ function rpClassroom(roomSel,btnSel,keyOf,expect,{onRound}={}){const old=$id(roo
   const need=new Set();Object.keys(byKey).forEach(k=>{const tk=RP_TASK[k];if(!tk||tk[0]==='riki')return;(Array.isArray(tk[0])?tk[0]:[tk[0]]).forEach(i=>need.add(i));});
   need.forEach(id=>{const s=RP_START[id];if(!s)return;R.addItem(id,s[0],s[1],s[2],s[3],s[4]||0,id==='worksheet'?()=>{if(sheetDone){R.say('Done! Now it goes in Ms. Dana’s tray.');return;}rpWorksheet(R,ok=>{sheetDone=true;if(ok)slGain(1);R.items.worksheet&&R.items.worksheet.classList.add('done');R.say('Finished! ⭐');});}:null);});
   const ps=document.getElementById('escPsst');if(ps)R.st.appendChild(ps);
+  // Teacher in the room
+  const teacher=document.createElement('div');teacher.className='rp-kid';teacher.innerHTML=`<div class="rp-img">${slFace('teacher','happy')}</div>`;
+  R.st.appendChild(teacher);const PT=(x,y,z)=>sc3Proj('schoolroom',x,y,z);const tf=PT(-.8,0,-1.0),tt=PT(-.8,1.2,-1.0);
+  teacher.style.left=tf[0]+'%';teacher.style.top=tf[1]+'%';teacher.style.height=Math.max(8,tf[1]-tt[1])+'%';
   // Classmates at the other desks — can distract
   [['maya',-1.4,1.0],['zoe',1.4,1.0]].forEach(([who,x,z])=>{
     const el=document.createElement('div');el.className='rp-kid';el.dataset.who=who;
