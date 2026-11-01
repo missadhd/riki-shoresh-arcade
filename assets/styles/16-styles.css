@@ -599,3 +599,17 @@ body{background:#f7f4f8!important;color:#443247}
 
 /* Social Skills > Feelings & Calming: use the same complete art as the home hub. */
 .sk-g.ct-tile[data-cat="calm"] > b{display:block;width:90px;height:74px;flex-shrink:0;font-size:0!important;line-height:0!important;background:url('../images/clay/social-hearts-complete.svg') center / contain no-repeat}
+
+/* Shop discovery: allow guests to search/filter the full catalog before choosing a room. */
+.catalog-shop.catalog-choosing .catalog-tools,
+.catalog-shop.catalog-choosing .catalog-filters,
+.catalog-shop.catalog-choosing #catalogProducts{display:flex!important}
+.catalog-shop.catalog-choosing #catalogProducts{display:block!important}
+.catalog-shop.catalog-choosing .catalog-tools{flex-wrap:wrap;gap:8px}
+.catalog-shop.catalog-choosing .catalog-filters{flex-wrap:wrap;gap:7px}
+.catalog-shop .catalog-notice:not([hidden]){padding:12px 14px;background:#fff5cf;border:2px solid #f2c969;border-radius:14px;font-weight:800}
+.catalog-shop .catalog-notice button{margin-left:8px;min-height:44px}
+@media(max-width:540px){.catalog-shop .catalog-tools{flex-direction:column;align-items:stretch}.catalog-shop .catalog-tools input,.catalog-shop .catalog-tools select{max-width:100%;width:100%;box-sizing:border-box}}
+
+/* In an empty room, avoid repeating the shop prompt above the inventory placeholder. */
+.rk3-tray:has(.dream-inventory > p) .rk3-tray-title{display:none}
