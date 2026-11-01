@@ -36,6 +36,12 @@ const KEYS=['rickyCoins','rickyHouseInventoryV1','rickyHouseDecorV1','rickyHouse
 let session=null,player=null,lastSaved='',lastVersion=null,interval=null,saveInFlight=null;
 const $=id=>document.getElementById(id);
 const read=()=>{const x={};KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)x[k]=v;});return x;};
+// Per-player checkpoint of the last successfully synced snapshot.
+// Local data may be newer when a player reloads or goes offline before the next sync.
+const BASELINE='rikiCloudSyncedSnapshotV1:';
+const stable=x=>JSON.stringify(KEYS.reduce((out,k)=>{if(Object.hasOwn(x||{},k))out[k]=String(x[k]);return out},{}));
+function lastSync(id){try{const x=JSON.parse(localStorage.getItem(BASELINE+id)||'null');return x&&typeof x.serialized==='string'&&Number.isFinite(Number(x.version))?x:null}catch{return null}}
+function markSync(id,snapshot,version){if(!id||version===null||version===undefined)return;try{localStorage.setItem(BASELINE+id,JSON.stringify({serialized:stable(snapshot),version:Number(version)}))}catch{}};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function savedSession(){try{return JSON.parse((durable()?localStorage.getItem(AUTH):null)||sessionStorage.getItem(AUTH)||'null')}catch{return null}}
 async function api(path,method='GET',body,token=session?.access_token){
@@ -44,7 +50,7 @@ async function api(path,method='GET',body,token=session?.access_token){
  if(!res.ok)throw Error(data?.msg||data?.message||data?.error_description||data?.error||('Request failed '+res.status));return data;
 }
 async function refresh(){if(!session)return false;if(session.expires_at && Date.now()/1000<session.expires_at-90)return true;
- try{const x=await api('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:session.refresh_token},null);session={...x,expires_at:Math.floor(Date.now()/1000)+x.expires_in};storeSession();return true}catch{logout();return false}}
+ try{const x=await api('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:session.refresh_token},null);session={...x,expires_at:Math.floor(Date.now()/1000)+x.expires_in};storeSession();return true}catch{status('Cloud unavailable. Progress remains saved on this device.');return false}}
 function status(s){const n=$('rkAccountStatus');if(n)n.textContent=s;const b=$('rkAccountOpen');if(b)b.textContent=player?'👤 '+(sessionStorage.getItem(DISPLAY)||'Switch player'):'👤 Choose player'}
 function greet(){const name=sessionStorage.getItem(DISPLAY);const el=document.querySelector('.hub-hi h1');if(el){const desired=name?'Hi '+name+'! 👋':'Hi there! 👋';if(el.textContent!==desired)el.textContent=desired;}document.querySelectorAll('.brand').forEach(el=>{if(el.textContent.includes("Riki's"))el.textContent='🌈 Homework & Social Skills Games';});}
 function neutralHeadings(){
@@ -57,7 +63,7 @@ const greetingObserver=new MutationObserver(()=>{greet();neutralHeadings()});
 function modal(html){$('rkAccountPanel').innerHTML='<button type="button" id="rkDialogDismiss" aria-label="Close account panel">×</button>'+html;$('rkAccountDialog').hidden=false;$('rkDialogDismiss').onclick=close;}
 function close(){$('rkAccountDialog').hidden=true}
 function identity(){return session?.user?.email||'Guardian'}
-function logout(){clearInterval(interval);interval=null;session=null;player=null;sessionStorage.removeItem(AUTH);localStorage.removeItem(AUTH);localStorage.removeItem(REMEMBER);sessionStorage.removeItem(PLAYER);localStorage.removeItem(PLAYER);sessionStorage.removeItem(DISPLAY);const backup=localStorage.getItem(BACKUP);if(backup){try{const original=JSON.parse(backup);KEYS.forEach(k=>{if(Object.hasOwn(original,k))localStorage.setItem(k,original[k]);else localStorage.removeItem(k)})}catch{}}status('Guest • this browser');location.reload();}
+function logout(){if(player&&stable(read())!==lastSaved){status('Progress not synced yet. Reconnect and wait for cloud save before signing out.');return false;}clearInterval(interval);interval=null;session=null;player=null;sessionStorage.removeItem(AUTH);localStorage.removeItem(AUTH);localStorage.removeItem(REMEMBER);sessionStorage.removeItem(PLAYER);localStorage.removeItem(PLAYER);sessionStorage.removeItem(DISPLAY);const backup=localStorage.getItem(BACKUP);if(backup){try{const original=JSON.parse(backup);KEYS.forEach(k=>{if(Object.hasOwn(original,k))localStorage.setItem(k,original[k]);else localStorage.removeItem(k)})}catch{}}status('Guest • this browser');location.reload();return true;}
 async function list(){
  if(!await refresh())return login();
  const guardians=await api('/rest/v1/arcade_guardians?select=user_id&limit=1');
@@ -69,18 +75,22 @@ async function list(){
  document.querySelectorAll('[data-player]').forEach(b=>b.onclick=()=>switchTo(b.dataset.player,b.textContent));
  $('rkAwardCoins').onsubmit=async e=>{e.preventDefault();const form=e.target;const button=form.querySelector('button[type="submit"]');button.disabled=true;try{const amount=Number(form.elements.amount.value);const awarded=await awardCoins(form.elements.recipient.value,amount);$('rkAccountMsg').textContent='Added '+awarded+' coins to the selected player.'}catch(err){$('rkAccountMsg').textContent=err.message}finally{button.disabled=false}};
  $('rkRememberNow').onchange=e=>{if(e.target.checked){localStorage.setItem(REMEMBER,'yes');storeSession();if(player)storePlayer(player)}else{localStorage.removeItem(REMEMBER);localStorage.removeItem(AUTH);localStorage.removeItem(PLAYER)};};
- $('rkAccountLogout').onclick=()=>{logout();close()};$('rkAccountClose').onclick=close;
+ $('rkAccountLogout').onclick=async()=>{try{await save();if(logout())close()}catch(err){status('Cannot sign out yet: '+err.message)}};$('rkAccountClose').onclick=close;
  $('rkAddPlayer').onsubmit=async e=>{e.preventDefault();const name=e.target.nickname.value.trim();if(!name)return;try{const created=await api('/rest/v1/arcade_players','POST',{guardian_id:session.user.id,nickname:name});await switchTo(created[0].id,name)}catch(err){$('rkAccountMsg').textContent=err.message}};
 }
 async function switchTo(id,nickname){
  try{
-  if(player && player!==id)await save();
+  if(player && player!==id){
+    await save();
+    if(stable(read())!==lastSaved)throw Error('Progress has not synced yet. Reconnect before changing players.');
+   }
   const rows=await api('/rest/v1/arcade_progress?select=version,snapshot&player_id=eq.'+encodeURIComponent(id));
   const stored=rows[0]?.snapshot;
   const targetVersion=rows[0]?.version??null;
   if(!localStorage.getItem(BACKUP)){try{localStorage.setItem(BACKUP,JSON.stringify(read()))}catch{}}
   player=id;lastSaved='';lastVersion=targetVersion;storePlayer(id);if(nickname)sessionStorage.setItem(DISPLAY,nickname);greet();status('Cloud profile active');
   if(stored && Object.keys(stored).length){
+    markSync(id,stored,targetVersion);
    KEYS.forEach(k=>{if(Object.hasOwn(stored,k))localStorage.setItem(k,String(stored[k]));else localStorage.removeItem(k)});
    status('Cloud profile active');close();location.reload();return;
   }
@@ -98,7 +108,7 @@ async function save(){
 async function saveNow(){
  if(!player||!await refresh())return;
  const savingPlayer=player;
- const snapshot=read(),serialized=JSON.stringify(snapshot);if(serialized===lastSaved)return;
+ const snapshot=read(),serialized=stable(snapshot);if(serialized===lastSaved)return;
  if(serialized.length>900000)throw Error('Progress is too large to sync');
  const rows=await api('/rest/v1/arcade_progress?select=version&player_id=eq.'+encodeURIComponent(savingPlayer));
  if(player!==savingPlayer)throw Error('Player changed during save');
@@ -112,7 +122,7 @@ async function saveNow(){
   if(lastVersion!==null)throw Error('Cloud progress disappeared; save stopped for safety');
   const inserted=await api('/rest/v1/arcade_progress','POST',{player_id:savingPlayer,snapshot});lastVersion=inserted[0]?.version??0;
  }
- if(player!==savingPlayer)throw Error('Player changed during save');lastSaved=serialized;status('Cloud progress saved');
+ if(player!==savingPlayer)throw Error('Player changed during save');markSync(savingPlayer,snapshot,lastVersion);lastSaved=serialized;status('Cloud progress saved');
 }
 async function openRiki(){
  if(!session||!await refresh()){login();status('Adult email sign-in is required before using a cloud player.');return;}
@@ -134,12 +144,29 @@ async function initialize(){
  if(token.has('access_token')){
   const intent=localStorage.getItem(PENDING);if(intent==='yes')localStorage.setItem(REMEMBER,'yes');else if(intent==='no'){localStorage.removeItem(REMEMBER);localStorage.removeItem(AUTH);localStorage.removeItem(PLAYER)}localStorage.removeItem(PENDING);
   session={access_token:token.get('access_token'),refresh_token:token.get('refresh_token'),expires_at:Date.now()/1000+Number(token.get('expires_in')||3600),user:null};
-  try{session.user=await api('/auth/v1/user','GET',undefined,session.access_token);storeSession();history.replaceState(null,'',location.pathname+location.search)}catch{logout()}
+  try{session.user=await api('/auth/v1/user','GET',undefined,session.access_token);storeSession();history.replaceState(null,'',location.pathname+location.search)}catch{status('Sign-in check unavailable; local progress is safe.');return}
  }else session=savedSession();
  if(session && await refresh()){
-  if(!session.user){try{session.user=await api('/auth/v1/user');storeSession()}catch{logout()}}
+  if(!session.user){try{session.user=await api('/auth/v1/user');storeSession()}catch{status('Account check unavailable; local progress is safe.');return}}
   const active=sessionStorage.getItem(PLAYER)||(durable()?localStorage.getItem(PLAYER):null);
-  if(active){try{const owned=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=id');if(owned.length){player=active;storePlayer(active);const names=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=nickname');if(names[0]?.nickname)sessionStorage.setItem(DISPLAY,names[0].nickname);greet();const rows=await api('/rest/v1/arcade_progress?select=version,snapshot&player_id=eq.'+encodeURIComponent(active));if(rows[0])lastVersion=rows[0].version??null;if(rows[0]?.snapshot){const snapshot=rows[0].snapshot;const incoming=JSON.stringify(snapshot);const current=JSON.stringify(read());if(incoming!==current){KEYS.forEach(k=>{if(Object.hasOwn(snapshot,k))localStorage.setItem(k,String(snapshot[k]));else localStorage.removeItem(k)});location.reload();return;}lastSaved=current}}}catch{player=null}}
+  if(active){try{const owned=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=id');if(owned.length){player=active;storePlayer(active);const names=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=nickname');if(names[0]?.nickname)sessionStorage.setItem(DISPLAY,names[0].nickname);greet();const rows=await api('/rest/v1/arcade_progress?select=version,snapshot&player_id=eq.'+encodeURIComponent(active));if(rows[0])lastVersion=rows[0].version??null;
+     if(rows[0]?.snapshot){
+      const snapshot=rows[0].snapshot,incoming=stable(snapshot),current=stable(read()),baseline=lastSync(active);
+      if(incoming!==current){
+       // Never overwrite newer local data with an older cloud snapshot.
+       // Existing profiles without a checkpoint also keep their unsynced local state.
+       const haveLocalChanges=baseline ? current!==baseline.serialized : Object.keys(read()).length>0;
+       if(haveLocalChanges){
+        lastSaved=baseline?.serialized??incoming;
+        if(baseline)lastVersion=baseline.version;
+        status('Local progress safe; cloud sync pending');
+       }else{
+        markSync(active,snapshot,lastVersion);
+        KEYS.forEach(k=>{if(Object.hasOwn(snapshot,k))localStorage.setItem(k,String(snapshot[k]));else localStorage.removeItem(k)});
+        location.reload();return;
+       }
+      }else{markSync(active,snapshot,lastVersion);lastSaved=current}
+     }}}catch{player=null}}
   status(player?'Cloud profile active':'Guardian signed in');if(player)interval=setInterval(()=>save().catch(err=>status('Cloud save error: '+err.message)),15000);
   else if(token.has('access_token'))list();
  }

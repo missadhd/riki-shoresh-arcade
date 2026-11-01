@@ -1,0 +1,35 @@
+name: Guest and cloud progress persistence
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'assets/scripts/14-accounts.js'
+      - 'assets/styles/16-styles.css'
+      - 'tests/progress-persistence-ci.mjs'
+      - '.github/workflows/progress-persistence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  progress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start local static web server
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/riki-progress-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8765/ >/dev/null && exit 0; sleep 1; done
+          exit 1
+      - name: Verify local state, cloud reload, offline auth, phone RTL
+        run: node tests/progress-persistence-ci.mjs
