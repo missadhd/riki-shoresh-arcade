@@ -2062,7 +2062,7 @@ Object.assign(P3_MAKE,{
 delete P3_MAKE.coffeecup;
 
 /* rooms (3D backdrops) */
-const RPCAM={size:[960,960],cam:{fov:46,pos:[0,4.2,7.4],at:[0,.3,0]}};
+const RPCAM={size:[720,720],cam:{fov:38,pos:[0,3.2,5.6],at:[0,.4,0]}};
 Object.assign(SC3_SETS,{
  schoolroom:{wall:'#cfe6f7',low:'#8fb9d9',pat:'stripe',floor:'tile',board:1,win:1,bunt:1,...RPCAM,items:[
   ['rainbowcubbies',-2.1,-1.35,0,.9],
@@ -2132,7 +2132,7 @@ function rpRoom(host,key,{start=[0,2.15],dropOk,onTap}={}){
  R.ready=new Promise(done=>sc3Get(key,url=>{if(!st.isConnected)return;st.innerHTML='';st.style.backgroundImage=`url(${url})`;
   (RP_PROPS[key]||[]).forEach(([kind,x,y0,z,h])=>{const el=document.createElement('div');el.className='rp-prop';el.innerHTML=`<img alt="" src="${p3Render(kind)||''}">`;st.appendChild(el);placeFloor(el,x,z,h,y0);});
   (RP_NAMES[key]||[]).forEach(([n,id])=>{const s=RP_SPOTS[key][id];const t=document.createElement('span');t.className='rp-name'+(n==='Riki'?' me':'');t.textContent=n;const c=P(s[1],s[2]-.08,s[3]+.05);t.style.left=c[0]+'%';t.style.top=c[1]+'%';st.appendChild(t);});
-  const rk=document.createElement('div');rk.className='rp-riki';rk.innerHTML=`<div class="rp-img">${slFace('riki','happy')}</div>`;st.appendChild(rk);R.riki=rk;placeFloor(rk,start[0],start[1],1.3);R.drag(rk);done(R);}));
+  const rk=document.createElement('div');rk.className='rp-riki pd-actor';rk.innerHTML=`<div class="rp-img">${slFace('riki','happy')}</div>`;st.appendChild(rk);R.riki=rk;placeFloor(rk,start[0],start[1],1.3);R.drag(rk);done(R);}));
  return R;}
 const rpLoad=fn=>{if(window.THREE)return fn();if(window.RK3&&RK3.loadThree)RK3.loadThree(fn,fn);else fn();};
 
@@ -2249,7 +2249,7 @@ if(!document.getElementById('rpCss')){const st=document.createElement('style');s
 .rp-prop{pointer-events:none}
 .rp-name{position:absolute;transform:translate(-50%,-50%);background:#fff;border:2px solid #4a2338;border-radius:999px;padding:2px 7px;font-size:11px;font-weight:900;color:#4a2338;pointer-events:none;z-index:1900;white-space:nowrap;box-shadow:0 1px 4px #0002}.rp-name.me{background:#ffe6f1;border-color:#ff7eb6;color:#c2185b}
 .rp-water{position:absolute;transform:translate(-50%,-50%);font-size:18px;pointer-events:none;z-index:2000;animation:rpDrop 1.5s ease-out forwards}@keyframes rpDrop{from{opacity:1;transform:translate(-50%,-50%) translateY(0)}to{opacity:0;transform:translate(-50%,-50%) translateY(20px)}}.rp-kid{position:absolute;transform:translate(-50%,-100%);aspect-ratio:.62;cursor:pointer;z-index:5}.rp-kid .rp-img{width:100%;height:100%;filter:drop-shadow(0 4px 3px rgba(80,40,40,.2))}.rp-riki{aspect-ratio:.62;transition-property:left,top,height;transition-timing-function:cubic-bezier(0.45,0,0.55,1);cursor:grab;touch-action:none}.rp-riki .rp-img{width:100%;height:100%;filter:drop-shadow(0 6px 4px rgba(80,40,40,.25))}.rp-riki .rp-img svg,.rp-riki .rp-img img{width:100%;height:100%;object-fit:contain;object-position:bottom}.rp-riki.flip .rp-img{transform:scaleX(-1)}.rp-riki.drag{transition:none;z-index:9999!important}
-.rp-riki.walk .rp-img{animation:cpBob .32s ease-in-out infinite}.rp-riki.cheer .rp-img{animation:rigHop .55s cubic-bezier(.3,1.4,.5,1) 2}
+.rp-riki.walk .rp-img{animation:none}.rp-riki.cheer .rp-img{animation:rigHop .55s cubic-bezier(.3,1.4,.5,1) 2}
 .rp-hint{position:absolute;transform:translate(-50%,-50%) scale(.8);background:#fff;border-radius:999px;padding:3px 9px;font-size:11px;font-weight:900;color:#c2185b;white-space:nowrap;pointer-events:none;z-index:2000;box-shadow:0 0 0 3px #ffd34d,0 0 18px 6px rgba(255,211,77,.7);opacity:0;transition:opacity .25s,transform .25s cubic-bezier(0.23,1,0.32,1)}.rp-hint.on{opacity:1;transform:translate(-50%,-50%) scale(1);animation:rpPulse 1s ease-in-out infinite}@keyframes rpPulse{50%{box-shadow:0 0 0 3px #ffd34d,0 0 26px 10px rgba(255,211,77,.9)}}
 .rp-bub{position:absolute;left:50%;bottom:96%;transform:translateX(-50%) scale(.9);width:max-content;max-width:180px;background:#fff;border-radius:14px;padding:5px 9px;font-size:12px;font-weight:800;color:#4a2338;box-shadow:0 0 0 2px #4a2338;opacity:0;transition:opacity .2s,transform .2s cubic-bezier(0.23,1,0.32,1);pointer-events:none;z-index:9999}.rp-bub.on{opacity:1;transform:translateX(-50%) scale(1)}
 .rp-tv{position:absolute;transform:translate(-50%,-50%);width:15%;height:7%;border:0;border-radius:6px;background:transparent;font-size:10px;font-weight:900;color:#fff;cursor:pointer;z-index:1500;padding:0}.rp-tv.on{background:linear-gradient(135deg,#8fd3ff,#c9a2ff);box-shadow:0 0 14px 4px rgba(150,200,255,.8);animation:rpTv .5s ease-in-out infinite alternate}@keyframes rpTv{to{box-shadow:0 0 22px 8px rgba(255,170,220,.85)}}
