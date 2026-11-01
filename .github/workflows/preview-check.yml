@@ -17,7 +17,11 @@ jobs:
         with:
           node-version: '22'
       - name: Install Playwright browsers
-        run: npx --yes playwright install chromium --with-deps
+        # npx alone only fetches the CLI temporarily; the script imports 'playwright', so install it
+        # into the workspace (no package.json, same pinned version as social-detective-regression).
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
       - name: Start local static server
         run: |
           python3 -m http.server 4173 &
@@ -26,7 +30,7 @@ jobs:
       - name: Capture preview screenshots
         run: |
           mkdir -p preview-shots
-          cat > /tmp/preview.mjs << 'JS'
+          cat > ./preview-shots.tmp.mjs << 'JS'
           import { chromium } from 'playwright';
           const browser = await chromium.launch();
           const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
@@ -48,7 +52,7 @@ jobs:
           await browser.close();
           console.log('Screenshots saved');
           JS
-          node /tmp/preview.mjs
+          node ./preview-shots.tmp.mjs
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         with:
