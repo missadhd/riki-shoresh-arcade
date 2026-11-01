@@ -246,3 +246,39 @@ html body .top .stats>#coins{position:absolute!important;grid-row:auto!important
 html body .top .stats>#rikiShoreshTab,
 html body .top .stats>#rikiShoreshimTab{display:none!important;visibility:hidden!important}
 html body .top .stats>#gamesShortcut:focus-visible{outline:3px solid #557fa7!important;outline-offset:2px!important}
+
+
+/* Mental-math-first customer orders — show a product choice, not counting rows. */
+#app .rk-math-customer-panel{overflow:hidden;}
+#app .rk-math-customer-panel .rk-math-order{margin:6px auto 12px;max-width:760px;}
+#app .rk-math-customer-panel .rk-math-order>div{min-width:0;}
+#app .rk-math-customer-panel .rk-math-equation{font-size:clamp(32px,7vw,52px);margin:12px 0;}
+#app .rk-math-serving{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px auto 14px;max-width:780px;}
+#app .rk-math-serve-choice{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:138px;border:3px solid #edc9d8;border-radius:22px;background:linear-gradient(145deg,#fff,#ffe8f2);color:#653b57;box-shadow:0 5px 0 #deb0c7;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+#app .rk-math-serve-choice:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 7px 0 #deb0c7;}
+#app .rk-math-serve-choice:active:not(:disabled){transform:translateY(4px);box-shadow:0 1px 0 #deb0c7;}
+#app .rk-math-serve-choice>span{font-size:clamp(29px,4.5vw,44px);line-height:1.1;}
+#app .rk-math-serve-choice strong{font-size:clamp(23px,5vw,33px);font-variant-numeric:tabular-nums;}
+#app .rk-math-serve-choice small{font-size:11px;font-weight:800;white-space:normal;text-align:center;}
+#app .rk-math-customer-panel .rk-math-help{max-width:740px;margin:8px auto 16px;}
+#app .rk-math-order-scene{position:relative;min-height:145px;max-width:790px;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:12px auto;padding:16px;border-radius:25px;border:5px solid #fff;box-shadow:inset 0 3px 9px #8a60742a,0 5px 15px #69445b21;overflow:hidden;}
+#app .rk-math-bakery{background:linear-gradient(165deg,#fff9ed 0%,#fbe2e6 65%,#d79f9e 65%);}
+#app .rk-math-aquarium{background:linear-gradient(160deg,#c8f5ef 0%,#89d7e7 52%,#55a5ce 100%);}
+#app .rk-math-fashion{background:linear-gradient(160deg,#fff4fe 0%,#e8dbfc 60%,#bb9ecf 100%);}
+#app .rk-math-scene-decoration{display:flex;align-items:center;justify-content:space-around;gap:20px;width:min(100%,450px);font-size:clamp(30px,6vw,52px);}
+#app .rk-math-scene-decoration>span{display:inline-block;filter:drop-shadow(0 3px 3px #5b3a582e);}
+#app .rk-math-order-result{margin:7px auto 0;padding:5px 12px;border-radius:999px;background:#ffffffd9;font-weight:900;color:#6e3859;text-align:center;font-size:13px;}
+#app .rk-math-order-scene[data-solved="true"] .rk-math-scene-decoration>span{animation:rkServe .55s ease-out;}
+#app .rk-math-customer-panel .rk-math-status{max-width:760px;margin:14px auto;}
+#app .rk-math-customer-panel #rkMathNext{display:block;margin:8px auto;}
+@media(max-width:620px){
+ #app .rk-math-serving{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+ #app .rk-math-serve-choice{min-height:104px;border-radius:17px;padding:8px 5px;}
+ #app .rk-math-serve-choice>span{font-size:31px;}
+ #app .rk-math-serve-choice strong{font-size:27px;}
+ #app .rk-math-order-scene{min-height:125px;}
+ #app .rk-math-customer-panel .rk-math-order>span{font-size:36px;}
+}
+@media(prefers-reduced-motion:reduce){
+ #app .rk-math-serve-choice,#app .rk-math-order-scene[data-solved="true"] .rk-math-scene-decoration>span{animation:none;transition:none;}
+}
