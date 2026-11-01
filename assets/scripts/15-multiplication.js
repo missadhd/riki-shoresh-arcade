@@ -209,6 +209,30 @@ const house=$('houseShortcut');if(house){house.textContent='🏠 Dollhouse';nav.
 // Inline importance wins that specificity without editing another assistant's stylesheet.
 tab.style.setProperty('display','flex','important');
 if(house)house.style.setProperty('display','flex','important');
+// Older game layers inserted two extra Hebrew-roots buttons even though the
+// original Shoresh Games shortcut already opens the same roots menu.
+// Keep one visible, accessible destination instead of three duplicates.
+const shoresh=$('gamesShortcut');
+if(shoresh){
+ shoresh.textContent='📚 Shoreshim';
+ shoresh.setAttribute('aria-label','Open Shoreshim — Hebrew root games');
+ shoresh.setAttribute('title','Practice Hebrew roots');
+}
+function hideShoreshDuplicates(){
+ for(const id of ['rikiShoreshTab','rikiShoreshimTab']){
+  const duplicate=$(id);
+  if(!duplicate)continue;
+  duplicate.style.setProperty('display','none','important');
+  duplicate.setAttribute('aria-hidden','true');
+  duplicate.tabIndex=-1;
+ }
+}
+hideShoreshDuplicates();
+// An older module inserts a second duplicate at DOMContentLoaded, *after*
+// our module has initialized. Catch late additions without re-rendering the
+// page or modifying another assistant's claimed file.
+new MutationObserver(hideShoreshDuplicates).observe(nav,{childList:true});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hideShoreshDuplicates,{once:true});
 function addTile(){
  const grid=app.querySelector('.hub-grid');if(grid&&!$('hubMath')){
   const button=document.createElement('button');button.type='button';button.className='hub-tile hub-math';button.id='hubMath';

@@ -30,6 +30,16 @@ try{
    const K=window.RK3,it=window.eval('ITEMS').find(x=>x[0]===id);
    const mesh=K.makeItem(it),s=mesh.userData.storage;
    if(!s)throw Error('No real cabinet storage');
+   // Verify the new pink apron closes the geometry gap, while still sitting
+   // behind the drawer faces. The old front top was ~1.01 and worktop bottom
+   // ~1.11: no exposed space should remain between them.
+   const trim=[];
+   mesh.traverse(o=>{
+    if(!o.isMesh)return;
+    if(Math.abs(o.position.y-1.05)<.009&&Math.abs(o.position.z-(.72/2-.055))<.009)trim.push(o);
+   });
+   if(!trim.length)throw Error('Missing drawer-to-counter trim strip');
+   if(trim.some(o=>o.position.z>=.72/2+.056))throw Error('Apron may obstruct drawers');
    if(s.parts.length!==4)throw Error('Expected two lower doors and two upper drawers, got '+s.parts.length);
    if(s.slots.length!==9)throw Error('Expected nine storage positions, got '+s.slots.length);
    const box=new THREE.Box3().setFromObject(mesh),size=box.getSize(new THREE.Vector3());
