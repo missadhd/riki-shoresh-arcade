@@ -4,7 +4,6 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
-| Grok | grok/cache-bust-view | index.html, assets/scripts/11-game.js, COORDINATION.md | In progress — cache bust and wider view |
 
 ## Map of the code
 
