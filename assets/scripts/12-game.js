@@ -1016,6 +1016,46 @@ const oldShop=G('shopHtml'),oldBind=G('bindShop');window.__clayCatalogShop=funct
 // Preserve queued clay thumbnails, but show a relevant icon while they are being rendered.
 const oldArt=G('furnitureArt');window.__clayCatalogArt=function(it){const html=oldArt.apply(this,arguments),m=it&&META[it[0]];if(!m||/rk3-thumb/.test(html))return html;return `<span class="rk3-art" data-rk3-id="${it[0]}"><span class="catalog-placeholder" aria-hidden="true">${categoryIcon(m.category)}</span></span>`;};SET('furnitureArt=window.__clayCatalogArt;');
 window.RikiCatalog={meta:META,state,rooms:ROOMS,categories,results,buy,ownedCount,usedCount,isListed:normal,all:()=>items.map(it=>({id:it[0],name:it[2],price:it[3],placementRoom:it[4],...META[it[0]],model:!!K.MODEL[it[0]]}))};
+
+/* Photo furniture from the saved clay samples. A flat picture facing the camera, not a new 3D sculpt. */
+function photoProp(g,url,w,h){
+  const tex=new THREE.TextureLoader().load(url);
+  if(THREE.sRGBEncoding)tex.encoding=THREE.sRGBEncoding;
+  const m=new THREE.MeshBasicMaterial({map:tex,transparent:true,side:THREE.DoubleSide,alphaTest:.04});
+  const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m);
+  mesh.position.y=h/2;
+  mesh.castShadow=false;
+  g.add(mesh);
+}
+M.bed=g=>photoProp(g,'assets/images/clay/photo-bed.png',1.7,1.14);
+M.softsofa=g=>photoProp(g,'assets/images/clay/photo-sofa.png',1.9,.94);
+if(Array.isArray(ITEMS)&&!ITEMS.some(x=>x[0]==='softsofa'))ITEMS.push(['softsofa','🛋️','Soft pink sofa',36,'bedroom']);
+META.softsofa={room:'bedroom',category:'Seating',name:'Soft pink sofa',new:true};
+try{
+  if(localStorage.getItem('rikiPhotoBedroomV1')!=='1'){
+    const owned=G('owned'),decor=G('decor'),pos=G('dreamPosition');
+    if(Array.isArray(owned)&&decor&&pos){
+      decor.bedroom=decor.bedroom||{};
+      pos.bedroom=pos.bedroom||{};
+      const placed=Object.values(decor.bedroom);
+      const hasBed=placed.some(id=>String(id).startsWith('bed'));
+      function put(id,x,y){
+        if(!owned.includes(id))owned.push(id);
+        if(!Object.values(decor.bedroom).includes(id)){
+          let slot=String(Object.keys(decor.bedroom).length);
+          while(decor.bedroom[slot])slot=String(+slot+1);
+          decor.bedroom[slot]=id;
+        }
+        pos.bedroom[id]=pos.bedroom[id]||{x,y};
+      }
+      if(!hasBed)put('bed',34,46);
+      put('softsofa',66,74);
+      const save=G('saveHouse');if(save)save();
+      const dream=G('dreamSave');if(dream)dream();
+      localStorage.setItem('rikiPhotoBedroomV1','1');
+    }
+  }
+}catch(e){console.warn('photo bedroom',e);}
 })();
 
 /* Use each rendered doll's own face pixels for speech instead of painting a
