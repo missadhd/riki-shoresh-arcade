@@ -2050,7 +2050,10 @@ const RP_SPOTS={
  helproom:{sink:['sink',-2.15,.65,-1.3,.5],drawer:['dresser',-1.0,.6,-1.35,.5],tv:['TV',.3,.75,-1.4,.5],bin:['toy bin',1.35,.4,-1.25,.5],shelf:['bookshelf',2.35,.9,-1.3,.5],kitty:['kitty',-1.75,.3,.5,.45],plant:['plant',2.0,.55,.45,.4],hamper:['hamper',1.6,.45,1.6,.45],mat:['shoe mat',.75,.05,2.05,.45],box:['craft box',-1.55,.3,1.65,.4]},
  schoolroom:{hook:['hooks',-2.0,.85,-1.4,.3],cubby:['cubbies',-2.1,.5,-1.3,.4],board:['whiteboard',0,1.9,-1.5,.6],door:['door',1.6,.9,-1.45,.4],shelf:['bookshelf',2.3,.9,-1.3,.45],pencil:['pencil sharpener',.6,.7,.2,.4],tray:['teacher desk',-1.4,.55,.6,.3],star:['star desk',1.4,.55,.6,.35],plant:['plant',2.2,.6,1.4,.4],trash:['trash',2.0,.4,1.8,.35],rug:['rug',0,.05,1.6,.4],bin:['toy area',-1.8,.3,1.5,.3],water:['fountain',.8,.6,-1.4,.3],crayons:['crayons',-1.4,.6,.6,.25]}};
 const RP_PROPS={schoolroom:[['door',1.6,0,-1.45,1.6],['trashcan',2.0,0,1.8,.65],['pencilcup',.6,.55,.2,.5],['tray',-1.4,.52,.6,.12]]};
-const RP_NAMES={schoolroom:[],helproom:[]};
+const RP_NAMES={schoolroom:[
+  ['Riki','hook'],['Zoe','hookZ'],['Maya','hookM'],
+  ['Riki','cubby'],['Zoe','cubbyZ'],['Maya','cubbyM'],['Ava','cubbyA']
+],helproom:[]};
 const RP_FUN={schoolroom:[['hamster',-.95,1.05,-1.35,.25,['Hi, little hamster! 🐹','He’s so fluffy!']],['globe',.25,.75,-.4,.2,['Round and round! 🌍']],['clock',.85,2.75,-1.58,.25,['Tick tock! ⏰']]],helproom:[['kitty',-1.75,.35,.5,.4,['Meow! 🐱','Hi kitty!']],['plant',2.0,.6,.45,.35,['Pretty plant 🌱']]]};
 
 function rpUnproj(key,px,py){const cam=sc3Cam(key);const v=new THREE.Vector3(px/50-1,1-py/50,.5).unproject(cam);const d=v.sub(cam.position).normalize();const t=-cam.position.y/d.y;return [cam.position.x+d.x*t,cam.position.z+d.z*t];}
@@ -2153,7 +2156,15 @@ function rpClassroom(roomSel,btnSel,keyOf,expect,{onRound}={}){const old=$id(roo
       if(img){const u=p3Render('pencil');if(u)img.src=u;}
       R.say('Whirrr! ✏️ Sharp!',1500);
     }
-    if(k==='plant'&&R.items.wateringcan){R.items.wateringcan.classList.add('done');R.say('The plant looks happy! 🌱',1500);}
+    if(k==='plant'){
+      // Water droplets appear on the plant
+      const drops=document.createElement('div');drops.className='rp-water';drops.textContent='💧💧💧';
+      const s=RP_SPOTS.schoolroom.plant;const c=sc3Proj('schoolroom',s[1],s[2],s[3]);
+      drops.style.left=c[0]+'%';drops.style.top=(c[1]-8)+'%';
+      R.st.appendChild(drops);
+      setTimeout(()=>drops.remove(),2000);
+      R.say('The plant looks happy! 🌱',1500);
+    }
     if(k==='board'&&R.items.eraser){R.items.eraser.classList.add('done');R.say('Board is clean! ✨',1200);}
     if(k==='trash'&&R.items.paper){R.items.paper.classList.add('gone');R.say('In the trash! 🗑️',1200);}
     return 'ok';
@@ -2188,7 +2199,7 @@ if(!document.getElementById('rpCss')){const st=document.createElement('style');s
 .rp-item.done::after{content:'⭐';position:absolute;right:-4px;top:-4px;font-size:16px}
 .rp-prop{pointer-events:none}
 .rp-name{position:absolute;transform:translate(-50%,-50%);background:#fff;border:2px solid #4a2338;border-radius:999px;padding:2px 7px;font-size:11px;font-weight:900;color:#4a2338;pointer-events:none;z-index:1900;white-space:nowrap;box-shadow:0 1px 4px #0002}.rp-name.me{background:#ffe6f1;border-color:#ff7eb6;color:#c2185b}
-.rp-kid{position:absolute;transform:translate(-50%,-100%);aspect-ratio:.62;cursor:pointer;z-index:5}.rp-kid .rp-img{width:100%;height:100%;filter:drop-shadow(0 4px 3px rgba(80,40,40,.2))}.rp-riki{aspect-ratio:.62;transition-property:left,top,height;transition-timing-function:cubic-bezier(0.45,0,0.55,1);cursor:grab;touch-action:none}.rp-riki .rp-img{width:100%;height:100%;filter:drop-shadow(0 6px 4px rgba(80,40,40,.25))}.rp-riki .rp-img svg,.rp-riki .rp-img img{width:100%;height:100%;object-fit:contain;object-position:bottom}.rp-riki.flip .rp-img{transform:scaleX(-1)}.rp-riki.drag{transition:none;z-index:9999!important}
+.rp-water{position:absolute;transform:translate(-50%,-50%);font-size:18px;pointer-events:none;z-index:2000;animation:rpDrop 1.5s ease-out forwards}@keyframes rpDrop{from{opacity:1;transform:translate(-50%,-50%) translateY(0)}to{opacity:0;transform:translate(-50%,-50%) translateY(20px)}}.rp-kid{position:absolute;transform:translate(-50%,-100%);aspect-ratio:.62;cursor:pointer;z-index:5}.rp-kid .rp-img{width:100%;height:100%;filter:drop-shadow(0 4px 3px rgba(80,40,40,.2))}.rp-riki{aspect-ratio:.62;transition-property:left,top,height;transition-timing-function:cubic-bezier(0.45,0,0.55,1);cursor:grab;touch-action:none}.rp-riki .rp-img{width:100%;height:100%;filter:drop-shadow(0 6px 4px rgba(80,40,40,.25))}.rp-riki .rp-img svg,.rp-riki .rp-img img{width:100%;height:100%;object-fit:contain;object-position:bottom}.rp-riki.flip .rp-img{transform:scaleX(-1)}.rp-riki.drag{transition:none;z-index:9999!important}
 .rp-riki.walk .rp-img{animation:cpBob .32s ease-in-out infinite}.rp-riki.cheer .rp-img{animation:rigHop .55s cubic-bezier(.3,1.4,.5,1) 2}
 .rp-hint{position:absolute;transform:translate(-50%,-50%) scale(.8);background:#fff;border-radius:999px;padding:3px 9px;font-size:11px;font-weight:900;color:#c2185b;white-space:nowrap;pointer-events:none;z-index:2000;box-shadow:0 0 0 3px #ffd34d,0 0 18px 6px rgba(255,211,77,.7);opacity:0;transition:opacity .25s,transform .25s cubic-bezier(0.23,1,0.32,1)}.rp-hint.on{opacity:1;transform:translate(-50%,-50%) scale(1);animation:rpPulse 1s ease-in-out infinite}@keyframes rpPulse{50%{box-shadow:0 0 0 3px #ffd34d,0 0 26px 10px rgba(255,211,77,.9)}}
 .rp-bub{position:absolute;left:50%;bottom:96%;transform:translateX(-50%) scale(.9);width:max-content;max-width:180px;background:#fff;border-radius:14px;padding:5px 9px;font-size:12px;font-weight:800;color:#4a2338;box-shadow:0 0 0 2px #4a2338;opacity:0;transition:opacity .2s,transform .2s cubic-bezier(0.23,1,0.32,1);pointer-events:none;z-index:9999}.rp-bub.on{opacity:1;transform:translateX(-50%) scale(1)}
