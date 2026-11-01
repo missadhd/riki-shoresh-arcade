@@ -64,7 +64,25 @@ try {
   await page.locator('#rkMathNext').waitFor();
   assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'112','Quick Math rewards correct product');
   // Aquarium and Fashion: fresh equations, choices, and correct rewards.
-  for(const [game,coins] of [['aquarium','118'],['fashion','124']]){
+  // Aquarium: the Shoreshim 3D Aquarium Rescue, with multiplication questions (8 steps, 6 coins each).
+  await page.locator('#rkMathShortcut').click();
+  await page.locator('[data-math-game="aquarium"]').click();
+  let aqCoins=112;
+  const AQ=await page.evaluate(()=>window.RikiStudio.games.aquarium.steps.length);
+  for(let step=0;step<AQ;step++){
+   await page.locator('.st-card').first().waitFor({timeout:30000});
+   eq=await page.locator('.st-bub .rk-math-equation').innerText();m=eq.match(/(\d+)\s*×\s*(\d+)/);assert.ok(m,'aquarium shows equation');
+   const ans=Number(m[1])*Number(m[2]);
+   const wrongCard=page.locator('.st-card:not([data-math-answer="'+ans+'"])').first();
+   if(step===0){await wrongCard.click();await page.locator('#stHint:not([hidden])').waitFor();assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'112','wrong answer gives no coins');}
+   await page.locator('.st-card[data-math-answer="'+ans+'"]').click();aqCoins+=6;
+   await page.waitForFunction(c=>localStorage.getItem('rickyCoins')===c,String(aqCoins),{timeout:15000}).catch(async e=>{throw new Error('coins '+await page.evaluate(()=>localStorage.getItem('rickyCoins'))+' want '+aqCoins+' step '+step+' at '+JSON.stringify(await page.evaluate(()=>window.RikiStudio.state()?.at)))});
+   if(step<AQ-1)await page.waitForFunction(s=>document.querySelectorAll('.st-dots i.on').length===s,step+1);
+  }
+  await page.locator('#stMathHome').waitFor({timeout:30000});
+  assert.equal(await page.evaluate(()=>window.RikiStudio.state().picks.length),AQ,'all aquarium pieces built');
+  assert.ok((await page.evaluate(()=>JSON.parse(localStorage.getItem('rikiMathProgressV1')).completed.aquarium))>=1,'aquarium completion saved');
+  for(const [game,coins] of [['fashion',String(aqCoins+6)]]){
    await page.locator('#rkMathShortcut').click();
    await page.locator('[data-math-game="'+game+'"]').click();
    eq=await page.locator('.rk-math-equation').innerText();
@@ -84,7 +102,7 @@ try {
    await page.locator('.rk-math-matchcard[data-answer]:not([disabled])').filter({hasText:new RegExp('^'+answer+'$')}).click();
   }
   await page.locator('#rkMathReplay').waitFor();
-  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'148','4 matches give 24 coins');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),String(aqCoins+6+24),'4 matches give 24 coins');
   const progress=await page.evaluate(()=>JSON.parse(localStorage.getItem('rikiMathProgressV1')||'null'));
   assert.ok(progress.correct>=6&&progress.completed.match>=1,'Practice progress saved');
   assert.deepEqual(await page.evaluate(()=>({bed:localStorage.getItem('rickyHouseInventoryV1'),roots:localStorage.getItem('rikiRootProgressV1')})),preserved);
@@ -97,7 +115,7 @@ try {
   assert.equal(await page.locator('#app #dreamRoom').count(),0,'Shoreshim should also open from Dollhouse');
   await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>!!window.RikiMath,{timeout:20000});
-  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'148','coins persist reload');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),String(aqCoins+6+24),'coins persist reload');
   assert.ok((await page.evaluate(()=>JSON.parse(localStorage.getItem('rikiMathProgressV1')||'null')))?.completed?.match>=1);
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+2);
   assert.equal(overflow,false,'No horizontal page overflow at '+width+'px');

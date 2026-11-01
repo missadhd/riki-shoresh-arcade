@@ -299,9 +299,15 @@ function studioWebGLAvailable(){
   /* The 3D library is lazy-loaded by K.loadThree; do not treat its absence at menu time as lack of WebGL. */
   try{const canvas=document.createElement('canvas');const gl=canvas.getContext('webgl2')||canvas.getContext('webgl')||canvas.getContext('experimental-webgl');const available=studioWebGLOk=!!gl;try{gl&&gl.getExtension('WEBGL_lose_context')?.loseContext();}catch(_){}return available;}catch(_){return false;}
 }
-function startStudio(id){
+/* opt.math (Grok, Nov 1): same studio game, but questions come from the Multiplication arcade.
+   {questions:[{a,b,answer}], choices(q)->numbers, right(q,first), wrong(q), done(score), exit()}. Hebrew progress is not touched. */
+function startStudio(id,opt){
   if(!studioWebGLAvailable())return false;
-  const def=GAMES[id];const {W,pool}=words();if(!def||!W.length)return false;busy=false;
+  const M=opt&&opt.math;
+  const def=GAMES[id];const {W,pool}=words();if(!def||(!M&&!W.length))return false;busy=false;
+  if(M){try{const a=G('audio');a&&a('tap');}catch(_){}SET(`game=${JSON.stringify(id)};`);window.__stSession=null;
+    S={id,def,math:M,order:M.questions.slice(0,def.steps.length),at:0,score:0,missed:[],tries:0,picks:[]};
+    const run=S;K.loadThree(()=>{if(S!==run||G('game')!==id)return;newScene(def);renderStep();},()=>{if(S===run&&M.exit)M.exit();});return true;}
   try{const a=G('audio');a&&a('tap');}catch(_){}
   SET(`game=${JSON.stringify(id)};round=(typeof round==='number'?round+1:1);`);
   const order=(window.RikiProgress&&window.RikiProgress.pick)?window.RikiProgress.pick(pool,def.steps.length):shuffle(pool).slice(0,def.steps.length);
@@ -310,9 +316,11 @@ function startStudio(id){
   const run=S;K.loadThree(()=>{if(S!==run||G('game')!==id)return;newScene(def);renderStep();},()=>{const app=document.getElementById('app');if(app)app.innerHTML='<section class="panel"><p>This game needs an internet connection to load its 3D pictures.</p></section>';});
   return true;
 }
-function frameHTML(body,pct){const fr=G('frame');if(typeof fr==='function'){fr(`${S.def.emoji} ${S.def.title}`,body,pct);return;}document.getElementById('app').innerHTML=body;}
+function frameHTML(body,pct){if(S&&S.math){const app=document.getElementById('app');app.innerHTML=`<div class="rk-math" data-rk-section="multiplication"><section class="panel"><div class="gamehead"><button class="secondary" id="stMathBack" type="button">← Math games</button><strong>${S.def.emoji} ${S.def.title} · ✖️</strong></div>${body}</section></div>`;const bk=document.getElementById('stMathBack');const M=S.math;if(bk)bk.onclick=()=>{S=null;M.exit&&M.exit();};return;}
+  const fr=G('frame');if(typeof fr==='function'){fr(`${S.def.emoji} ${S.def.title}`,body,pct);return;}document.getElementById('app').innerHTML=body;}
 function renderStep(){
   if(!S||G('game')!==S.id)return;
+  if(S.math)return renderMathStep();
   const {def,at,order}=S;const {W,pool}=words();const step=def.steps[at];const id=order[at];const w=W[id];
   const four=!!(window.RikiProgress&&window.RikiProgress.mastered(id));const nOther=S.id==='claw'?5:(four?3:2);
   const others=shuffle(pool.filter(x=>x!==id)).slice(0,nOther);const choiceIds=shuffle([id,...others]);
@@ -328,6 +336,23 @@ function renderStep(){
    <p class="st-ask">${esc(step.ask)} — tap it or drag it up.</p>
    <div class="st-cards${four||S.id==='claw'?' four':''}">${cards}</div>${four&&S.id!=='claw'?'<p class="st-ask">⭐ You know this word! Now there are 4 choices.</p>':''}
    <p class="st-hint" id="stHint" hidden></p></div>`;
+  frameHTML(body,Math.round(at/def.steps.length*100));
+  mountStage(document.getElementById('stStage'));
+  requestAnimationFrame(()=>{document.querySelectorAll('.st-card').forEach((b,i)=>{const v=variants[i];const u=snap(def.title+'|'+step.slot+'|'+v.name,v.build);const ph=b.querySelector('.ph');if(u&&ph){const im=new Image();im.alt='';im.src=u;ph.replaceWith(im);}});});
+  bindCards();
+}
+function renderMathStep(){
+  const {def,at,order,math}=S;const step=def.steps[at];const q=order[at];
+  const nums=math.choices(q).filter(n=>n!==q.answer).slice(0,2);const choiceIds=shuffle([q.answer,...nums]);
+  let variants=shuffle(step.vs).slice(0,choiceIds.length);while(variants.length<choiceIds.length)variants.push(step.vs[variants.length%step.vs.length]);
+  S.cur={id:q.answer,choiceIds,variants,step,first:true,q};
+  const dots=def.steps.map((_,i)=>`<i class="${i<at?'on':i===at?'now':''}"></i>`).join('');
+  const cards=choiceIds.map((n,i)=>`<button type="button" class="st-card" data-i="${i}" data-math-answer="${n}" aria-label="${n}"><div class="ph">✨</div><span class="st-num">${n}</span></button>`).join('');
+  const body=`<div class="st"><div class="st-order"><div class="st-av" aria-hidden="true">${window.RikiArt?window.RikiArt.doll(window.RikiArt.look(window.RikiPlay.state().doll),'stand','happy',true):def.av}</div><div class="st-bub"><small>${def.lead} Multiply in your head:</small><b class="rk-math-equation">${q.a} × ${q.b} = ?</b></div></div>
+   <div class="st-stage" id="stStage"><div class="st-burst" id="stBurst"></div></div>
+   <div class="st-dots" aria-label="Step ${at+1} of ${def.steps.length}">${dots}</div>
+   <p class="st-ask">${esc(step.ask)} — tap the right answer or drag it up.</p>
+   <div class="st-cards">${cards}</div><p class="st-hint" id="stHint" hidden></p></div>`;
   frameHTML(body,Math.round(at/def.steps.length*100));
   mountStage(document.getElementById('stStage'));
   requestAnimationFrame(()=>{document.querySelectorAll('.st-card').forEach((b,i)=>{const v=variants[i];const u=snap(def.title+'|'+step.slot+'|'+v.name,v.build);const ph=b.querySelector('.ph');if(u&&ph){const im=new Image();im.alt='';im.src=u;ph.replaceWith(im);}});});
@@ -371,6 +396,12 @@ async function choose(b){
     }));
     return;
   }
+  if(S.math){const q=S.cur.q;
+    if(choiceIds[i]!==id){b.classList.add('bad');S.cur.first=false;S.math.wrong(q);const h=document.getElementById('stHint');if(h){h.hidden=false;h.textContent='💡 Not '+choiceIds[i]+'. '+(S.math.hint?S.math.hint(q):'Try another strategy.');}return;}
+    busy=true;b.classList.add('good');S.math.right(q,S.cur.first);S.score++;
+    await applyPiece(step,variants[i]);if(S!==run||G('game')!==run.id)return;burst();
+    S.picks.push(variants[i].name);S.at++;
+    setTimeout(()=>{if(S!==run||G('game')!==run.id)return;busy=false;if(S.at>=S.def.steps.length)finishStudio();else renderStep();},650);return;}
   if(choiceIds[i]!==id){b.classList.add('bad');S.cur.first=false;try{const inc=G('incorrect');inc&&inc();}catch(_){}
     const h=document.getElementById('stHint');if(h){h.hidden=false;h.innerHTML=`💡 <b lang="he" class="st-he" style="font-size:1.2rem">${esc(W[id][0])}</b> means <b>${esc(W[id][1])}</b>. ${esc(W[id][2]||'')}`;}return;}
   busy=true;b.classList.add('good');
@@ -407,7 +438,13 @@ async function clawGrab(g){
 function burst(){const b=document.getElementById('stBurst');if(!b||matchMedia('(prefers-reduced-motion: reduce)').matches)return;const cols=['#ff71ad','#ffd45b','#5bd8bf','#8fc6e8','#c8a2ff'];
   for(let i=0;i<22;i++){const d=document.createElement('i');d.style.left='50%';d.style.top='45%';d.style.background=cols[i%5];const a=Math.random()*Math.PI*2,r=80+Math.random()*90;d.style.setProperty('--dx',Math.cos(a)*r+'px');d.style.setProperty('--dy',Math.sin(a)*r+'px');b.appendChild(d);setTimeout(()=>d.remove(),950);}}
 function finishStudio(){
-  const def=S.def;try{const a=G('audio');a&&a('win');const c=G('celebrate');c&&c();const aw=G('award');aw&&aw(5);}catch(_){}
+  const def=S.def;
+  if(S.math){const M=S.math,score=S.score;try{const a=G('audio');a&&a('win');const c=G('celebrate');c&&c();}catch(_){}M.done(score);
+    frameHTML(`<div class="st st-end"><div class="st-stage" id="stStage" style="height:clamp(300px,52vh,460px)"><div class="st-burst" id="stBurst"></div></div><h2>${esc(def.done)}</h2><p style="margin:0;font-weight:800;color:#8a6577">${score} multiplication answers correct — 🪙 ${score*6} coins earned!</p><div class="st-row"><button class="primary" id="stAgain">Play again</button><button class="secondary" id="stMathHome">✖️ Other math games</button><button class="secondary" id="stHouse">🏠 Spend my coins</button></div></div>`,100);
+    mountStage(document.getElementById('stStage'));camCfg=[camCfg[0],camCfg[1]*.92,camCfg[2]];burst();
+    document.getElementById('stAgain').onclick=()=>{S=null;M.again&&M.again();};document.getElementById('stMathHome').onclick=()=>{S=null;M.exit&&M.exit();};
+    document.getElementById('stHouse').onclick=()=>{S=null;try{const hh=G('houseHome');hh&&hh();}catch(_){}};return;}
+  try{const a=G('audio');a&&a('win');const c=G('celebrate');c&&c();const aw=G('award');aw&&aw(5);}catch(_){}
   if(window.__stSession)window.__stSession.done=true;
   const body=`<div class="st st-end"><div class="st-stage" id="stStage" style="height:clamp(300px,52vh,460px)"><div class="st-burst" id="stBurst"></div></div>
    <h2>${esc(def.done)}</h2><p style="margin:0;font-weight:800;color:#8a6577">You earned <b>${S.score}</b> stars and a <b>+5</b> coin bonus for your dollhouse!</p>
