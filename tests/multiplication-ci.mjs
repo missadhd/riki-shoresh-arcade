@@ -38,36 +38,41 @@ try {
   const preserved={bed:await page.evaluate(()=>localStorage.getItem('rickyHouseInventoryV1')),roots:await page.evaluate(()=>localStorage.getItem('rikiRootProgressV1'))};
   await page.locator('#rkMathShortcut').click();
   await page.locator('#rkMathRecipe').waitFor();
-  assert.equal(await page.locator('.rk-math-choices button').count(),3);
+  assert.equal(await page.locator('.rk-math-choices button').count(),5);
   assert.equal(await page.locator('header .top').count(),0);
-  // Recipe Studio: count and submit the actual multiplication shown on screen.
+  // Mental-math first: an order can be served by choosing the product immediately.
   await page.locator('#rkMathRecipe').click();
   let eq=await page.locator('.rk-math-equation').innerText();
-  let m=eq.match(/(\d+)\s*×\s*(\d+)/);assert.ok(m,'Recipe displays a real multiplication fact');
-  assert.equal(await page.locator('.rk-kitchen-scene').getAttribute('data-recipe-stage'),'prep');
-  assert.equal(await page.locator('.rk-kitchen-tray.filled').count(),0);
-  assert.equal(await page.locator('#rkMathInput').count(),0,'recipe must build trays before answering');
-  for(let i=0;i<Number(m[1]);i++)await page.locator('#rkKitchenFill').click();
-  assert.equal(await page.locator('.rk-kitchen-tray.filled').count(),Number(m[1]));
-  await page.locator('#rkMathInput').fill(String(Number(m[1])*Number(m[2])));
-  await page.locator('#rkMathForm button').click();
-  await page.locator('#rkKitchenBake').waitFor();
-  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'100','no reward until order is served');
-  await page.locator('#rkKitchenBake').click();
-  await page.locator('#rkKitchenServe').click();
+  let m=eq.match(/(\d+)\s*×\s*(\d+)/);assert.ok(m,'Recipe displays a multiplication fact');
+  assert.equal(await page.locator('#rkMathBuild,#rkKitchenFill,.rk-kitchen-tray').count(),0,'No prerequisite rows or tray-by-tray counting');
+  assert.equal(await page.locator('.rk-math-serve-choice').count(),4,'Four selectable totals to serve');
+  const beforeWrong=await page.evaluate(()=>localStorage.getItem('rickyCoins'));
+  const incorrect=await page.locator('.rk-math-serve-choice').evaluateAll((buttons,correct)=>buttons.find(b=>Number(b.dataset.mathAnswer)!==correct)?.dataset.mathAnswer,Number(m[1])*Number(m[2]));
+  await page.locator('[data-math-answer="'+incorrect+'"]').click();
+  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),beforeWrong,'A wrong guess earns zero coins');
+  await page.locator('[data-math-answer="'+(Number(m[1])*Number(m[2]))+'"]').click();
   await page.locator('#rkMathNext').waitFor();
-  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'106','served correct order gives 6 coins exactly once');
-  assert.match(await page.locator('#rkMathStatus').innerText(),/Correct/);
-  // Array Builder: explicit row construction before the number answer becomes available.
+  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'106','Correct product gives exactly 6 coins');
+  assert.equal(await page.locator('.rk-math-order-scene').getAttribute('data-solved'),'true','Customer order is served');
+  // Quick Math: a numeric answer is available immediately, not after building rows.
   await page.locator('#rkMathShortcut').click();
-  await page.locator('#rkMathArray').click();
+  await page.locator('[data-math-game="array"]').click();
   eq=await page.locator('.rk-math-equation').innerText();m=eq.match(/(\d+)\s*×\s*(\d+)/);assert.ok(m);
-  assert.equal(await page.locator('#rkMathInput').count(),0,'array requires building rows');
-  for(let n=0;n<Number(m[1]);n++)await page.locator('#rkMathBuild').click();
+  assert.equal(await page.locator('#rkMathBuild').count(),0);
   await page.locator('#rkMathInput').fill(String(Number(m[1])*Number(m[2])));
   await page.locator('#rkMathForm button').click();
   await page.locator('#rkMathNext').waitFor();
-  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'112','array rewards correct answer');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'112','Quick Math rewards correct product');
+  // Aquarium and Fashion: fresh equations, choices, and correct rewards.
+  for(const [game,coins] of [['aquarium','118'],['fashion','124']]){
+   await page.locator('#rkMathShortcut').click();
+   await page.locator('[data-math-game="'+game+'"]').click();
+   eq=await page.locator('.rk-math-equation').innerText();
+   m=eq.match(/(\d+)\s*×\s*(\d+)/);assert.ok(m,game+' shows equation');
+   await page.locator('[data-math-answer="'+Number(m[1])*Number(m[2])+'"]').click();
+   await page.locator('#rkMathNext').waitFor();
+   assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),coins,game+' gives 6 coins');
+  }
   // Match: four distinct equations and products, tap the actual correct pairs.
   await page.locator('#rkMathShortcut').click();
   await page.locator('#rkMathMatch').click();
@@ -79,7 +84,7 @@ try {
    await page.locator('.rk-math-matchcard[data-answer]:not([disabled])').filter({hasText:new RegExp('^'+answer+'$')}).click();
   }
   await page.locator('#rkMathReplay').waitFor();
-  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'136','4 matches give 24 coins');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'148','4 matches give 24 coins');
   const progress=await page.evaluate(()=>JSON.parse(localStorage.getItem('rikiMathProgressV1')||'null'));
   assert.ok(progress.correct>=6&&progress.completed.match>=1,'Practice progress saved');
   assert.deepEqual(await page.evaluate(()=>({bed:localStorage.getItem('rickyHouseInventoryV1'),roots:localStorage.getItem('rikiRootProgressV1')})),preserved);
@@ -92,14 +97,14 @@ try {
   assert.equal(await page.locator('#app #dreamRoom').count(),0,'Shoreshim should also open from Dollhouse');
   await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>!!window.RikiMath,{timeout:20000});
-  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'136','coins persist reload');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'148','coins persist reload');
   assert.ok((await page.evaluate(()=>JSON.parse(localStorage.getItem('rikiMathProgressV1')||'null')))?.completed?.match>=1);
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+2);
   assert.equal(overflow,false,'No horizontal page overflow at '+width+'px');
   await page.locator('#rkMathShortcut').click();
   await page.locator('.rk-math').screenshot({path:'math-arcade-'+width+'.png'});
   assert.deepEqual(errors,[],'No browser JS errors: '+JSON.stringify(errors));
-  console.log('PASS '+width+'px nav seven destinations, Recipe, Array, Fact Match, coins, progress, Dollhouse and reload');
+  console.log('PASS '+width+'px nav seven destinations, mental Recipe, Quick Math, Aquarium, Fashion, Fact Match, coins, progress, Dollhouse and reload');
   await context.close();
  }
 }finally{await browser.close()}
