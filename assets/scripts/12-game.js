@@ -719,8 +719,10 @@ const K=window.RK3;if(!K)return;
 const {RB,BX,SP,CY,mat}=K;
 const G=n=>{try{return (0,eval)(n);}catch(_){}};
 const MINI_FRIDGES=/^(clayfridge|minifridge|heartfridge)$/;
-const isStorage=id=>MINI_FRIDGES.test(id)||/^(fridge|shelf|dresser|vanity)|^(wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox|rainbowcubbies|blushtoybox)$/.test(id);
+const HEART_KITCHEN='heartkitchencabinet';
+const isStorage=id=>id===HEART_KITCHEN||MINI_FRIDGES.test(id)||/^(fridge|shelf|dresser|vanity)|^(wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox|rainbowcubbies|blushtoybox)$/.test(id);
 function profile(id){
+ if(id===HEART_KITCHEN)return {kind:'kitchenSink',w:1.85,h:1.23,d:.72,rows:3,cols:3};
  if(MINI_FRIDGES.test(id))return {kind:'fridge',w:.66,h:.92,d:.54,rows:3,cols:3};
  if(/^fridge/.test(id))return {kind:'fridge',w:.78,h:1.75,d:.66,rows:3,cols:3};
  if(/^dresser|^nightstand/.test(id))return {kind:'drawers',w:id==='nightstand'?.5:.9,h:id==='nightstand'?.6:.95,d:.52,rows:id==='nightstand'?2:3,cols:id==='nightstand'?2:3};
@@ -762,7 +764,70 @@ K.storageProfile=id=>isStorage(id)?profile(id):null;
 K.prepareStorage=function(g,it){
  const id=it[0];if(!isStorage(id)||g.userData.storage)return;
  const p=profile(id),state={profile:p,parts:[],slots:[],id,focused:false};g.userData.storage=state;
- if(p.kind==='fridge'){
+ if(p.kind==='kitchenSink'){
+  // Photo-inspired polymer-clay main kitchen sink: cream countertop, inset sink,
+  // faucet, two swing doors and two pull-out utensil drawers.
+  // Parts stay functional in the actual room editor and in shop thumbnails.
+  for(const child of [...g.children])g.remove(child);
+  const P=mat('#e6a1bc',.87),front=mat('#f8d4df',.88),
+        inset=mat('#ffeaf0',.87),rim=mat('#fff0e6',.9),
+        brass=mat('#d8ae8a',.78),bowl=mat('#b8d8dc',.79),
+        inside=mat('#fae8e2',.93);
+  const w=p.w,d=p.d;
+  // Hollow, reachable storage body, back wall, bottom and separator.
+  RB(g,w,.88,.055,.025,P,0,.52,-d/2+.02);
+  [-1,1].forEach(side=>RB(g,.055,.92,d,.022,P,side*(w/2-.025),.53,0));
+  RB(g,w,.06,d,.022,P,0,.10,0);
+  RB(g,w,.035,d-.06,.012,inside,0,.47,-.015);
+  RB(g,w,.07,.055,.022,P,0,.79,-d/2+.02);
+  RB(g,.052,.76,d-.08,.014,P,0,.49,0);
+  // Two bottom doors, which swing independently from rounded side hinges.
+  [-1,1].forEach(side=>{
+   const pivot=new THREE.Group();pivot.position.set(side*w/2,.16,d/2+.033);g.add(pivot);
+   const cx=-side*w/4,dc=w/2-.042;
+   RB(pivot,dc,.62,.052,.028,P,cx,.33,0);
+   RB(pivot,dc-.10,.51,.013,.02,front,cx,.33,.032);
+   RB(pivot,dc-.20,.41,.011,.02,inset,cx,.33,.043);
+   const knobX=-side*(w/2-.11),knobY=.37;
+   SP(pivot,.045,mat('#e28dac',.85),knobX-.027,knobY+.018,.076,.85,.8,.45);
+   SP(pivot,.045,mat('#e28dac',.85),knobX+.027,knobY+.018,.076,.85,.8,.45);
+   const heart=RB(pivot,.072,.072,.028,.015,mat('#df82a5',.88),knobX,knobY-.021,.075);
+   heart.rotation.z=Math.PI/4;
+   tagPart(pivot,state.parts.length,state.parts,'door',0,side*Math.PI*.56);
+  });
+  // One lower-cupboard shelf: three positions under the sink.
+  [-1,0,1].forEach(n=>{
+   const slotItem=slot(state,g,n*.49,.23,.07,-1);
+   slotItem.spaceW=.37;slotItem.spaceH=.22;
+  });
+  // Two sliding drawers: six more separate saved positions (9 total).
+  [-1,1].forEach(side=>{
+   const drawer=new THREE.Group();drawer.position.set(side*w/4,.83,0);g.add(drawer);
+   const idx=state.parts.length,bw=w/2-.078;
+   RB(drawer,bw,.24,.055,.025,P,0,.06,d/2+.056);
+   RB(drawer,bw-.085,.16,.014,.017,front,0,.06,d/2+.087);
+   RB(drawer,bw-.18,.045,.055,.015,brass,0,.065,d/2+.111);
+   RB(drawer,bw-.055,.027,d-.11,.012,inside,0,-.06,.0);
+   [-1,1].forEach(side2=>RB(drawer,.025,.18,d-.11,.01,inside,side2*(bw/2-.025),.015,0));
+   tagPart(drawer,idx,state.parts,'drawer',0,.47);
+   [-1,0,1].forEach(n=>{
+    const slotItem=slot(state,drawer,n*bw/3,-.035,-.10,idx);
+    slotItem.spaceW=bw/3-.035;slotItem.spaceH=.17;
+   });
+  });
+  // Sculpted countertop above the working cabinets.
+  RB(g,w+.12,.105,d+.12,.045,rim,0,1.16,0);
+  // Inset pale mint sink on left, outlined with thick cream clay.
+  RB(g,.77,.025,.49,.055,brass,-.43,1.225,-.02);
+  RB(g,.69,.023,.42,.048,bowl,-.43,1.232,-.02);
+  RB(g,.54,.01,.27,.034,mat('#8bb4bd',.88),-.43,1.237,-.02);
+  CY(g,.035,.035,.30,brass,-.43,1.39,-.24,14);
+  CY(g,.037,.037,.35,brass,-.43,1.53,-.10,14).rotation.x=Math.PI/2;
+  CY(g,.027,.027,.105,brass,-.43,1.48,.035,14);
+  [-.65,-.20].forEach(x=>SP(g,.045,front,x,1.24,-.23,1,.4,1));
+  // Small decorative heart embossed on the right counter lip.
+  SP(g,.06,front,.47,1.23,.32,1.15,.35,.65);
+ }else if(p.kind==='fridge'){
   let door=g.userData.fridgeDoor;
   if(!door&&MINI_FRIDGES.test(id)){
    // New clay mini-fridges were decorative only: give them actual hinged doors.
@@ -848,11 +913,18 @@ const isFridge=id=>/^(fridge|fridgeretro|clayfridge|minifridge|heartfridge)$/.te
 const isFood=id=>foodIds.has(id);
 const isOwned=id=>(G('owned')||[]).includes(id);
 const isPlaced=(id,room)=>Object.values((G('decor')||{})[room]||{}).includes(id);
-const storageType=id=>/^(fridge|shelf|dresser|vanity)|^(clayfridge|heartfridge|minifridge|wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox|rainbowcubbies|blushtoybox)$/.test(id);
+const storageType=id=>id==='heartkitchencabinet'||/^(fridge|shelf|dresser|vanity)|^(clayfridge|heartfridge|minifridge|wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox|rainbowcubbies|blushtoybox)$/.test(id);
 const usable=(id,room)=>storageType(id)&&isOwned(id)&&isPlaced(id,room);
 const capacityFor=id=>{const p=K&&K.storageProfile?K.storageProfile(id):null;return p?p.rows*p.cols:9;};
 const isSmall=item=>{const it=items.find(x=>x[0]===item),fn=G('itemType');return !!(it&&typeof fn==='function'&&['Toys','Miniatures','Claw prizes','Fridge Food'].includes(fn(it)));};
-const eligible=(id,item)=>isFridge(id)?isFood(item):storageType(id)&&!storageType(item)&&(isFood(item)||isSmall(item)||['soap','towels','toothbrush','rubberduck','doll','blocks','puzzle','crafts','puppet','trainset'].includes(item)||(G('SMALL_IDS')||[]).includes(item)||/^(claw|mini|book|perfume|makeup|jewel|trophy|teacup|plantmini)/.test(item));
+const kitchenItem=id=>{
+ const it=items.find(x=>x[0]===id);if(!it||storageType(id))return false;
+ const meta=window.RikiCatalog?.meta?.[id];
+ const category=meta?.category||(typeof G('itemType')==='function'?G('itemType')(it):'');
+ return ['Food & drinks','Treats','Fridge Food','Tableware','Kitchen miniatures'].includes(category)
+     ||['spicerack','utensilcrock','cookiejar','heartteapot','claybowl','clayplate','claycup','clayjar','claytray','teacups','milkcarton','eggcarton','fruitbowl','applesbasket','breadbasket','strawberryjam'].includes(id);
+};
+const eligible=(id,item)=>id==='heartkitchencabinet'?kitchenItem(item):isFridge(id)?isFood(item):storageType(id)&&!storageType(item)&&(isFood(item)||isSmall(item)||['soap','towels','toothbrush','rubberduck','doll','blocks','puzzle','crafts','puppet','trainset'].includes(item)||(G('SMALL_IDS')||[]).includes(item)||/^(claw|mini|book|perfume|makeup|jewel|trophy|teacup|plantmini)/.test(item));
 function contents(id,room){const a=(G('dreamStorage')||{})[room+':'+id];return Array.isArray(a)?a:[];}
 function storeItem(id,room,food,slot){
  if(!usable(id,room)||!eligible(id,food)||!isOwned(food)||!items.some(x=>x[0]===food)||!Number.isInteger(slot)||slot<0||slot>=capacityFor(id))return false;
@@ -1011,7 +1083,7 @@ function normal(it){const m=META[it[0]];return !!m&&!m.retired&&!m.rewardOnly&&i
 function base(){return items.filter(it=>normal(it)||(owned(it[0])&&(state.room==='collection'||state.filter==='owned'))).filter(it=>state.room==='all'||state.room==='collection'&&owned(it[0])||META[it[0]]?.room===state.room);}
 function categories(){const values=[...new Set(base().map(it=>META[it[0]].category))];return ['All',...(ORDER[state.room]||values.sort()).filter(x=>values.includes(x)),...values.filter(x=>!(ORDER[state.room]||values).includes(x))];}
 function results(){const q=state.search.trim().toLocaleLowerCase();return base().filter(it=>state.category==='All'||META[it[0]].category===state.category).filter(it=>!q||(it[2]+' '+META[it[0]].category+' '+(ROOMS.find(r=>r[0]===META[it[0]].room)?.[2]||'')).toLocaleLowerCase().includes(q)).filter(it=>state.filter==='affordable'?it[3]<=coins():state.filter==='new'?META[it[0]].new:state.filter==='owned'?owned(it[0]):state.filter==='available'?ownedCount(it[0])>usedCount(it[0]):state.filter==='inuse'?usedCount(it[0])>0:true).sort((a,b)=>state.sort==='name'?a[2].localeCompare(b[2]):state.sort==='price'?a[3]-b[3]||a[2].localeCompare(b[2]):Number(owned(a[0]))-Number(owned(b[0]))||Number(!!META[b[0]].new)-Number(!!META[a[0]].new)||a[3]-b[3]||a[2].localeCompare(b[2]));}
-function hint(it){const m=META[it[0]];if(K.storageProfile&&K.storageProfile(it[0]))return 'Opens · keeps little treasures';if(m.room==='pets')return m.category==='Pets'?'A little friend for your rooms':'A cozy corner for your pet';if(m.category==='Food & drinks')return 'Little food for your fridge';if(m.room==='miniatures'||m.category==='Tableware')return 'A tiny treasure for shelves & drawers';return (ROOMS.find(r=>r[0]===m.room)?.[2]||'Dollhouse')+' · '+m.category;}
+function hint(it){const m=META[it[0]];if(it[0]==='heartkitchencabinet')return 'Main sink · opens to store cooking supplies';if(K.storageProfile&&K.storageProfile(it[0]))return 'Opens · keeps little treasures';if(m.room==='pets')return m.category==='Pets'?'A little friend for your rooms':'A cozy corner for your pet';if(m.category==='Food & drinks')return 'Little food for your fridge';if(m.room==='miniatures'||m.category==='Tableware')return 'A tiny treasure for shelves & drawers';return (ROOMS.find(r=>r[0]===m.room)?.[2]||'Dollhouse')+' · '+m.category;}
 function product(it){const m=META[it[0]],count=ownedCount(it[0]),used=usedCount(it[0]),afford=coins()>=it[3],art=G('furnitureArt'),free=Math.max(0,count-used);return `<article class="shop-item catalog-card ${count?'owned':''}" data-catalog-id="${it[0]}"><div class="pic">${art(it)}</div><div class="catalog-badges">${m.new?'<span>New & cute</span>':''}${m.retired?'<span>Previously collected</span>':''}${m.rewardOnly?'<span>Won in games</span>':''}</div><h3 class="name">${esc(it[2])}</h3><p class="catalog-purpose">${esc(hint(it))}</p><div class="price">${count?`✓ Own ${count} · ${free} available`:'🪙 '+it[3]+' coins'}</div><button type="button" class="primary" data-catalog-buy="${it[0]}" ${!afford?'disabled':''}>${afford?(count?'Buy another · ':'Buy · ')+it[3]:'Save '+(it[3]-coins())+' more'}</button></article>`;}
 const DREAM_PETS=[['puppy','Puppy',0],['kitty','Kitty',50],['bunny','Bunny',50],['unicorn','Unicorn',120],['hamster','Hamster',50],['panda','Panda',90]];
 function dreamPetCards(){if(state.room!=='pets'||!['All','Pets'].includes(state.category)||!window.RikiPlay||!window.RikiArt)return '';
@@ -1570,6 +1642,7 @@ const CLAY_NEW=[
  ['cookiejar','🍪','Cookie jar',16,'kitchen','kitchen','Kitchen miniatures','mini',{kind:'cookiejar',c:'#f39bb2'}],
  ['spicerack','🧂','Spice rack',20,'kitchen','kitchen','Kitchen miniatures','mini',{kind:'spicerack'}],
  ['utensilcrock','🥄','Utensil crock',14,'kitchen','kitchen','Kitchen miniatures','mini',{kind:'crock',c:'#9fcbe6'}],
+ ['heartkitchencabinet','💗','Heart Kitchen Cabinet',150,'kitchen','kitchen','Storage','appliance',{kind:'sink',a:'#e8adc3'}],
  ['pantry','🗄️','Pastel pantry',55,'kitchen','kitchen','Storage','dresser',{W:.9,H:1.8,D:.55,doors:true,crown:true,c:'#fdf3ea',front:'#f6c9d6',knob:'heart'}],
  ['dishhutch','🍽️','Dish hutch',60,'kitchen','kitchen','Storage','dresser',{W:1.1,H:1.0,D:.5,rows:2,c:'#bfe6d4',front:'#e3f5ec',knob:'pearl'}],
  ['diary','📔','Secret diary',12,'any','miniatures','Books & toys','mini',{kind:'diary',c:'#c8b2f2'}],
@@ -1611,7 +1684,7 @@ let kit=null;const fit={};
  if(META){CLAY_NEW.forEach(n=>{META[n[0]]={room:n[5],category:n[6],name:n[2],new:true};});Object.entries(CLAY_RECAT).forEach(([id,[room,cat]])=>{if(META[id])Object.assign(META[id],{room,category:cat});});}}
 const NEW_WALL=new Set(CLAY_NEW.filter(n=>n[9]).map(n=>n[0]));
 const KEEP=/^(swing|swingrainbow|butterfly|fishtank|fridge|fridgeretro|shelfmoon|shelftree|shelfhouse|shelfrainbow|shelfladder|shelfcastle|shelfpineapple|rainbowcubbies|toybox|blushtoybox|cupboard|bathcabinet|tvcabinet)$/;
-const STORE=/^(fridge|shelf|dresser|vanity)|^(clayfridge|heartfridge|minifridge|wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox|rainbowcubbies|blushtoybox)$/;
+const STORE=/^(fridge|shelf|dresser|vanity)|^(heartkitchencabinet|clayfridge|heartfridge|minifridge|wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox|rainbowcubbies|blushtoybox)$/;
 Object.keys(CLAY_PIECES).forEach(id=>{if(KEEP.test(id))return;const [fn,o]=CLAY_PIECES[id];const old=K.MODEL[id];
   const f=function(g,it){kit=kit||makeClayKit(THREE);const inner=new THREE.Group();kit[fn](inner,o);
     if(fit[id]===undefined){let s=1;if(old&&!STORE.test(id)){try{const tg=new THREE.Group();old(tg,it||[id]);const a=new THREE.Box3().setFromObject(tg).getSize(new THREE.Vector3()),b=new THREE.Box3().setFromObject(inner).getSize(new THREE.Vector3());const fa=Math.max(a.x,a.z),fb=Math.max(b.x,b.z);if(fa>.05&&fb>.05)s=Math.min(1.3,Math.max(.75,fa/fb));}catch(e){}}fit[id]=s;}
