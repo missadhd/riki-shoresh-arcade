@@ -495,54 +495,80 @@ function roomShell(g,id,W,D,H,opts={}){
 function roomIdentity(g,id,W,D,H){
   const soft = c => mat(c, .9);
   const round = c => mat(c, .88);
-  // Distinct architectural details for each room. No unearned furnishings.
-  if(id!=='bedroom' && id!=='garden'){
-    const theme={
-      living:['#f4ded3','#fff6ed','#e7bda7'],
-      kitchen:['#d9e9dd','#fff8e9','#a5caba'],
-      bathroom:['#d5eaf0','#fffdf7','#a6cdd9'],
-      playroom:['#eee0f5','#fffaf3','#d5b7e7']
-    }[id]||['#f4e6df','#fff8ef','#ddc2b9'];
-    const base=mat(theme[0],.9),trim=mat(theme[1],.8),detail=mat(theme[2],.89);
-    const z=-D/2+.105, rail=.89;
-    RB(g,W-.18,.74,.038,.012,base,0,.53,z);
-    RB(g,W-.14,.065,.065,.017,trim,0,rail,z+.04);
-    RB(g,W-.14,.075,.065,.018,trim,0,.17,z+.04);
-    // Shallow wall paneling runs across all three interior walls.
-    const count=id==='bathroom'?7:5,usable=W-.55,step=usable/count;
-    for(let n=0;n<count;n++){
-      const x=-usable/2+(n+.5)*step;
-      RB(g,step-.13,.46,.035,.014,detail,x,.54,z+.055);
-      RB(g,step-.18,.36,.038,.014,base,x,.54,z+.082);
+  // Each room has its own permanent wall language. No earned furniture is added here.
+  const z=-D/2+.105;
+  if(id==='living'){
+    const blush=mat('#e8c5b6',.9),ivory=mat('#fff5e9',.84),bead=mat('#ce9e8a',.9);
+    // Warm, raised woodwork and elegant ivory rails.
+    RB(g,W-.2,.75,.037,.015,blush,0,.53,z);
+    RB(g,W-.15,.075,.075,.018,ivory,0,.94,z+.045);
+    RB(g,W-.15,.085,.075,.02,ivory,0,.16,z+.045);
+    const w=(W-.5)/5;
+    for(let n=0;n<5;n++){
+      const x=-(W-.5)/2+(n+.5)*w;
+      RB(g,w-.12,.52,.035,.015,bead,x,.54,z+.065);
+      RB(g,w-.18,.43,.038,.015,blush,x,.54,z+.09);
     }
-    for(const side of [-1,1]){
+    [-1,1].forEach(side=>{
       const x=side*(W/2-.105);
-      RB(g,.04,.74,D-.20,.012,base,x,.53,0);
-      RB(g,.07,.065,D-.18,.017,trim,x,rail,0);
-      RB(g,.07,.075,D-.18,.018,trim,x,.17,0);
-      const segments=4,span=(D-.42)/segments;
-      for(let n=0;n<segments;n++){
-        const zz=-D/2+.21+(n+.5)*span;
-        RB(g,.04,.45,span-.15,.012,detail,x-side*.035,.54,zz);
-        RB(g,.044,.35,span-.20,.012,base,x-side*.05,.54,zz);
+      RB(g,.04,.75,D-.22,.014,blush,x,.53,0);
+      RB(g,.075,.075,D-.18,.018,ivory,x,.94,0);
+      RB(g,.08,.08,D-.18,.018,ivory,x,.16,0);
+      for(let n=0;n<3;n++){
+        const zz=-D/2+.36+(n+.5)*(D-.72)/3;
+        RB(g,.045,.47,(D-.72)/3-.16,.012,bead,x-side*.032,.54,zz);
+        RB(g,.048,.38,(D-.72)/3-.21,.012,blush,x-side*.052,.54,zz);
       }
-    }
-    // Rooms have unique permanent architecture, separate from purchasable furniture.
-    if(id==='kitchen'){
-      const splash=mat('#f8f1de',.8);
-      RB(g,W-1.2,.28,.035,.012,splash,0,1.08,z+.04);
-      for(let x=-W/2+.48;x<W/2-.2;x+=.49) RB(g,.014,.28,.043,.004,trim,x,1.08,z+.08);
-    }else if(id==='bathroom'){
-      for(let x=-W/2+.30;x<W/2-.15;x+=.45){
-        RB(g,.018,.72,.04,.008,trim,x,.53,z+.08);
-      }
-    }else if(id==='living'){
-      RB(g,W-.24,.08,.065,.018,detail,0,H-.38,z+.04);
-      RB(g,.58,.68,.045,.07,trim,1.1,1.78,z+.025);
-      RB(g,.43,.52,.04,.05,detail,1.1,1.78,z+.07);
-    }else if(id==='playroom'){
-      const colors=['#e7bfcd','#b8dbd1','#e6d49f','#d0bbe1'];
-      for(let i=0;i<4;i++)RB(g,.42,.08,.035,.012,mat(colors[i],.9),-1.05+i*.7,1.18,z+.03);
+    });
+  }else if(id==='kitchen'){
+    const sage=mat('#bdded0',.9),cream=mat('#fffaf0',.85),grout=mat('#f2f8f2',.9);
+    // Brick-patterned backsplash and low subway tile, not generic wall panels.
+    RB(g,W-.2,.78,.036,.012,sage,0,.53,z);
+    for(let y of [.29,.53,.77])RB(g,W-.15,.018,.046,.006,grout,0,y,z+.045);
+    for(let row=0;row<3;row++)
+      for(let x=-W/2+.35+(row%2)*.27;x<W/2-.18;x+=.54)
+        RB(g,.018,.23,.046,.006,grout,x,.40+row*.24,z+.045);
+    RB(g,W-.15,.075,.072,.017,cream,0,.94,z+.052);
+    [-1,1].forEach(side=>{
+      const x=side*(W/2-.105);
+      RB(g,.04,.78,D-.22,.012,sage,x,.53,0);
+      for(let y of [.29,.53,.77])RB(g,.051,.018,D-.18,.006,grout,x-side*.036,y,0);
+      for(let zz=-D/2+.33;zz<D/2-.17;zz+=.54)
+        RB(g,.051,.72,.018,.005,grout,x-side*.036,.53,zz);
+      RB(g,.078,.075,D-.18,.018,cream,x,.94,0);
+    });
+  }else if(id==='bathroom'){
+    const tile=mat('#b9e1e8',.9),white=mat('#fffdfa',.85),seam=mat('#eaf7f9',.87),aqua=mat('#82bfce',.84);
+    // Square ceramic tiles and aqua rails distinguish this from the kitchen.
+    RB(g,W-.2,1.08,.037,.012,tile,0,.62,z);
+    for(let y of [.28,.55,.82,1.07])RB(g,W-.16,.018,.045,.005,seam,0,y,z+.045);
+    for(let x=-W/2+.30;x<W/2-.16;x+=.36)RB(g,.018,1.04,.046,.005,seam,x,.62,z+.046);
+    RB(g,W-.15,.075,.068,.02,white,0,1.18,z+.05);
+    RB(g,W-.17,.035,.04,.012,aqua,0,1.25,z+.04);
+    [-1,1].forEach(side=>{
+      const x=side*(W/2-.105);
+      RB(g,.04,1.08,D-.22,.013,tile,x,.62,0);
+      for(let y of [.28,.55,.82,1.07])RB(g,.05,.018,D-.18,.005,seam,x-side*.036,y,0);
+      for(let zz=-D/2+.3;zz<D/2-.16;zz+=.36)RB(g,.05,1.04,.018,.005,seam,x-side*.036,.62,zz);
+      RB(g,.075,.075,D-.18,.02,white,x,1.18,0);
+    });
+  }else if(id==='playroom'){
+    const lilac=mat('#d9c8ed',.9),ivory=mat('#fff9ef',.84);
+    const colors=['#edb5ce','#b8ddd1','#f2da9e','#c6b6ee','#acd7e8'];
+    // Broad pastel blocks and playful upper-wall bunting instead of adult panel molding.
+    RB(g,W-.2,.95,.04,.012,lilac,0,.60,z);
+    RB(g,W-.15,.072,.068,.018,ivory,0,1.1,z+.045);
+    [-1,1].forEach(side=>{
+      const x=side*(W/2-.105);
+      RB(g,.04,.95,D-.22,.012,lilac,x,.60,0);
+      RB(g,.075,.072,D-.18,.018,ivory,x,1.1,0);
+      for(let n=0;n<3;n++)
+        RB(g,.049,.55,.12,.018,mat(colors[(n+(side+1)*2)%5],.9),x-side*.042,.61,-D/2+.55+n*1.13);
+    });
+    RB(g,W-.2,.03,.04,.01,ivory,0,H-.23,z+.04);
+    for(let n=0;n<7;n++){
+      const c=mat(colors[n%5],.88),x=-W/2+.44+n*(W-.88)/6;
+      const pennant=CO(g,.12,.26,c,x,H-.41,z+.065);pennant.rotation.z=Math.PI;
     }
   }
 if(id==='bedroom'){
@@ -561,7 +587,7 @@ if(id==='bedroom'){
       RB(g,spacing-.09,.045,.052,.016,ivory,x,.78,z+.05);
       RB(g,spacing-.09,.045,.052,.016,ivory,x,.36,z+.05);
       RB(g,.043,.48,.053,.014,ivory,x-(spacing-.09)/2,.57,z+.05);
-      RB(g,.043,.48,.053,.014,ivory,x+(spacing-.09)/2,.66,z+.05);
+      RB(g,.043,.48,.053,.014,ivory,x+(spacing-.09)/2,.57,z+.05);
     }
     // Carry the blush wainscot and ivory rails around BOTH side walls.
     // Keep the molding within the wall surfaces instead of leaving bare strips.
@@ -593,18 +619,7 @@ if(id==='bedroom'){
     RB(g,.75,.68,.042,.09,ivory,1.13,1.83,z+.025);
     RB(g,.59,.51,.035,.08,mat('#f1d4df',.91),1.13,1.83,z+.067);
     SP(g,.18,mat('#f7eee3',.93),1.13,1.84,z+.10,.84,1.08,.12);
-  }else if(id==='playroom'){
-    const cols=['#eeb4c7','#add8d0','#e6d49c','#c8b8df'];
-    // Soft toy bins
-    for(let i=0;i<4;i++){
-      RB(g, 0.55, 0.5, 0.4, 0.12, soft(cols[i]), -1.1+i*0.74, 0.28, -D/2+0.35);
-    }
-    // Bouncy balls
-    for(let i=0;i<5;i++){
-      const a = i/5*Math.PI*2;
-      SP(g, 0.14, soft(cols[i%4]), Math.cos(a)*0.7, 0.14, Math.sin(a)*0.5+0.4, 1, 1, 1);
-    }
-  }
+
 }
 function pctToLocal(p,W,D){const fx=(cl(+p.x||50,8,92)-8)/84,fz=(cl(+p.y||70,26,86)-26)/60;return [(fx-.5)*(W-1.3),-(D-1.3)/2+fz*(D-1.3)];}
 function localToPct(X,Z,W,D){return {x:8+((X/(W-1.3))+.5)*84,y:26+((Z+(D-1.3)/2)/(D-1.3))*60};}
