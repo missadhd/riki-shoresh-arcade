@@ -254,6 +254,21 @@ const FLOORS = [
 ];
 function floorChoices(){ try { return JSON.parse(localStorage.getItem(FLOOR_KEY) || '{}') || {}; } catch(e){ return {}; } }
 function floorSave(c){ try { localStorage.setItem(FLOOR_KEY, JSON.stringify(c)); } catch(e){} }
+const FLOOR_OWNED_KEY = 'rikiFloorOwnedV1';
+function floorOwned(){ try { return JSON.parse(localStorage.getItem(FLOOR_OWNED_KEY) || '{}') || {}; } catch(e){ return {}; } }
+function floorOwnedSave(o){ try { localStorage.setItem(FLOOR_OWNED_KEY, JSON.stringify(o)); } catch(e){} }
+function ownsFloor(room, id){
+  const f = FLOORS.find(x => x.id === id);
+  if (f && f.price === 0) return true;
+  const o = floorOwned()[room] || [];
+  return o.includes(id);
+}
+function grantFloor(room, id){
+  const o = floorOwned();
+  o[room] = o[room] || [];
+  if (!o[room].includes(id)) o[room].push(id);
+  floorOwnedSave(o);
+}
 function floorFor(room){
   const c = floorChoices()[room];
   if (c) return FLOORS.find(f => f.id === c) || FLOORS[0];
@@ -278,43 +293,68 @@ function floorTex(id){
   });
 }
 
-/* ---- floors in shop (Grok) ---- */
+/* ---- floors in shop / decorate (Grok) ---- */
 (function injectFloors(){
   const orig = window.houseRender;
   if (!orig || orig._floors) return;
   window.houseRender = function(){
     const r = orig.apply(this, arguments);
     try {
-      if ((0,eval)("housePage") !== 'shop') { const old = document.getElementById('rkFloorShop'); if (old) old.remove(); return r; }
-      const panel = document.querySelector('.panel');
-      if (!panel || document.getElementById('rkFloorShop')) return r;
+      const page = (0,eval)("housePage");
+      const old = document.getElementById('rkFloorShop');
+      if (old) old.remove();
       const room = (0,eval)("currentRoom") || 'bedroom';
       const coins = (0,eval)("coins") || 0;
-      const box = document.createElement('section');
-      box.id = 'rkFloorShop';
-      box.className = 'panel';
-      box.innerHTML = `<h2 class="sectiontitle">🪵 Floors for this room</h2><p>Buy a floor, then open Decorate to see it.</p><div style="display:flex;flex-wrap:wrap;gap:8px">${FLOORS.filter(f=>room==='garden'?true:f.id!=='grass').map(f=>{
-        const owned = floorChoices()[room] === f.id;
-        const label = owned ? '✓ Using' : (f.price ? f.price + '🪙' : 'Free');
-        return `<button type="button" class="smallbtn" data-shop-floor="${f.id}" ${(!owned && f.price && coins < f.price)?'disabled':''}>${f.name} · ${label}</button>`;
-      }).join('')}</div>`;
-      panel.parentNode.insertBefore(box, panel.nextSibling);
-      box.querySelectorAll('[data-shop-floor]').forEach(b => {
-        b.onclick = () => {
-          const id = b.dataset.shopFloor;
-          const f = FLOORS.find(x => x.id === id);
-          if (!f) return;
-          const cns = (0,eval)("coins") || 0;
-          const owned = floorChoices()[room] === id;
-          if (!owned && f.price > 0 && cns < f.price) return;
-          if (!owned && f.price > 0) {
-            (0,eval)(`coins=${cns - f.price};`);
-            try { localStorage.setItem('rickyCoins', String(cns - f.price)); } catch(e){}
-          }
-          const c = floorChoices(); c[room] = id; floorSave(c);
-          window.houseRender();
-        };
-      });
+      const list = FLOORS.filter(f => room === 'garden' ? true : f.id !== 'grass');
+      if (page === 'shop') {
+        const panel = document.querySelector('.panel');
+        if (!panel) return r;
+        const box = document.createElement('section');
+        box.id = 'rkFloorShop';
+        box.className = 'panel';
+        box.innerHTML = `<h2 class="sectiontitle">🪵 Floors</h2><div style="display:flex;flex-wrap:wrap;gap:8px">${list.map(f => {
+          const owned = ownsFloor(room, f.id);
+          const label = owned ? 'Owned' : (f.price ? f.price + '🪙' : 'Free');
+          return `<button type="button" class="smallbtn" data-shop-floor="${f.id}" ${owned ? 'disabled' : ''}>${f.name} · ${label}</button>`;
+        }).join('')}</div>`;
+        panel.parentNode.insertBefore(box, panel.nextSibling);
+        box.querySelectorAll('[data-shop-floor]').forEach(b => {
+          b.onclick = () => {
+            const id = b.dataset.shopFloor;
+            const f = FLOORS.find(x => x.id === id);
+            if (!f || ownsFloor(room, id)) return;
+            const cns = (0,eval)("coins") || 0;
+            if (f.price > 0 && cns < f.price) return;
+            if (f.price > 0) {
+              (0,eval)(`coins=${cns - f.price};`);
+              try { localStorage.setItem('rickyCoins', String(cns - f.price)); } catch(e){}
+            }
+            grantFloor(room, id);
+            window.houseRender();
+          };
+        });
+      } else if (page === 'decorate') {
+        const stage = document.querySelector('.house-stage, .rk3-room, #dreamRoom');
+        const host = stage ? stage.parentElement : document.querySelector('.panel');
+        if (!host) return r;
+        const box = document.createElement('div');
+        box.id = 'rkFloorShop';
+        box.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;align-items:center';
+        const owned = list.filter(f => ownsFloor(room, f.id));
+        const current = floorChoices()[room] || floorFor(room).id;
+        box.innerHTML = `<span style="font-weight:800;font-size:13px">Floor:</span>` + owned.map(f => {
+          const on = current === f.id;
+          return `<button type="button" class="smallbtn" data-use-floor="${f.id}" ${on ? 'disabled' : ''}>${on ? '✓ ' : ''}${f.name}</button>`;
+        }).join('');
+        host.insertBefore(box, host.firstChild);
+        box.querySelectorAll('[data-use-floor]').forEach(b => {
+          b.onclick = () => {
+            const id = b.dataset.useFloor;
+            const c = floorChoices(); c[room] = id; floorSave(c);
+            window.houseRender();
+          };
+        });
+      }
     } catch(e) {}
     return r;
   };
