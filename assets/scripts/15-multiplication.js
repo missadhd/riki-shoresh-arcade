@@ -54,7 +54,7 @@ function startHome(){
  '<section class="rk-math-panel"><h2>Choose the tables to practice</h2><div class="rk-math-families">'+buttons+'</div><p id="rkMathFamilyMessage" role="status">Tap to include or exclude a table. Keep at least one selected.</p></section>'+
  '<div class="rk-math-choices">'+[
  ['recipe','🧁','Bakery Orders','Multiply, then choose the plate to serve.'],
- ['aquarium','🐠','Aquarium Shop','Multiply, then choose the fish order.'],
+ ['aquarium','🐠','Aquarium Rescue','Multiply to rescue fish and build the tank.'],
  ['fashion','👗','Fashion Studio','Multiply, then pack the right accessories.'],
  ['array','⚡','Quick Math','Solve the fact in your head and type it.'],
  ['match','🎴','Fact Match','Find the correct product for each fact.']
@@ -72,7 +72,18 @@ function startHome(){
  $('rkMathMain').onclick=goHub;
 }
 let active=null;
+// Aquarium plays the Shoreshim 3D Aquarium Rescue with multiplication questions (Grok, Nov 1). Falls back to the order scene without WebGL.
+function startAquarium3D(){
+ const st=window.RikiStudio;if(!st||typeof st.start!=='function')return false;
+ const n=(st.games&&st.games.aquarium&&st.games.aquarium.steps.length)||8;const qs=pick(n);if(!qs.length)return false;while(qs.length<n)qs.push(qs[qs.length%qs.length]);
+ let ok=false;try{ok=st.start('aquarium',{math:{questions:qs,choices:q=>answerChoices(q),hint:q=>hintText(q),
+  right:q=>give(q),wrong:q=>wrong(q),
+  done:()=>{progress.completed.aquarium=(Number(progress.completed.aquarium)||0)+1;save();},
+  again:()=>start('aquarium'),exit:()=>startHome()}});}catch(_){ok=false}
+ if(ok){active=null;activeTab();}return ok;
+}
 function start(type){
+ if(type==='aquarium'&&startAquarium3D())return;
  sound();let questions=pick(type==='match'?4:5);
  if(type==='match'){
   const seen=new Set();questions=[];
@@ -86,7 +97,8 @@ function progressBar(){const x=active;return '<div class="rk-math-bar" aria-labe
 function dots(n,emoji){let out='<span class="rk-math-dots">';for(let i=0;i<n;i++)out+='<span aria-hidden="true">'+emoji+'</span>';return out+'</span>'}
 function form(){return '<form id="rkMathForm" class="rk-math-answer"><label for="rkMathInput">How many altogether?</label><input id="rkMathInput" type="number" inputmode="numeric" min="0" max="100" step="1" required placeholder="?" autocomplete="off"><button type="submit">Check answer</button></form>'}
 function status(){const x=active;return '<p id="rkMathStatus" class="rk-math-status" role="status" aria-live="polite">'+esc(x.message||'Multiply in your head, then choose the answer.')+'</p>'+(x.done?'<button type="button" id="rkMathNext" class="rk-math-primary">'+(x.at===x.questions.length-1?'See results 🎉':'Next one →')+'</button>':'')}
-function hint(q){const n=q.a===4||q.b===4?'Double, then double again.':q.a===8||q.b===8?'Double three times.':q.a===9||q.b===9?'Multiply by 10, then subtract one group.':'Use a fact you know and build on it.';return '<button type="button" id="rkMathHint" class="rk-math-link">💡 Strategy hint</button><p id="rkMathHelp" class="rk-math-help" hidden>'+n+'</p>'}
+function hintText(q){return q.a===4||q.b===4?'Double, then double again.':q.a===8||q.b===8?'Double three times.':q.a===9||q.b===9?'Multiply by 10, then subtract one group.':'Use a fact you know and build on it.';}
+function hint(q){const n=hintText(q);return '<button type="button" id="rkMathHint" class="rk-math-link">💡 Strategy hint</button><p id="rkMathHelp" class="rk-math-help" hidden>'+n+'</p>'}
 
 function answerChoices(q){
  const p=shuffle([q.answer+q.a,q.answer-q.a,q.answer+q.b,q.answer-q.b,q.a*(q.b+1),(q.a+1)*q.b,q.answer+2,q.answer-2,q.answer+5]);
