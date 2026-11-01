@@ -1,0 +1,79 @@
+name: Dollhouse full-room opening QA
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'assets/scripts/11-game.js'
+      - '.github/workflows/room-view-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rooms:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 >/tmp/riki-room-server.log 2>&1 &
+          sleep 2
+      - name: Check all six rooms on desktop and mobile
+        run: |
+          mkdir -p room-view-shots
+          cat > ./room-view-check.tmp.mjs <<'JS'
+          import { chromium } from 'playwright';
+          const browser = await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-webgl']});
+          let errors=[];
+          for (const viewport of [{width:1280,height:800},{width:390,height:844}]) {
+            const page = await browser.newPage({viewport});
+            page.on('pageerror', e => errors.push(`${viewport.width}px: ${e.message}`));
+            await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded'});
+            await page.waitForFunction(()=>typeof window.houseRender==='function',{timeout:30000});
+            for (const room of ['bedroom','living','kitchen','bathroom','playroom','garden']) {
+              await page.evaluate(room => {
+                window.eval(`currentRoom=${JSON.stringify(room)};housePage='decorate';selectedItem='';`);
+                window.houseRender();
+              }, room);
+              await page.locator('#dreamRoom canvas').waitFor({timeout:30000});
+              await page.waitForTimeout(700);
+              const view = await page.locator('.rk3-dio').innerText();
+              if (!view.includes('Look inside')) throw new Error(`${viewport.width}px ${room}: did not open in full-room cutaway mode; toggle=${view}`);
+              const canvas = await page.locator('#dreamRoom canvas').evaluate(c=>({width:c.width,height:c.height,clientWidth:c.clientWidth,clientHeight:c.clientHeight}));
+              if (canvas.width<100||canvas.height<100||canvas.clientWidth<100||canvas.clientHeight<100) throw new Error(`${viewport.width}px ${room}: canvas size invalid ${JSON.stringify(canvas)}`);
+              await page.locator('#dreamRoom').screenshot({path:`room-view-shots/${viewport.width}-${room}.png`});
+              // Cutaway remains usable, rather than locking the child in a close view.
+              const zin=page.locator('#rk3ZoomIn'),zout=page.locator('#rk3ZoomOut');
+              if(await zin.count())await zin.click();
+              if(await zout.count())await zout.click();
+              const inside=page.locator('.rk3-dio');
+              await inside.click();
+              if(!(await inside.innerText()).includes('Dollhouse view'))throw new Error(`${viewport.width}px ${room}: cannot switch to inside view`);
+              await inside.click();
+              if(!(await inside.innerText()).includes('Look inside'))throw new Error(`${viewport.width}px ${room}: cannot return to full-room view`);
+              console.log(`PASS ${viewport.width}px ${room}: full-room opening, canvas, zoom buttons, view toggle`);
+            }
+            await page.close();
+          }
+          await browser.close();
+          if(errors.length)throw new Error('Page errors:\n'+errors.join('\n'));
+          JS
+          node ./room-view-check.tmp.mjs
+      - name: Upload room screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: room-view-shots
+          path: room-view-shots/
+          if-no-files-found: warn
+          retention-days: 7
