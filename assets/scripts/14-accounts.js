@@ -64,7 +64,7 @@ async function save(){
 function login(){
  modal('<h2>Guardian sign in</h2><p>Adults can use an email link to manage separate child profiles. No child email needed.</p><form id="rkSignIn"><label>Your email <input name="email" type="email" autocomplete="email" required></label><button type="submit">Send sign-in link</button></form><p id="rkAccountMsg" role="status"></p><button type="button" id="rkAccountClose">Keep playing as guest</button>');
  $('rkAccountClose').onclick=close;
- $('rkSignIn').onsubmit=async e=>{e.preventDefault();try{const email=e.target.email.value.trim();await api('/auth/v1/otp','POST',{email,create_user:true,email_redirect_to:location.origin+location.pathname} ,null);$('rkAccountMsg').textContent='Check your email for a sign-in link.'}catch(err){$('rkAccountMsg').textContent=err.message}};
+ $('rkSignIn').onsubmit=async e=>{e.preventDefault();try{const email=e.target.email.value.trim();await api('/auth/v1/otp?redirect_to='+encodeURIComponent(location.origin+location.pathname),'POST',{email,create_user:true},null);$('rkAccountMsg').textContent='Check your email for a sign-in link.'}catch(err){$('rkAccountMsg').textContent=err.message}};
 }
 async function initialize(){
  const token=new URLSearchParams(location.hash.slice(1));

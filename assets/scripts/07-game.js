@@ -1090,7 +1090,7 @@ const g6Pips=(n,at)=>`<div class="g6-pips">${Array.from({length:n},(_,i)=>`<i cl
 
 /* 1. Classroom Escape: follow multi-step directions the first time; ignore a classmate; accept "not now" */
 const ESC_SPOTS=[['cubby','🎒','cubby','put your backpack in your cubby'],['folder','📁','pink folder','grab the pink folder'],['star','⭐','star table','sit at the star table'],['pencil','✏️','pencil cup','sharpen your pencil'],['books','📚','bookshelf','put a book on the shelf'],['trash','🗑️','trash','throw away your scrap paper'],['board','🧽','whiteboard','erase the whiteboard'],['plant','🪴','plant','water the plant'],['door','🚪','door','line up at the door']];
-const ESC_LV=[{n:1},{n:2},{n:2,distract:1},{n:3},{n:3,notnow:1}];
+const ESC_LV=[{n:1},{n:2},{n:2,distract:1},{n:3},{n:3,notnow:1},{n:3,distract:1},{n:4}];
 function drawEscape(){zCur='escape';let lv=0,code=[],asks=0;const digits=zShuf([1,2,3,4,5,6,7,8,9]).slice(0,5);
  const t=zShell('🗝️ Classroom Escape',`${g6Top('teacher','Ms. Dana')}<div class="esc-code" id="escCode">🔒 ${digits.map(()=>'<b>?</b>').join('')}</div><div class="esc-room" id="escRoom">${zShuf(ESC_SPOTS).map(s=>`<button type="button" class="esc-spot" data-s="${s[0]}"><b>${s[1]}</b><small>${s[2]}</small></button>`).join('')}<button type="button" class="esc-psst" id="escPsst" hidden>👧 Psst! Look at this!</button></div><div class="g6-row"><button class="secondary" id="escAgain" type="button">🔁 Can you say that again?</button></div><div class="sl-choices" id="escCh" hidden></div><div class="ag-msg" id="agM"></div>`);
  const round=async()=>{if(!zLive(t))return;if(lv>=ESC_LV.length){$id('escCode').innerHTML='🔓 '+digits.map(d=>`<b class="on">${d}</b>`).join('')+' <span class="esc-box">🎁✨</span>';audio('good');try{celebrate();}catch(e){}zDone(t,'🗝️ You cracked the code and escaped the classroom!',drawEscape,4);return;}
@@ -2034,28 +2034,27 @@ Object.assign(P3_MAKE,{
 delete P3_MAKE.coffeecup;
 
 /* rooms (3D backdrops) */
-const RPCAM={size:[960,960],cam:{fov:40,pos:[0,3.6,6.2],at:[0,.35,-.1]}};
+const RPCAM={size:[960,960],cam:{fov:46,pos:[0,4.2,7.4],at:[0,.3,0]}};
 Object.assign(SC3_SETS,{
- schoolroom:{wall:'#cfe6f7',low:'#8fb9d9',pat:'stripe',floor:'tile',board:1,win:0,bunt:1,...RPCAM,items:[['towelrack',-2.0,-1.48,0,1.0],['rainbowcubbies',-.95,-1.35,0,.95],['pethamster',-.95,-1.35,0,.22,.95],['bathsink',.65,-1.42,0,.85],['bookshelfplay',2.4,-1.32,-.15,1.3],['arttable',-1.7,.35,0,.6],['tablewood',1.75,.3,0,.6],['tablewood',-.2,-.4,0,.62],['clawglobe',.25,-.4,0,.24,.62],['tablewood',.4,1.3,0,.58],['chairmint',.4,1.85,Math.PI,.62],['toybox',-2.15,1.2,.4,.55],['sparklerug',-1.25,1.8,0,.04],['plant',2.15,1.0,0,1.15]]},
+ schoolroom:{wall:'#cfe6f7',low:'#8fb9d9',pat:'stripe',floor:'tile',board:1,win:1,bunt:1,...RPCAM,items:[
+  ['rainbowcubbies',-2.1,-1.35,0,.9],
+  ['bookshelfplay',2.3,-1.32,-.1,1.2],
+  ['tablewood',-1.4,.6,0,.55],['chairmint',-1.4,1.15,Math.PI,.55],
+  ['tablewood',0,.6,0,.55],['chairmint',0,1.15,Math.PI,.55],
+  ['tablewood',1.4,.6,0,.55],['chairmint',1.4,1.15,Math.PI,.55],
+  ['plant',2.2,1.4,0,1.0],
+  ['sparklerug',0,1.6,0,.04]
+]},
  helproom:{wall:'#ffe3ee',low:'#ffb8d2',pat:'dot',floor:'wood',win:0,size:[960,900],cam:{fov:40,pos:[0,4.1,5.5],at:[0,.15,.1]},items:[['sink',-2.15,-1.3,0,.9],['dresser',-1.0,-1.35,0,.85],['tvcabinet',.3,-1.4,0,.95],['toybox',1.35,-1.25,0,.6],['bookshelfplay',2.35,-1.3,-.15,1.3],['petbedpink',-1.75,.5,.3,.28],['petkitten',-1.75,.5,.3,.38,.1],['plant',2.0,.35,0,1.2],['hamper',1.6,1.6,-.2,.62],['bathmat',.75,2.05,0,.04],['crafts',-1.55,1.65,.2,.4],['sparklerug',0,.95,0,.04],['coffeetable',0,.6,0,.38]]}});
 /* spots: id -> [hint name, x, yMid, z, radius] */
 const RP_SPOTS={
  helproom:{sink:['sink',-2.15,.65,-1.3,.5],drawer:['dresser',-1.0,.6,-1.35,.5],tv:['TV',.3,.75,-1.4,.5],bin:['toy bin',1.35,.4,-1.25,.5],shelf:['bookshelf',2.35,.9,-1.3,.5],kitty:['kitty',-1.75,.3,.5,.45],plant:['plant',2.0,.55,.45,.4],hamper:['hamper',1.6,.45,1.6,.45],mat:['shoe mat',.75,.05,2.05,.45],box:['craft box',-1.55,.3,1.65,.4]},
- schoolroom:{hook:['your hook',-1.6,.85,-1.45,.16],hookZ:['Zoe’s hook',-2.0,.85,-1.45,.16],hookM:['Maya’s hook',-2.4,.85,-1.45,.16],cubby:['your cubby',-1.15,.33,-1.3,.16],cubbyZ:['Zoe’s cubby',-.75,.33,-1.3,.16],cubbyM:['Maya’s cubby',-1.15,.66,-1.3,.16],cubbyA:['Ava’s cubby',-.75,.66,-1.3,.16],board:['whiteboard',-.35,1.95,-1.56,.7],water:['water fountain',.65,.65,-1.42,.42],door:['door',1.5,.9,-1.5,.45],shelf:['bookshelf',2.4,.9,-1.32,.5],crayons:['crayon box',-1.7,.72,.35,.32],pencil:['pencil sharpener',.32,.7,-.35,.25],tray:['Ms. Dana’s tray',-.55,.68,-.4,.28],star:['star table',1.75,.6,.3,.45],bin:['toy bin',-2.15,.4,1.2,.4],rug:['rug',-1.25,.05,1.8,.5],trash:['trash can',2.0,.4,1.85,.4],plant:['plant',2.1,.75,1.0,.55]}};
-const RP_PROPS={schoolroom:[['door',1.5,0,-1.5,1.75],['trashcan',2.0,0,1.85,.72],['starsign',1.75,.6,.3,.5],['pencilcup',.32,.62,-.35,.3],['tray',-.55,.62,-.4,.14],['crayonbox',-1.7,.6,.35,.22]]};
-const RP_NAMES={
-  schoolroom:[
-    ['Riki','hook'],['Riki','cubby'],
-    ['Plant','plant'],['Door','door'],['Board','board'],
-    ['Trash','trash'],['Shelf','shelf'],['Star table','star'],
-    ['Pencils','pencil'],['Fountain','water'],['Rug','rug'],['Toy bin','bin']
-  ],
-  helproom:[
-    ['Sink','sink'],['Dresser','drawer'],['TV','tv'],
-    ['Toy bin','bin'],['Books','shelf'],['Kitty','kitty'],
-    ['Plant','plant'],['Hamper','hamper'],['Shoes','mat'],['Crafts','box']
-  ]
-};
+ schoolroom:{hook:['hooks',-2.0,.85,-1.4,.3],cubby:['cubbies',-2.1,.5,-1.3,.4],board:['whiteboard',0,1.9,-1.5,.6],door:['door',1.6,.9,-1.45,.4],shelf:['bookshelf',2.3,.9,-1.3,.45],pencil:['pencil sharpener',.6,.7,.2,.4],tray:['teacher desk',-1.4,.55,.6,.3],star:['star desk',1.4,.55,.6,.35],plant:['plant',2.2,.6,1.4,.4],trash:['trash',2.0,.4,1.8,.35],rug:['rug',0,.05,1.6,.4],bin:['toy area',-1.8,.3,1.5,.3],water:['fountain',.8,.6,-1.4,.3],crayons:['crayons',-1.4,.6,.6,.25]}};
+const RP_PROPS={schoolroom:[['door',1.6,0,-1.45,1.6],['trashcan',2.0,0,1.8,.65],['pencilcup',.6,.55,.2,.5],['tray',-1.4,.52,.6,.12]]};
+const RP_NAMES={schoolroom:[
+  ['Riki','hook'],['Zoe','hookZ'],['Maya','hookM'],
+  ['Riki','cubby'],['Zoe','cubbyZ'],['Maya','cubbyM'],['Ava','cubbyA']
+],helproom:[]};
 const RP_FUN={schoolroom:[['hamster',-.95,1.05,-1.35,.25,['Hi, little hamster! 🐹','He’s so fluffy!']],['globe',.25,.75,-.4,.2,['Round and round! 🌍']],['clock',.85,2.75,-1.58,.25,['Tick tock! ⏰']]],helproom:[['kitty',-1.75,.35,.5,.4,['Meow! 🐱','Hi kitty!']],['plant',2.0,.6,.45,.35,['Pretty plant 🌱']]]};
 
 function rpUnproj(key,px,py){const cam=sc3Cam(key);const v=new THREE.Vector3(px/50-1,1-py/50,.5).unproject(cam);const d=v.sub(cam.position).normalize();const t=-cam.position.y/d.y;return [cam.position.x+d.x*t,cam.position.z+d.z*t];}
@@ -2127,7 +2126,11 @@ function drawHelper(){zCur='helper';const pool=HM_JOBS.filter(j=>HM_ROOM[j[0]]);
    const j=pool.find(x=>x[0]===who);const name=({sock:'socks',bowl:'kitty food',bear:'teddy',book:'book',cup:'cup',shoe:'shoes',plate:'plate',pj:'pajamas',crayon:'crayons',plant:'watering can'})[who]||'that';
    if(!jobs.includes(j)){zMiss();audio('tap');R.say('That’s not on my list!');g6Msg('📋 Check Mom’s list. That one isn’t a job today.',false);return 'no';}
    if(HM_ROOM[who][1]!==spot){zMiss();audio('tap');dollReact(false);R.say(`${name[0].toUpperCase()+name.slice(1)} ${HM_FUNNY[spot]||'there? No!'}`);return 'no';}
-   done++;audio('good');dollReact(true);const li=document.querySelector(`#hmList [data-j="${who}"]`);if(li){li.textContent='✅ '+j[4];li.classList.add('ok');}R.say(['Done! ✨','Got it!','All tidy!'][done%3],1400);
+   done++;audio('good');dollReact(true);const li=document.querySelector(`#hmList [data-j="${who}"]`);if(li){li.textContent='✅ '+j[4];li.classList.add('ok');}
+   const fxMap={sock:'🧺',bowl:'🥣',bear:'🧸',book:'📚',cup:'🥤',shoe:'👟',plate:'🍽️',pj:'👚',crayon:'🖍️',plant:'💧'};
+   const d=document.createElement('div');d.className='rp-water';d.textContent=fxMap[who]||'✨';
+   const s=RP_SPOTS.helproom[spot];if(s){const c=sc3Proj('helproom',s[1],s[2],s[3]);d.style.left=c[0]+'%';d.style.top=(c[1]-6)+'%';R.st.appendChild(d);setTimeout(()=>d.remove(),1600);}
+   R.say(['Done! ✨','Got it!','All tidy!'][done%3],1400);
    if(done===jobs.length)finish();return 'ok';}});
   window.RikiRP=R;
   const tvTap=async()=>{if(done>=jobs.length)return;distracted++;zMiss();audio('tap');dollReact(false);R.say('Ooh, my show!');await g6Talk('mom','Not yet, sweetie. First jobs, then TV!',{expr:'neutral'});};
@@ -2157,12 +2160,43 @@ function rpClassroom(roomSel,btnSel,keyOf,expect,{onRound}={}){const old=$id(roo
    const [k,[it]]=task,exp=expect();
    if(k==='tray'||k==='worksheet'){if(!sheetDone){R.say('I have to finish it first! Tap my worksheet.');return 'no';}}
    if(Array.isArray(it)){if(exp!==k){click(k);R.say('Oops, that wasn’t the job!');return 'no';}crIn++;audio('good');if(crIn<CR.length){R.say(`${CR.length-crIn} more!`,1000);return 'keep';}click(k);R.say('All picked up! ✨',1300);return 'ok';}
-   if(click(k)){R.say(['Done! ✨','Got it!','On it!'][Math.floor(Math.random()*3)],1300);if(k==='pencil'){R.say('Whirrr! ✏️ Sharp!',1500);}return 'ok';}
+   if(click(k)){
+    // Real visual for every action
+    const fx=(emoji,spot)=>{const d=document.createElement('div');d.className='rp-water';d.textContent=emoji;const s=RP_SPOTS.schoolroom[spot];if(!s)return;const c=sc3Proj('schoolroom',s[1],s[2],s[3]);d.style.left=c[0]+'%';d.style.top=(c[1]-6)+'%';R.st.appendChild(d);setTimeout(()=>d.remove(),1800);};
+    if(k==='pencil'&&R.items.pencil){const img=R.items.pencil.querySelector('img');if(img){const u=p3Render('pencil');if(u)img.src=u;}fx('✨','pencil');R.say('Whirrr! ✏️ Sharp!',1400);}
+    else if(k==='plant'){fx('💧💧','plant');R.say('The plant looks happy! 🌱',1400);}
+    else if(k==='board'){fx('✨','board');if(R.items.eraser)R.items.eraser.classList.add('done');R.say('Board is clean! 🧽',1200);}
+    else if(k==='trash'&&R.items.paper){R.items.paper.classList.add('gone');fx('🗑️','trash');R.say('In the trash!',1200);}
+    else if(k==='hook'&&R.items.coat){R.items.coat.classList.add('gone');fx('🧥','hook');R.say('Coat is hung up!',1200);}
+    else if(k==='cubby'&&R.items.backpack){R.items.backpack.classList.add('gone');fx('🎒','cubby');R.say('In your cubby!',1200);}
+    else if(k==='shelf'&&R.items.book){R.items.book.classList.add('gone');fx('📚','shelf');R.say('On the shelf!',1200);}
+    else if(k==='crayons'){CR.forEach(id=>{if(R.items[id])R.items[id].classList.add('gone');});fx('🖍️','crayons');R.say('All in the box!',1200);}
+    else if(k==='toy bin'&&R.items.teddyb){R.items.teddyb.classList.add('gone');fx('🧸','bin');R.say('In the toy bin!',1200);}
+    else if(k==='rug'){fx('🟦','rug');R.say('Sitting on the rug!',1200);}
+    else if(k==='water'){fx('🚰','water');R.say('Got a drink!',1200);}
+    else if(k==='door'){fx('🚪','door');R.say('Lined up at the door!',1200);}
+    else if(k==='folder'&&R.items.folder){R.items.folder.classList.add('gone');fx('📁','folder');R.say('Got the folder!',1200);}
+    else if(k==='star'){fx('⭐','star');R.say('At the star desk!',1200);}
+    else if(k==='tray'||k==='worksheet'){if(R.items.worksheet)R.items.worksheet.classList.add('gone');fx('📝','tray');R.say('In the tray!',1200);}
+    else if(k==='books'&&R.items.book){R.items.book.classList.add('gone');fx('📚','shelf');R.say('On the shelf!',1200);}
+    else{R.say(['Done! ✨','Got it!','On it!'][Math.floor(Math.random()*3)],1200);}
+    return 'ok';
+  }
    R.say('Oops, that wasn’t the job!');return 'no';}});
  R.ready.then(()=>{
   const need=new Set();Object.keys(byKey).forEach(k=>{const tk=RP_TASK[k];if(!tk||tk[0]==='riki')return;(Array.isArray(tk[0])?tk[0]:[tk[0]]).forEach(i=>need.add(i));});
   need.forEach(id=>{const s=RP_START[id];if(!s)return;R.addItem(id,s[0],s[1],s[2],s[3],s[4]||0,id==='worksheet'?()=>{if(sheetDone){R.say('Done! Now it goes in Ms. Dana’s tray.');return;}rpWorksheet(R,ok=>{sheetDone=true;if(ok)slGain(1);R.items.worksheet&&R.items.worksheet.classList.add('done');R.say('Finished! ⭐');});}:null);});
   const ps=document.getElementById('escPsst');if(ps)R.st.appendChild(ps);
+  // Classmates at the other desks — can distract
+  [['maya',-1.4,1.0],['zoe',1.4,1.0]].forEach(([who,x,z])=>{
+    const el=document.createElement('div');el.className='rp-kid';el.dataset.who=who;
+    el.innerHTML=`<div class="rp-img">${slFace(who==='maya'?'friend':'friend2','happy')}</div>`;
+    R.st.appendChild(el);
+    const P=(xx,yy,zz)=>sc3Proj('schoolroom',xx,yy,zz);
+    const f=P(x,0,z),t=P(x,1.2,z);
+    el.style.left=f[0]+'%';el.style.top=f[1]+'%';el.style.height=Math.max(8,f[1]-t[1])+'%';
+    el.onclick=()=>{zMiss();audio('tap');dollReact(false);g6Say(who,'Psst! Riki, look!');R.say('Oops — stay on your job!',1400);};
+  });
   const hi=zEvery(()=>{if(!R.st.isConnected){clearInterval(hi);return;}if(old.hidden)return;if(Date.now()-R.last<(easy(curUnit())?10000:16000))return;const k=expect();const tk=k&&RP_TASK[k];if(!tk)return;if(tk[0]==='riki'||k==='folder'){R.hint(tk[0]==='riki'?tk[1]:null);if(k==='folder'){const f=R.items.folder;f&&f.classList.add('hinted');setTimeout(()=>f&&f.classList.remove('hinted'),3500);}}else{const ids=Array.isArray(tk[0])?tk[0]:[tk[0]];const it=ids.map(i=>R.items[i]).find(e=>e&&!e.classList.contains('gone'));if(it){it.classList.add('hinted');setTimeout(()=>it.classList.remove('hinted'),3500);}}R.last=Date.now();},1000);});
  R.resetAll=()=>{Object.keys(R.items).forEach(id=>{const el=R.items[id];if(id==='worksheet'&&el.classList.contains('gone')){sheetDone=false;el.classList.remove('done');}if(id==='worksheet'&&!el.classList.contains('gone'))return;R.reset(id);});crIn=0;R.home();};
  if(onRound)onRound(R);window.RikiRP=R;return R;}
@@ -2178,7 +2212,7 @@ if(!document.getElementById('rpCss')){const st=document.createElement('style');s
 .rp-item.done::after{content:'⭐';position:absolute;right:-4px;top:-4px;font-size:16px}
 .rp-prop{pointer-events:none}
 .rp-name{position:absolute;transform:translate(-50%,-50%);background:#fff;border:2px solid #4a2338;border-radius:999px;padding:2px 7px;font-size:11px;font-weight:900;color:#4a2338;pointer-events:none;z-index:1900;white-space:nowrap;box-shadow:0 1px 4px #0002}.rp-name.me{background:#ffe6f1;border-color:#ff7eb6;color:#c2185b}
-.rp-riki{aspect-ratio:.62;transition-property:left,top,height;transition-timing-function:cubic-bezier(0.45,0,0.55,1);cursor:grab;touch-action:none}.rp-riki .rp-img{width:100%;height:100%;filter:drop-shadow(0 6px 4px rgba(80,40,40,.25))}.rp-riki .rp-img svg,.rp-riki .rp-img img{width:100%;height:100%;object-fit:contain;object-position:bottom}.rp-riki.flip .rp-img{transform:scaleX(-1)}.rp-riki.drag{transition:none;z-index:9999!important}
+.rp-water{position:absolute;transform:translate(-50%,-50%);font-size:18px;pointer-events:none;z-index:2000;animation:rpDrop 1.5s ease-out forwards}@keyframes rpDrop{from{opacity:1;transform:translate(-50%,-50%) translateY(0)}to{opacity:0;transform:translate(-50%,-50%) translateY(20px)}}.rp-kid{position:absolute;transform:translate(-50%,-100%);aspect-ratio:.62;cursor:pointer;z-index:5}.rp-kid .rp-img{width:100%;height:100%;filter:drop-shadow(0 4px 3px rgba(80,40,40,.2))}.rp-riki{aspect-ratio:.62;transition-property:left,top,height;transition-timing-function:cubic-bezier(0.45,0,0.55,1);cursor:grab;touch-action:none}.rp-riki .rp-img{width:100%;height:100%;filter:drop-shadow(0 6px 4px rgba(80,40,40,.25))}.rp-riki .rp-img svg,.rp-riki .rp-img img{width:100%;height:100%;object-fit:contain;object-position:bottom}.rp-riki.flip .rp-img{transform:scaleX(-1)}.rp-riki.drag{transition:none;z-index:9999!important}
 .rp-riki.walk .rp-img{animation:cpBob .32s ease-in-out infinite}.rp-riki.cheer .rp-img{animation:rigHop .55s cubic-bezier(.3,1.4,.5,1) 2}
 .rp-hint{position:absolute;transform:translate(-50%,-50%) scale(.8);background:#fff;border-radius:999px;padding:3px 9px;font-size:11px;font-weight:900;color:#c2185b;white-space:nowrap;pointer-events:none;z-index:2000;box-shadow:0 0 0 3px #ffd34d,0 0 18px 6px rgba(255,211,77,.7);opacity:0;transition:opacity .25s,transform .25s cubic-bezier(0.23,1,0.32,1)}.rp-hint.on{opacity:1;transform:translate(-50%,-50%) scale(1);animation:rpPulse 1s ease-in-out infinite}@keyframes rpPulse{50%{box-shadow:0 0 0 3px #ffd34d,0 0 26px 10px rgba(255,211,77,.9)}}
 .rp-bub{position:absolute;left:50%;bottom:96%;transform:translateX(-50%) scale(.9);width:max-content;max-width:180px;background:#fff;border-radius:14px;padding:5px 9px;font-size:12px;font-weight:800;color:#4a2338;box-shadow:0 0 0 2px #4a2338;opacity:0;transition:opacity .2s,transform .2s cubic-bezier(0.23,1,0.32,1);pointer-events:none;z-index:9999}.rp-bub.on{opacity:1;transform:translateX(-50%) scale(1)}
