@@ -16,6 +16,10 @@ try{
   });
   await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>!!window.RikiMath,{timeout:25000});
+  const originalSave=await page.evaluate(()=>({
+   inventory:localStorage.getItem('rickyHouseInventoryV1'),
+   roots:localStorage.getItem('rikiRootProgressV1')
+  }));
   await page.locator('#rkMathShortcut').click();
   await page.locator('#rkMathRecipe').click();
   let wrongDone=false;
@@ -64,7 +68,7 @@ try{
   assert.equal(stats.correct,5,'each correctly served order recorded once');
   assert.equal(stats.attempts,6,'one wrong attempt plus five correct');
   const safety=await page.evaluate(()=>({inventory:localStorage.getItem('rickyHouseInventoryV1'),roots:localStorage.getItem('rikiRootProgressV1')}));
-  assert.deepEqual(safety,{inventory:'["heartkitchencabinet"]',roots:'{"testRoot":9}'});
+  assert.deepEqual(safety,originalSave,'math game must preserve inventory after normal starter furniture is initialized');
   await page.reload({waitUntil:'domcontentloaded'});
   assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'180','coins survive refresh');
   assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('rikiMathProgressV1')||'{}'))).completed.recipe,1);
