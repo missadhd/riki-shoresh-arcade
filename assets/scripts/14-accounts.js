@@ -61,6 +61,16 @@ async function save(){
  else {await api('/rest/v1/arcade_progress','POST',{player_id:player,snapshot})}
  lastSaved=serialized;status('Cloud progress saved');
 }
+async function openRiki(){
+ if(!session||!await refresh()){login();status('Adult email sign-in is required before using a cloud player.');return;}
+ try{
+  const players=await api('/rest/v1/arcade_players?select=id,nickname&order=created_at.asc');
+  const matching=players.filter(p=>p.nickname.trim().toLowerCase()==='riki');
+  if(matching.length===1){await switchTo(matching[0].id);return;}
+  await list();
+  const note=$('rkAccountMsg');if(note)note.textContent=matching.length>1?'Choose the correct Riki profile.':'Create a player named Riki under your adult account, then select her. Existing browser progress will not import without your choice.';
+ }catch(e){status('Account unavailable: '+e.message)}
+}
 function login(){
  modal('<h2>Guardian sign in</h2><p>Adults can use an email link to manage separate child profiles. No child email needed.</p><form id="rkSignIn"><label>Your email <input name="email" type="email" autocomplete="email" required></label><button type="submit">Send sign-in link</button></form><p id="rkAccountMsg" role="status"></p><button type="button" id="rkAccountClose">Keep playing as guest</button>');
  $('rkAccountClose').onclick=close;
@@ -81,10 +91,11 @@ async function initialize(){
  }
 }
 document.addEventListener('DOMContentLoaded',()=>{
- const bar=document.createElement('div');bar.id='rkAccountBar';bar.innerHTML='<button type="button" id="rkAccountOpen">👨‍👩‍👧 Family accounts</button> <span id="rkAccountStatus" role="status">Guest • this browser</span>';
+ const bar=document.createElement('div');bar.id='rkAccountBar';bar.innerHTML='<button type="button" id="rkAccountOpen">👨‍👩‍👧 Family accounts</button> <button type="button" id="rkRikiOpen" aria-label="Play as Riki using guardian account">🎮 Riki</button> <span id="rkAccountStatus" role="status">Guest • this browser</span>';
  const host=document.querySelector('main#app');host.parentElement.insertBefore(bar,host);
  const dialog=document.createElement('section');dialog.id='rkAccountDialog';dialog.hidden=true;dialog.innerHTML='<div id="rkAccountPanel"></div>';host.parentElement.insertBefore(dialog,host);
  $('rkAccountOpen').onclick=()=>session?list():login();
+ $('rkRikiOpen').onclick=openRiki;
  initialize().catch(err=>status('Account unavailable: '+err.message));
  window.addEventListener('pagehide',()=>{if(player)save().catch(()=>{})});
 });
