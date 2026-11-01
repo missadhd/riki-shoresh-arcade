@@ -93,7 +93,7 @@ function curtainFor(room){
 const matCache={};
 function mat(c,rough=.75,metal=0,extra){
   // Matte clay on opaque toy surfaces; keep eyes, glass, water and lights crisp.
-  if(rough>=.2&&metal<.5&&!(extra&&(extra.transparent||extra.emissive))){rough=Math.max(.88,rough);}
+  if(rough>=.2&&metal<.5&&!(extra&&(extra.transparent||extra.emissive))){rough=Math.max(.92,rough);}
   const k=c+rough+metal+(extra?JSON.stringify(Object.keys(extra)):'');if(!extra&&matCache[k])return matCache[k];
   const m=new THREE.MeshStandardMaterial(Object.assign({color:new THREE.Color(c).convertSRGBToLinear(),roughness:rough,metalness:metal},extra||{}));if(!extra)matCache[k]=m;return m;}
 const fabric=c=>mat(c,.95),gloss=c=>mat(c,.22),wood=(c='#b9824f')=>mat(c,.88),metalM=(c='#d8b46a')=>mat(c,.65,.28);
@@ -277,6 +277,50 @@ function floorTex(id){
     }
   });
 }
+
+/* ---- floors in shop (Grok) ---- */
+(function injectFloors(){
+  const orig = window.houseRender;
+  if (!orig || orig._floors) return;
+  window.houseRender = function(){
+    const r = orig.apply(this, arguments);
+    try {
+      if ((0,eval)("housePage") !== 'shop') return r;
+      const panel = document.querySelector('.panel');
+      if (!panel || document.getElementById('rkFloorShop')) return r;
+      const room = (0,eval)("currentRoom") || 'bedroom';
+      const coins = (0,eval)("coins") || 0;
+      const box = document.createElement('section');
+      box.id = 'rkFloorShop';
+      box.className = 'panel';
+      box.innerHTML = `<h2 class="sectiontitle">🪵 Floors for this room</h2><p>Buy a floor, then open Decorate to see it.</p><div style="display:flex;flex-wrap:wrap;gap:8px">${FLOORS.filter(f=>room==='garden'?true:f.id!=='grass').map(f=>{
+        const owned = floorChoices()[room] === f.id;
+        const label = owned ? '✓ Using' : (f.price ? f.price + '🪙' : 'Free');
+        return `<button type="button" class="smallbtn" data-shop-floor="${f.id}" ${(!owned && f.price && coins < f.price)?'disabled':''}>${f.name} · ${label}</button>`;
+      }).join('')}</div>`;
+      panel.parentNode.insertBefore(box, panel.nextSibling);
+      box.querySelectorAll('[data-shop-floor]').forEach(b => {
+        b.onclick = () => {
+          const id = b.dataset.shopFloor;
+          const f = FLOORS.find(x => x.id === id);
+          if (!f) return;
+          const cns = (0,eval)("coins") || 0;
+          const owned = floorChoices()[room] === id;
+          if (!owned && f.price > 0 && cns < f.price) return;
+          if (!owned && f.price > 0) {
+            (0,eval)(`coins=${cns - f.price};`);
+            try { localStorage.setItem('rickyCoins', String(cns - f.price)); } catch(e){}
+          }
+          const c = floorChoices(); c[room] = id; floorSave(c);
+          window.houseRender();
+        };
+      });
+    } catch(e) {}
+    return r;
+  };
+  window.houseRender._floors = true;
+})();
+
 function applyFloor(room){
   const f = floorFor(room);
   const coins = G('coins') || 0;
@@ -604,22 +648,7 @@ function edBuild(room){
   if (zOut) zOut.onclick = () => { ED.zoom = cl(ED.zoom + 0.12, 0.4, 1.6); };
   const center = document.getElementById('rk3Center');
   if (center) center.onclick = () => { ED.azT = 0; ED.elT = 0.42; ED.zoom = 0.85; };
-  document.querySelectorAll('[data-floor]').forEach(b => {
-    b.onclick = () => {
-      const id = b.dataset.floor;
-      const f = FLOORS.find(x => x.id === id);
-      if (!f) return;
-      const coins = G('coins') || 0;
-      const owned = floorChoices()[room] === id;
-      if (!owned && f.price > 0 && coins < f.price) { msg('Not enough coins for that floor.'); return; }
-      if (!owned && f.price > 0) {
-        SET(`coins=${coins - f.price};`);
-        try { localStorage.setItem('rickyCoins', String(coins - f.price)); } catch(e){}
-      }
-      const c = floorChoices(); c[room] = id; floorSave(c);
-      edBuild(room);
-    };
-  });
+
   const ring=new THREE.Mesh(new THREE.RingGeometry(.62,.72,48),new THREE.MeshBasicMaterial({color:0xe2457a,transparent:true,opacity:.85,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=.02;ring.visible=false;s.add(ring);ED.ring=ring;
   ED.floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
   const selId=ED.sel;ED.sel=null;if(selId)edSelect(selId,true);
@@ -629,9 +658,9 @@ function edCamera(){
   const c=ED.R.domElement,w=c.clientWidth||1,h=c.clientHeight||1;ED.cam.aspect=w/h;ED.cam.fov=42;
   const vf=ED.cam.fov*Math.PI/180,hf=2*Math.atan(Math.tan(vf/2)*ED.cam.aspect);
   const need=Math.max((ED.W/2+.15)/Math.tan(hf/2),(ED.H*.62)/Math.tan(vf/2));const dist=need*ED.zoom+ED.D*.35;
-  // Aim a bit higher when looking up, but stay inside the room
-  const lookY = ED.H * (0.28 + Math.max(0, ED.el - 0.35) * 0.4);
-  const tgt=new THREE.Vector3(0, lookY, -.3);
+  // Look higher as you tilt up so the ceiling underside comes into view
+  const lookY = ED.H * (0.25 + Math.max(0, ED.el - 0.3) * 0.7);
+  const tgt=new THREE.Vector3(0, Math.min(lookY, ED.H - 0.15), -.2);
   let camY = tgt.y + Math.sin(ED.el) * dist;
   camY = cl(camY, 0.4, ED.H - 0.3);
   let camX = tgt.x + Math.sin(ED.az) * Math.cos(ED.el) * dist;
@@ -673,7 +702,7 @@ function edPointers(cv){
     if(!d.moved)return;
     if(d.item&&!d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v){d.item.position.x=v.x;d.item.position.z=v.z;}}
     else if(d.item&&d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v)d.item.position.x=v.x;}
-    else{ED.azT=cl(ED.azT-(e.clientX-d.lx)*.006,-.55,.55);ED.elT=cl(ED.elT+(e.clientY-d.ly)*.004,.15,.78);ED.az=ED.azT;ED.el=ED.elT;}
+    else{ED.azT=cl(ED.azT-(e.clientX-d.lx)*.006,-.55,.55);ED.elT=cl(ED.elT+(e.clientY-d.ly)*.004,.18,.95);ED.az=ED.azT;ED.el=ED.elT;}
     d.lx=e.clientX;d.ly=e.clientY;});
   let lastTap = 0, lastTapX = 0, lastTapY = 0;
   const up=e=>{if(ED.storage){storageUp(e);return;}const d=ED.drag;if(!d||d.id!==e.pointerId)return;ED.drag=null;
@@ -751,7 +780,7 @@ const prevHtml=G('decorateHtml'),prevBind=G('bindDecor');
 if(typeof prevHtml==='function'&&typeof prevBind==='function'){
   const newHtml=function(){let h=prevHtml.apply(this,arguments);const room=G('currentRoom')||'bedroom';
     h=h.replace(/<div class="dream-room dream3d" id="dreamRoom">\s*<canvas[^>]*><\/canvas>/,`<div class="rk3-room ${room}" id="dreamRoom"><div class="rk3-load">Building your room…</div>`);
-    h=h.replace(/<div class="riki3d-hud">[\s\S]*?<\/div>/,`<div class="riki3d-hud"><span>🏡 ${NICE[room]||'Dream room'}</span><span>Drag to look around</span><button type="button" class="smallbtn" id="rk3ZoomOut" style="pointer-events:auto" aria-label="Zoom out">−</button><button type="button" class="smallbtn" id="rk3ZoomIn" style="pointer-events:auto" aria-label="Zoom in">+</button><button type="button" class="smallbtn" id="rk3Center" style="pointer-events:auto" aria-label="Center view">◎</button><button type="button" class="smallbtn" id="rk3CeilingToggle" style="pointer-events:auto;margin-left:auto">🏠 Hide ceiling</button></div><div class="riki3d-hud" style="top:auto;bottom:8px;pointer-events:auto"><span style="font-size:12px">Floors:</span>${FLOORS.filter(f=>room==='garden'?f.id==='grass'||f.id==='tile':f.id!=='grass').map(f=>`<button type="button" class="smallbtn" data-floor="${f.id}" style="pointer-events:auto;font-size:12px">${f.name}${f.price?` · ${f.price}🪙`:''}</button>`).join('')}</div>`);
+    h=h.replace(/<div class="riki3d-hud">[\s\S]*?<\/div>/,`<div class="riki3d-hud"><span>🏡 ${NICE[room]||'Dream room'}</span><span>Drag to look around</span><button type="button" class="smallbtn" id="rk3ZoomOut" style="pointer-events:auto" aria-label="Zoom out">−</button><button type="button" class="smallbtn" id="rk3ZoomIn" style="pointer-events:auto" aria-label="Zoom in">+</button><button type="button" class="smallbtn" id="rk3Center" style="pointer-events:auto" aria-label="Center view">◎</button><button type="button" class="smallbtn" id="rk3CeilingToggle" style="pointer-events:auto;margin-left:auto">🏠 Hide ceiling</button></div>`);
     h=h.replace(/<p class="riki3d-legend">[\s\S]*?<\/p>/,'<p class="riki3d-legend">Tap something you bought below, then tap the floor to place it. Drag furniture to move it. Drag the empty room to look around.</p>');
     h=h.replace(/<p class="riki3d-legend">[\s\S]*?<\/p>/,`<p class="riki3d-legend">Tap an owned item below, then tap the floor to place it. Tap furniture to select it and drag to move. Drag empty space to look around.</p><div class="rk3-selection-tools" style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0"><strong id="rk3SelectedStatus" role="status" aria-live="polite">✨ Tap furniture to select it, or choose an owned item below</strong><button type="button" class="smallbtn" id="rk3ClearSelection" hidden>✕ Deselect</button></div>`);
     return h;};
