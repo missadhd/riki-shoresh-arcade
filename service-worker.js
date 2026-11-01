@@ -1,7 +1,7 @@
 /* Riki Arcade: offline shell for previously loaded, same-origin game resources.
    Does not claim full offline support for external libraries, audio or 3D content. */
-const CACHE='riki-arcade-shell-v1';
-const SHELL=['./','./index.html','./manifest.webmanifest','./assets/icons/arcade-icon.svg'];
+const CACHE='riki-arcade-shell-v2';
+const SHELL=['./','./index.html','./manifest.webmanifest','./assets/icons/arcade-icon.svg','./assets/icons/icon-192.png','./assets/icons/icon-512.png','./assets/icons/icon-maskable-512.png','./assets/icons/apple-touch-icon-180.png'];
 self.addEventListener('install',event=>{
  event.waitUntil((async()=>{
   const cache=await caches.open(CACHE);
