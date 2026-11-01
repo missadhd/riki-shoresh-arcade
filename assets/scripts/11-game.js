@@ -5,9 +5,9 @@
 const G=n=>{try{return (0,eval)(n)}catch(e){return undefined}};
 const SET=code=>{try{(0,eval)(code)}catch(e){}};
 const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
-const THREE_URL='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+const THREE_URL='assets/vendor/three-r128.min.js',THREE_CDN='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';/* local copy is byte-identical to cdnjs r128; CDN is only a fallback */
 let threeWaiters=null;
-function loadThree(cb,fail){if(window.THREE)return cb();if(threeWaiters){threeWaiters.push([cb,fail]);return;}threeWaiters=[[cb,fail]];const s=document.createElement('script');s.src=THREE_URL;s.onload=()=>{const w=threeWaiters;threeWaiters=null;w.forEach(x=>x[0]());};s.onerror=()=>{const w=threeWaiters;threeWaiters=null;w.forEach(x=>x[1]&&x[1]());};document.head.appendChild(s);}
+function loadThree(cb,fail){if(window.THREE)return cb();if(threeWaiters){threeWaiters.push([cb,fail]);return;}threeWaiters=[[cb,fail]];const add=(url,next)=>{const s=document.createElement('script');s.src=url;s.onload=()=>{const w=threeWaiters;threeWaiters=null;w.forEach(x=>x[0]());};s.onerror=()=>{s.remove();if(next)return add(next,null);const w=threeWaiters;threeWaiters=null;w.forEach(x=>x[1]&&x[1]());};document.head.appendChild(s);};add(THREE_URL,THREE_CDN);}
 
 /* ================= styles ================= */
 const css=`.rk3-room{position:relative;height:clamp(340px,min(70vh,124vw),600px);width:100%;max-width:840px;border-radius:26px;overflow:hidden;touch-action:none;background:linear-gradient(#f7ebe4,#efe0d6);border:3px solid #fff;box-shadow:0 18px 34px -16px #4a233866;margin:10px auto}

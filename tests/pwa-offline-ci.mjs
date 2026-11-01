@@ -16,7 +16,15 @@ try{
  await page.locator('#app').waitFor({state:'visible',timeout:15000});
  const body=await page.locator('body').innerText();
  if(!/Shoresh|Arcade|Games/i.test(body))throw Error('Offline shell had no arcade text');
- console.log('Offline reload PASS; worker scope:',registration.scope);
+ // 3D must also work offline: three.js r128 is vendored and precached by the worker.
+ const errs=[];page.on('pageerror',e=>errs.push(e.message));
+ await page.evaluate(()=>window.RikiStudio.start('cupcakes'));
+ await page.waitForFunction(()=>!!window.THREE&&window.THREE.REVISION==='128',{timeout:20000});
+ await page.waitForTimeout(1500);
+ const canvases=await page.locator('canvas').count();
+ if(!canvases)throw Error('Offline 3D studio rendered no canvas');
+ if(errs.length)throw Error('Offline 3D errors: '+errs.join(' | '));
+ console.log('Offline reload PASS; offline 3D PASS (THREE r128, '+canvases+' canvas); worker scope:',registration.scope);
 }catch(e){
  console.error('Offline reload FAIL:',e.stack);
  await page.screenshot({path:'pwa-offline-failure.png',fullPage:true}).catch(()=>{});
