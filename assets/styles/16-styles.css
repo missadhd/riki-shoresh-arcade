@@ -596,3 +596,6 @@ body{background:#f7f4f8!important;color:#443247}
 
 /* Dedicated full-art crop: hearts overlap their original 4x4 sprite cell. */
 #hubSocial .hub-ic::before{background-image:url('../images/clay/social-hearts-complete.svg');background-size:contain;background-position:center;background-repeat:no-repeat;transform:none}
+
+/* Social Skills > Feelings & Calming: use the same complete art as the home hub. */
+.sk-g.ct-tile[data-cat="calm"] > b{display:block;width:90px;height:74px;flex-shrink:0;font-size:0!important;line-height:0!important;background:url('../images/clay/social-hearts-complete.svg') center / contain no-repeat}
