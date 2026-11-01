@@ -718,8 +718,10 @@ window.RikiClaw={start,plush:PLUSH,mini:MINI,buildPlush};
 const K=window.RK3;if(!K)return;
 const {RB,BX,SP,CY,mat}=K;
 const G=n=>{try{return (0,eval)(n);}catch(_){}};
-const isStorage=id=>/^(fridge|shelf|dresser|vanity)|^(wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox|rainbowcubbies|blushtoybox)$/.test(id);
+const MINI_FRIDGES=/^(clayfridge|minifridge|heartfridge)$/;
+const isStorage=id=>MINI_FRIDGES.test(id)||/^(fridge|shelf|dresser|vanity)|^(wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox|rainbowcubbies|blushtoybox)$/.test(id);
 function profile(id){
+ if(MINI_FRIDGES.test(id))return {kind:'fridge',w:.66,h:.92,d:.54,rows:3,cols:3};
  if(/^fridge/.test(id))return {kind:'fridge',w:.78,h:1.75,d:.66,rows:3,cols:3};
  if(/^dresser|^nightstand/.test(id))return {kind:'drawers',w:id==='nightstand'?.5:.9,h:id==='nightstand'?.6:.95,d:.52,rows:id==='nightstand'?2:3,cols:id==='nightstand'?2:3};
  if(/^vanity|^desk$/.test(id))return {kind:'vanity',w:1,h:1.65,d:.5,rows:2,cols:2};
@@ -761,8 +763,28 @@ K.prepareStorage=function(g,it){
  const id=it[0];if(!isStorage(id)||g.userData.storage)return;
  const p=profile(id),state={profile:p,parts:[],slots:[],id,focused:false};g.userData.storage=state;
  if(p.kind==='fridge'){
-  const door=g.userData.fridgeDoor;if(door)tagPart(door,0,state.parts,'door',0,Math.PI*.57);
-  rows(state,g,.59,.44,[.09,.51,.95]);
+  let door=g.userData.fridgeDoor;
+  if(!door&&MINI_FRIDGES.test(id)){
+   // New clay mini-fridges were decorative only: give them actual hinged doors.
+   // Existing inventory, food slots and saved-data formats are unchanged.
+   for(const child of [...g.children])g.remove(child);
+   const pink=id==='heartfridge'?'#fff2eb':id==='clayfridge'?'#f1b6ca':'#f6cbd9';
+   caseShell(g,p.w,p.h,p.d,pink);
+   const shelf=mat('#fff5ec',.91);
+   [.30,.59].forEach(y=>RB(g,p.w-.12,.023,p.d-.1,.012,shelf,0,y,0));
+   door=new THREE.Group();door.position.set(-p.w/2,0,p.d/2+.04);g.add(door);
+   const face=mat(id==='heartfridge'?'#f4a8c1':'#f9d8e4',.85);
+   RB(door,p.w-.025,p.h-.035,.052,.045,face,p.w/2,p.h/2,0);
+   RB(door,p.w-.13,p.h-.20,.012,.018,mat('#ffeaf1',.9),p.w/2,p.h/2,.031);
+   const kx=p.w-.13,ky=p.h*.57,kz=.068,heart=mat('#e88cad',.82);
+   const tip=RB(door,.075,.075,.025,.018,heart,kx,ky-.025,kz);
+   tip.rotation.z=Math.PI/4;
+   SP(door,.045,heart,kx-.027,ky+.015,kz,1,.8,.45);
+   SP(door,.045,heart,kx+.027,ky+.015,kz,1,.8,.45);
+   tagPart(door,0,state.parts,'door',0,-Math.PI*.57);
+   g.userData.fridgeDoor=door;
+  }else if(door)tagPart(door,0,state.parts,'door',0,Math.PI*.57);
+  rows(state,g,p.w-.13,p.d-.10,MINI_FRIDGES.test(id)?[.10,.39,.68]:[.09,.51,.95]);
  }else if(p.kind==='shelf'){
   // Remove only the model's placeholder books; owned books are hydrated below.
   const remove=[];g.traverse(o=>{if(o.userData.stockBooks)remove.push(o);});remove.forEach(o=>o.parent.remove(o));
@@ -822,11 +844,11 @@ const groceries=[
 const items=G('ITEMS')||[];
 groceries.forEach(it=>{if(!items.some(x=>x[0]===it[0]))items.push(it);});
 const foodIds=new Set([...groceries.map(x=>x[0]),'cupcake','cakeplate','cake','birthdaycake','partycake','fruitbowl','waffles','donuttower','icecreamtower','breadbasket','strawberryjam','macaronplate','clawgroceries']);
-const isFridge=id=>id==='fridge'||id==='fridgeretro';
+const isFridge=id=>/^(fridge|fridgeretro|clayfridge|minifridge|heartfridge)$/.test(id);
 const isFood=id=>foodIds.has(id);
 const isOwned=id=>(G('owned')||[]).includes(id);
 const isPlaced=(id,room)=>Object.values((G('decor')||{})[room]||{}).includes(id);
-const storageType=id=>/^(fridge|shelf|dresser|vanity)|^(wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox|rainbowcubbies|blushtoybox)$/.test(id);
+const storageType=id=>/^(fridge|shelf|dresser|vanity)|^(clayfridge|heartfridge|minifridge|wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox|rainbowcubbies|blushtoybox)$/.test(id);
 const usable=(id,room)=>storageType(id)&&isOwned(id)&&isPlaced(id,room);
 const capacityFor=id=>{const p=K&&K.storageProfile?K.storageProfile(id):null;return p?p.rows*p.cols:9;};
 const isSmall=item=>{const it=items.find(x=>x[0]===item),fn=G('itemType');return !!(it&&typeof fn==='function'&&['Toys','Miniatures','Claw prizes','Fridge Food'].includes(fn(it)));};
@@ -1589,7 +1611,7 @@ let kit=null;const fit={};
  if(META){CLAY_NEW.forEach(n=>{META[n[0]]={room:n[5],category:n[6],name:n[2],new:true};});Object.entries(CLAY_RECAT).forEach(([id,[room,cat]])=>{if(META[id])Object.assign(META[id],{room,category:cat});});}}
 const NEW_WALL=new Set(CLAY_NEW.filter(n=>n[9]).map(n=>n[0]));
 const KEEP=/^(swing|swingrainbow|butterfly|fishtank|fridge|fridgeretro|shelfmoon|shelftree|shelfhouse|shelfrainbow|shelfladder|shelfcastle|shelfpineapple|rainbowcubbies|toybox|blushtoybox|cupboard|bathcabinet|tvcabinet)$/;
-const STORE=/^(fridge|shelf|dresser|vanity)|^(wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox|rainbowcubbies|blushtoybox)$/;
+const STORE=/^(fridge|shelf|dresser|vanity)|^(clayfridge|heartfridge|minifridge|wardrobe|cupboard|tvcabinet|nightstand|desk|bathcabinet|bookshelfplay|toybox|rainbowcubbies|blushtoybox)$/;
 Object.keys(CLAY_PIECES).forEach(id=>{if(KEEP.test(id))return;const [fn,o]=CLAY_PIECES[id];const old=K.MODEL[id];
   const f=function(g,it){kit=kit||makeClayKit(THREE);const inner=new THREE.Group();kit[fn](inner,o);
     if(fit[id]===undefined){let s=1;if(old&&!STORE.test(id)){try{const tg=new THREE.Group();old(tg,it||[id]);const a=new THREE.Box3().setFromObject(tg).getSize(new THREE.Vector3()),b=new THREE.Box3().setFromObject(inner).getSize(new THREE.Vector3());const fa=Math.max(a.x,a.z),fb=Math.max(b.x,b.z);if(fa>.05&&fb>.05)s=Math.min(1.3,Math.max(.75,fa/fb));}catch(e){}}fit[id]=s;}
