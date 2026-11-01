@@ -56,29 +56,63 @@ try {
       console.log('ROOM '+width+'px '+room+': preview, placed in 3D, and saved');
 
       if(room==='kitchen'){
+        // The viewport controls must not overlap one another on a small phone.
+        const controls=await page.evaluate(()=>{
+          const box=document.getElementById('dreamRoom'),front=box.querySelector('#rk3Front');
+          const hud=box.querySelector('.riki3d-hud'),hint=hud?.querySelector('span:nth-of-type(2)');
+          const f=front.getBoundingClientRect();
+          const buttons=[...hud.querySelectorAll('button')].filter(b=>getComputedStyle(b).display!=='none');
+          return {hintVisible:hint&&getComputedStyle(hint).display!=='none',
+            overlaps:buttons.some(b=>{const a=b.getBoundingClientRect();return a.left<f.right&&a.right>f.left&&a.top<f.bottom&&a.bottom>f.top;}),
+            undersized:buttons.some(b=>{const a=b.getBoundingClientRect();return a.width<40||a.height<40;})};
+        });
+        if(width===390){
+          assert.equal(controls.hintVisible,false,'phone HUD hint should not obstruct controls');
+          assert.equal(controls.overlaps,false,'phone HUD buttons must not overlap front view');
+          assert.equal(controls.undersized,false,'phone camera controls must remain touch-sized');
+        }
         // Exercise two-finger movement without adding unintended furniture drags/placements.
         const before=await page.evaluate(()=>({
           view:window.RK3.roomViewState(),
           positions:localStorage.getItem('rickyDreamPositionsV2'),
           decor:localStorage.getItem('rickyHouseDecorV1')
         }));
-        await page.evaluate(()=>{
-          const canvas=document.querySelector('#dreamRoom canvas');
-          const r=canvas.getBoundingClientRect();
-          const x=r.left+r.width*.5,y=r.top+r.height*.56;
-          const ev=(kind,id,px,py)=>canvas.dispatchEvent(new PointerEvent(kind,{
-            bubbles:true,cancelable:true,pointerId:id,pointerType:'touch',
-            isPrimary:id===321,clientX:px,clientY:py,button:0,buttons:kind==='pointerup'?0:1
-          }));
-          ev('pointerdown',321,x-27,y);
-          ev('pointerdown',322,x+27,y);
-          ev('pointermove',321,x-68,y);
-          ev('pointermove',322,x+68,y);
-          ev('pointerup',321,x-68,y);
-          // The remaining finger must NOT resume a single-item drag.
-          ev('pointermove',322,x+93,y+23);
-          ev('pointerup',322,x+93,y+23);
-        });
+        if(width===390){
+          // Genuine Chromium touch events (not manually dispatched pointer
+          // events) confirm the browser doesn't cancel pinch as page scroll.
+          const canvas=page.locator('#dreamRoom canvas');
+          await canvas.scrollIntoViewIfNeeded();
+          const r=await canvas.boundingBox(),x=r.x+r.width*.5,y=r.y+r.height*.57;
+          const cdp=await context.newCDPSession(page);
+          try{
+            await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[
+              {x:x-27,y},{x:x+27,y}
+            ]});
+            await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[
+              {x:x-66,y},{x:x+66,y}
+            ]});
+            await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+          }finally{await cdp.detach();}
+        }else{
+          // Browser-pointer regression on desktop exercises the same gesture
+          // guard without requiring a touch-capable physical monitor.
+          await page.evaluate(()=>{
+            const canvas=document.querySelector('#dreamRoom canvas');
+            const r=canvas.getBoundingClientRect();
+            const x=r.left+r.width*.5,y=r.top+r.height*.56;
+            const ev=(kind,id,px,py)=>canvas.dispatchEvent(new PointerEvent(kind,{
+              bubbles:true,cancelable:true,pointerId:id,pointerType:'touch',
+              isPrimary:id===321,clientX:px,clientY:py,button:0,buttons:kind==='pointerup'?0:1
+            }));
+            ev('pointerdown',321,x-27,y);
+            ev('pointerdown',322,x+27,y);
+            ev('pointermove',321,x-68,y);
+            ev('pointermove',322,x+68,y);
+            ev('pointerup',321,x-68,y);
+            ev('pointermove',322,x+93,y+23);
+            ev('pointerup',322,x+93,y+23);
+          });
+        }
         const after=await page.evaluate(()=>({
           view:window.RK3.roomViewState(),
           positions:localStorage.getItem('rickyDreamPositionsV2'),
