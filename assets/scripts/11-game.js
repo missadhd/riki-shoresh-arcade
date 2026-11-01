@@ -655,7 +655,7 @@ function lights(scene,size,shadowMap){
   const c=sun.shadow.camera;c.left=-size;c.right=size;c.top=size;c.bottom=-size;c.near=.5;c.far=size*5;sun.shadow.bias=-.0008;sun.shadow.normalBias=.03;sun.shadow.radius=6;scene.add(sun);
   const fill=new THREE.DirectionalLight(0xf0e6ff,.32);fill.position.set(size*.8,size*.5,-size*.4);scene.add(fill);
 }
-function makeRenderer(){const R=new THREE.WebGLRenderer({antialias:true,alpha:true});R.setPixelRatio(Math.min(1.75,window.devicePixelRatio||1));R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.12;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;return R;}
+function makeRenderer(){const R=new THREE.WebGLRenderer({antialias:true,alpha:true});rkQuality(R,2);R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.12;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;return R;}
 function animateItems(list,t){list.forEach(g=>{
   if(g.userData.bob){g.userData.bob.position.y=Math.sin(t*1.6+g.userData.phase)*.15;g.userData.bob.children.forEach((w,i)=>{const s=.35+Math.abs(Math.sin(t*9+i));w.userData.flap[0].scale.x=s;w.userData.flap[1].scale.x=s;});}
   if(g.userData.pet)g.position.y=g.userData.base+Math.abs(Math.sin(t*2.2+g.userData.phase))*.04;
@@ -914,7 +914,7 @@ function edLoop(){
   ED.az+=(ED.azT-ED.az)*.08;ED.el+=(ED.elT-ED.el)*.08;edCamera();if(DIO.on&&!ED.storage)dioCut();
   const t=performance.now()/1000;animateItems(ED.items,t);if(window.RK3.animateStorage)ED.items.forEach(g=>window.RK3.animateStorage(g));
   if(ED.ring.visible){ED.ring.material.opacity=.55+Math.sin(t*4)*.3;const g=ED.preview?ED.preview.group:ED.items.find(x=>x.userData.id===ED.sel);if(g&&!g.userData.onWall)ED.ring.position.set(g.position.x,.02,g.position.z);}
-  ED.R.render(ED.scene,ED.cam);
+  rkFrame(ED.R);ED.R.render(ED.scene,ED.cam);
 }
 function ndc(e){const r=ED.R.domElement.getBoundingClientRect();return new THREE.Vector2(((e.x-r.left)/r.width)*2-1,-((e.y-r.top)/r.height)*2+1);}
 function hitItem(pt){ED.ray.setFromCamera(ndc(pt),ED.cam);const hits=ED.ray.intersectObjects(ED.items,true);for(const h of hits){let o=h.object;while(o&&!o.userData.id)o=o.parent;if(o)return o;}return null;}
@@ -1157,7 +1157,7 @@ function hResize(){if(!H.R)return;const w=stage.clientWidth,h=stage.clientHeight
 function hLoop(){if(!H.open){H.looping=false;return;}requestAnimationFrame(hLoop);const k=.1;
   H.dist+=(H.distT-H.dist)*k;H.rotY+=(H.rotYT-H.rotY)*k;H.rotX+=(H.rotXT-H.rotX)*k;H.look.lerp(H.lookT,k);const el=H.rotX+.1;
   H.cam.position.set(H.look.x+Math.sin(H.rotY)*Math.cos(el)*H.dist,H.look.y+Math.sin(el)*H.dist,H.look.z+Math.cos(H.rotY)*Math.cos(el)*H.dist);H.cam.lookAt(H.look);
-  if(H.garden)H.garden.visible=(H.focus==='all'||H.focus==='garden');animateItems(H.items,performance.now()/1000);H.R.render(H.scene,H.cam);}
+  if(H.garden)H.garden.visible=(H.focus==='all'||H.focus==='garden');animateItems(H.items,performance.now()/1000);rkFrame(H.R);H.R.render(H.scene,H.cam);}
 function hInit(){
   H.R=makeRenderer();stage.prepend(H.R.domElement);H.cam=new THREE.PerspectiveCamera(40,1,.1,120);H.look=new THREE.Vector3(0,3.2,0);H.lookT=H.look.clone();
   const pts=new Map();let last=null,pinch=0;
@@ -1206,8 +1206,31 @@ function disposeScene(root){if(!root||!root.traverse)return;const seen=new Set()
   (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(!m||seen.has(m))return;seen.add(m);for(const k in m){if(m[k]&&m[k].isTexture)tex(m[k]);}m.dispose();});
   if(o.isLight&&o.shadow&&o.shadow.map){o.shadow.map.dispose();o.shadow.map=null;}});
  if(root.background&&root.background.isTexture)tex(root.background);}
+/* Cozy clay render helpers (Grok, Nov 1): shared quality + light + matte-clay defaults for every 3D stage */
+const RKQ=new WeakMap();
+function rkQuality(R,cap){cap=cap||2;const pr=Math.min(cap,window.devicePixelRatio||1);R.setPixelRatio(pr);RKQ.set(R,{pr,min:1,last:0,ema:16,n:0});return R;}
+// call once per frame before render: steps pixel ratio down on slow devices (never up, so no flicker)
+function rkFrame(R){const q=RKQ.get(R);if(!q)return;const now=performance.now(),dt=q.last?now-q.last:16;q.last=now;if(dt>250)return;q.ema+=(dt-q.ema)*.05;
+ if(++q.n>45&&q.ema>30&&q.pr>q.min){q.pr=Math.max(q.min,Math.round((q.pr-.25)*4)/4);R.setPixelRatio(q.pr);q.n=0;q.ema=20;}}
+let CREAM=null;
+function rkClayMat(m){if(!m||m.userData.rkClay)return;m.userData.rkClay=1;if(!m.isMeshStandardMaterial||m.transparent||m.opacity<1)return;
+ if(m.metalness>.5||m.roughness<.25)return; // deliberate glass/metal/glaze stays shiny
+ if(m.emissive&&m.emissiveIntensity>0&&(m.emissive.r+m.emissive.g+m.emissive.b)>.05)return; // glowing bits stay glowing
+ m.metalness=0;m.roughness=Math.min(.92,Math.max(.8,m.roughness));
+ const c=m.color;if(c&&!m.map&&c.r>.94&&c.g>.94&&c.b>.94)c.lerp(CREAM||(CREAM=new THREE.Color(0xfff2e6)),.6); // soften pure white to warm clay cream
+ m.needsUpdate=true;}
+function rkClay(root){root.traverse(o=>{if(o.isMesh&&!o.userData.rkc){o.userData.rkc=1;(Array.isArray(o.material)?o.material:[o.material]).forEach(rkClayMat);}});}
+// warm key + cool soft fill + warm hemisphere + pink rim + cozy glow, like the reference rooms
+function rkCozyLights(scene,o){o=o||{};const box=o.box||4;
+ scene.add(new THREE.HemisphereLight(0xfff0e2,0xdcb4a6,.58));
+ const key=new THREE.DirectionalLight(0xffe4c8,1.15);key.position.set(3,7,5);key.castShadow=true;key.shadow.mapSize.set(o.shadow||1024,o.shadow||1024);key.shadow.radius=6;key.shadow.bias=-.0008;key.shadow.normalBias=.02;const c=key.shadow.camera;c.left=-box;c.right=box;c.top=box;c.bottom=-box;c.far=30;scene.add(key);
+ const fill=new THREE.DirectionalLight(0xdfe6ff,.22);fill.position.set(-5,3,4);scene.add(fill);
+ const rim=new THREE.DirectionalLight(0xffc4dd,.42);rim.position.set(-4,3,-4);scene.add(rim);
+ // cozy glow: opt-in (o.glow) because a point light costs every pixel on slow tablets
+ let glow=null;if(o.glow){glow=new THREE.PointLight(0xffc98a,.45,9,2);glow.position.set(1.6,2.6,-1.2);scene.add(glow);}
+ return {key,fill,rim,glow};}
 window.RK3=Object.assign(window.RK3||{},{
-  disposeScene,
+  disposeScene,quality:rkQuality,frame:rkFrame,clay:rkClay,clayMat:rkClayMat,cozyLights:rkCozyLights,
   // Read-only view state for real-browser gesture regression tests.
   roomViewState:()=>({
     room:ED.room,zoom:ED.zoom,az:ED.azT,el:ED.elT,
