@@ -881,7 +881,7 @@ function dioCamera(){if(ED.R.toneMappingExposure!==.84)ED.R.toneMappingExposure=
   const box=dist=>{ED.cam.position.copy(tgt).addScaledVector(dir,dist);ED.cam.lookAt(tgt);ED.cam.near=.1;ED.cam.far=dist*4+20;ED.cam.updateProjectionMatrix();ED.cam.updateMatrixWorld();let a=9,b=-9,c2=9,d=-9;P.forEach(p=>{v.copy(p).project(ED.cam);a=Math.min(a,v.x);b=Math.max(b,v.x);c2=Math.min(c2,v.y);d=Math.max(d,v.y);});return [a,b,c2,d];};
   const fit=()=>{let lo=1,hi=80;for(let k=0;k<26;k++){const m=(lo+hi)/2,[a,b,c2,d]=box(m);if(b-a<=2-2*side&&d-c2<=yMax-yMin)hi=m;else lo=m;}return hi;};
   for(let pass=0;pass<3;pass++){const dist=fit(),[a,b,c2,d]=box(dist);const cx=(a+b)/2,cy=(c2+d)/2,wantY=(yMax+yMin)/2;const hh=dist*Math.tan(ED.cam.fov*Math.PI/360),hw=hh*ED.cam.aspect;const right=new THREE.Vector3().setFromMatrixColumn(ED.cam.matrixWorld,0),up=new THREE.Vector3().setFromMatrixColumn(ED.cam.matrixWorld,1);tgt.addScaledVector(right,cx*hw).addScaledVector(up,(cy-wantY)*hh);}
-  const dist=fit()*ED.zoom;box(dist);}
+  const dist=fit()*Math.min(ED.zoom,1.02);box(dist);}
 function dioToggleBtn(box){let b=box.querySelector('.rk3-dio');if(!b){b=document.createElement('button');b.type='button';b.className='rk3-dio';box.appendChild(b);b.onclick=e=>{e.stopPropagation();DIO.on=!DIO.on;edBuild(ED.room);dioToggleBtn(box);};}
   b.textContent=DIO.on?'👀 Look inside':'🏠 Dollhouse view';const cb=document.getElementById('rk3CeilingToggle');if(cb)cb.style.display=DIO.on?'none':'';
   if(!document.getElementById('dioCss')){const st=document.createElement('style');st.id='dioCss';st.textContent='.rk3-dio{position:absolute;left:10px;bottom:10px;z-index:6;border:0;border-radius:999px;padding:8px 13px;background:#fff;color:#4a2338;font-weight:900;font-size:13px;box-shadow:0 3px 10px #0002;cursor:pointer}';document.head.appendChild(st);}}
@@ -1034,7 +1034,7 @@ if(typeof ORIG_PLACE==='function'){
     if(!ED.internal&&ED.R&&ED.R.domElement.isConnected&&lastPtr){const r=ED.R.domElement.getBoundingClientRect();
       if(lastPtr.x>=r.left&&lastPtr.x<=r.right&&lastPtr.y>=r.top&&lastPtr.y<=r.bottom){const v=hitFloor(lastPtr);if(v){const p=localToPct(v.x,v.z,ED.W,ED.D);x=p.x;y=p.y;}}}
     const room=G('currentRoom')||'bedroom',already=Object.values((G('decor')||{})[room]||{}).includes(id);if(!already&&availableCopies(id,room)<1){msg('That copy is already in another room. Buy another one in the shop to place it here.');return false;}
-    const scale=rkScale(room,id),out=ORIG_PLACE.call(this,id,x,y);rkScaleSet(room,id,scale);return out;
+    const scale=rkScale(room,id),out=ORIG_PLACE.call(this,id,x,y);rkScaleSet(room,id,scale);const placed=ED.items.find(item=>item.userData.id===id);if(placed){placed.scale.setScalar(1.35*scale);placed.userData.rikiScale=scale;}return out;
   };
 }
 const NICE={bedroom:'Princess bedroom',living:'Cozy living room',kitchen:'Sunny kitchen',garden:'Garden terrace',bathroom:'Cozy bathroom',playroom:'Playroom'};
