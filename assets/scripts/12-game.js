@@ -883,7 +883,21 @@ M.blocks=g=>{[[0,.12,0,C.mint],[-.22,.12,0,C.pink],[.22,.12,0,C.gold],[0,.36,0,C
 M.rocker=g=>M.rockinghorse(g);M.trainset=g=>M.clawtrain(g);
 M.arttable=g=>{B.table(g,C.mint);RB(g,.4,.012,.25,.006,cr(),0,.68,.02);for(let i=0;i<4;i++)CY(g,.03,.03,.035,clay([C.pink,C.mint,C.lilac,C.gold][i]),-.12+i*.08,.71,0,16);CY(g,.012,.012,.34,clay(C.peach),.1,.72,.15,8).rotation.z=Math.PI/2;};
 M.dollhousemini=g=>{const c=clay(C.cream);RB(g,.8,.04,.4,.015,c,0,.04,0);RB(g,.8,.04,.4,.015,c,0,.4,0);[-.38,.38].forEach(x=>RB(g,.04,.75,.4,.015,p(),x,.4,0));RB(g,.8,.75,.035,.015,p(),0,.4,-.2);[-1,1].forEach(k=>{const roof=RB(g,.5,.04,.48,.015,clay(C.peach),k*.2,.88,0);roof.rotation.z=-k*.5;});RB(g,.24,.1,.2,.025,mi(),-.16,.13,0);RB(g,.28,.08,.22,.025,c,.14,.48,0);RB(g,.23,.04,.15,.015,p(),.14,.54,.02);};
-M.dollstroller=g=>{[-1,1].forEach(k=>{[-.23,.23].forEach(z=>CY(g,.09,.09,.04,cr(),k*.25,.11,z,20).rotation.z=Math.PI/2);CY(g,.018,.018,.65,mi(),k*.23,.37,0,10).rotation.x=.4;});RB(g,.43,.12,.45,.05,p(),0,.38,0);RB(g,.43,.38,.1,.045,p(),0,.56,-.2);SP(g,.25,p(),0,.76,-.16,1,.6,.65);CY(g,.018,.018,.46,mi(),0,.86,-.34,10).rotation.z=Math.PI/2;};
+M.dollstroller=g=>{const pink=clay('#f7a0bd');
+  // Soft rounded basket
+  SP(g,.22,pink,0,.4,0,1.2,.6,.9);
+  SP(g,.18,clay('#fff8f4'),0,.42,.05,1,.5,.7);
+  // Soft hood
+  SP(g,.2,pink,0,.55,-.15,.9,.7,.6);
+  // Soft wheels
+  [-1,1].forEach(k=>{
+    CY(g,.08,.08,.04,clay('#e8d4c0'),k*.28,.1,-.1,16).rotation.z=Math.PI/2;
+    CY(g,.08,.08,.04,clay('#e8d4c0'),k*.28,.1,.15,16).rotation.z=Math.PI/2;
+  });
+  // Soft handle
+  CY(g,.02,.02,.4,clay('#f0d4b0'),0,.65,-.3,10).rotation.x=.3;
+  CY(g,.02,.02,.25,clay('#f0d4b0'),0,.75,-.4,10).rotation.z=Math.PI/2;
+};
 M.bunnylamp=g=>{CY(g,.24,.26,.045,mi(),0,.035,0,32);SP(g,.19,cr(),0,.27,0,1,1.1,1);[-1,1].forEach(k=>{SP(g,.06,cr(),k*.09,.52,0,.7,1.9,1);SP(g,.017,clay('#5d4141'),k*.065,.29,.17);});SP(g,.025,p(),0,.24,.19);};
 M.strawberrypouf=g=>{SP(g,.38,clay('#e9a1ad'),0,.28,0,1,.75,1);for(let i=0;i<5;i++){const a=i/5*Math.PI*2;const leaf=SP(g,.12,clay(C.green),Math.cos(a)*.09,.55,Math.sin(a)*.09,1,.17,.5);leaf.rotation.y=-a;}for(let i=0;i<12;i++){const a=i/12*Math.PI*2;SP(g,.018,cr(),Math.cos(a)*.35,.29+(i%2)*.1,Math.sin(a)*.35,.6,1,.4);}};
 M.cloudpetbed=g=>{CY(g,.4,.4,.09,mi(),0,.06,0,40);for(let i=0;i<8;i++){const a=i/8*Math.PI*2;SP(g,.13,cr(),Math.cos(a)*.33,.17,Math.sin(a)*.33,1,.75,1);}SP(g,.28,p(),0,.14,0,1,.25,1);};
