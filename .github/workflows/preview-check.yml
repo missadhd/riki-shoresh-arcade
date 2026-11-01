@@ -17,7 +17,11 @@ jobs:
         with:
           node-version: '22'
       - name: Install Playwright browsers
-        run: npx --yes playwright install chromium --with-deps
+        # npx alone only fetches the CLI temporarily; the script imports 'playwright', so install it
+        # into the workspace (no package.json, same pinned version as social-detective-regression).
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
       - name: Start local static server
         run: |
           python3 -m http.server 4173 &
@@ -26,20 +30,21 @@ jobs:
       - name: Capture preview screenshots
         run: |
           mkdir -p preview-shots
-          cat > /tmp/preview.mjs << 'JS'
+          cat > ./preview-shots.tmp.mjs << 'JS'
           import { chromium } from 'playwright';
           const browser = await chromium.launch();
           const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
           await page.goto('http://127.0.0.1:4173/', { waitUntil: 'networkidle' });
           await page.screenshot({ path: 'preview-shots/home.png', fullPage: true });
           // Try to open dollhouse / decorate if the button exists
-          const house = await page.$('#houseShortcut, [id*="house"]');
-          if (house) {
+          // Only click a visible house button (some matching elements are hidden on phones).
+          const house = page.locator('#houseShortcut:visible, [id*="house"]:visible').first();
+          if (await house.count()) {
             await house.click();
             await page.waitForTimeout(1500);
             await page.screenshot({ path: 'preview-shots/after-house.png', fullPage: true });
-            const decorate = await page.$('#decorateTab');
-            if (decorate) {
+            const decorate = page.locator('#decorateTab:visible').first();
+            if (await decorate.count()) {
               await decorate.click();
               await page.waitForTimeout(2000);
               await page.screenshot({ path: 'preview-shots/decorate.png', fullPage: true });
@@ -48,7 +53,7 @@ jobs:
           await browser.close();
           console.log('Screenshots saved');
           JS
-          node /tmp/preview.mjs
+          node ./preview-shots.tmp.mjs
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         with:
