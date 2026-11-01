@@ -2118,7 +2118,11 @@ function drawHelper(){zCur='helper';const pool=HM_JOBS.filter(j=>HM_ROOM[j[0]]);
    const j=pool.find(x=>x[0]===who);const name=({sock:'socks',bowl:'kitty food',bear:'teddy',book:'book',cup:'cup',shoe:'shoes',plate:'plate',pj:'pajamas',crayon:'crayons',plant:'watering can'})[who]||'that';
    if(!jobs.includes(j)){zMiss();audio('tap');R.say('That’s not on my list!');g6Msg('📋 Check Mom’s list. That one isn’t a job today.',false);return 'no';}
    if(HM_ROOM[who][1]!==spot){zMiss();audio('tap');dollReact(false);R.say(`${name[0].toUpperCase()+name.slice(1)} ${HM_FUNNY[spot]||'there? No!'}`);return 'no';}
-   done++;audio('good');dollReact(true);const li=document.querySelector(`#hmList [data-j="${who}"]`);if(li){li.textContent='✅ '+j[4];li.classList.add('ok');}R.say(['Done! ✨','Got it!','All tidy!'][done%3],1400);
+   done++;audio('good');dollReact(true);const li=document.querySelector(`#hmList [data-j="${who}"]`);if(li){li.textContent='✅ '+j[4];li.classList.add('ok');}
+   const fxMap={sock:'🧺',bowl:'🥣',bear:'🧸',book:'📚',cup:'🥤',shoe:'👟',plate:'🍽️',pj:'👚',crayon:'🖍️',plant:'💧'};
+   const d=document.createElement('div');d.className='rp-water';d.textContent=fxMap[who]||'✨';
+   const s=RP_SPOTS.helproom[spot];if(s){const c=sc3Proj('helproom',s[1],s[2],s[3]);d.style.left=c[0]+'%';d.style.top=(c[1]-6)+'%';R.st.appendChild(d);setTimeout(()=>d.remove(),1600);}
+   R.say(['Done! ✨','Got it!','All tidy!'][done%3],1400);
    if(done===jobs.length)finish();return 'ok';}});
   window.RikiRP=R;
   const tvTap=async()=>{if(done>=jobs.length)return;distracted++;zMiss();audio('tap');dollReact(false);R.say('Ooh, my show!');await g6Talk('mom','Not yet, sweetie. First jobs, then TV!',{expr:'neutral'});};
@@ -2149,24 +2153,25 @@ function rpClassroom(roomSel,btnSel,keyOf,expect,{onRound}={}){const old=$id(roo
    if(k==='tray'||k==='worksheet'){if(!sheetDone){R.say('I have to finish it first! Tap my worksheet.');return 'no';}}
    if(Array.isArray(it)){if(exp!==k){click(k);R.say('Oops, that wasn’t the job!');return 'no';}crIn++;audio('good');if(crIn<CR.length){R.say(`${CR.length-crIn} more!`,1000);return 'keep';}click(k);R.say('All picked up! ✨',1300);return 'ok';}
    if(click(k)){
-    R.say(['Done! ✨','Got it!','On it!'][Math.floor(Math.random()*3)],1300);
-    // Visual feedback
-    if(k==='pencil'&&R.items.pencil){
-      const img=R.items.pencil.querySelector('img');
-      if(img){const u=p3Render('pencil');if(u)img.src=u;}
-      R.say('Whirrr! ✏️ Sharp!',1500);
-    }
-    if(k==='plant'){
-      // Water droplets appear on the plant
-      const drops=document.createElement('div');drops.className='rp-water';drops.textContent='💧💧💧';
-      const s=RP_SPOTS.schoolroom.plant;const c=sc3Proj('schoolroom',s[1],s[2],s[3]);
-      drops.style.left=c[0]+'%';drops.style.top=(c[1]-8)+'%';
-      R.st.appendChild(drops);
-      setTimeout(()=>drops.remove(),2000);
-      R.say('The plant looks happy! 🌱',1500);
-    }
-    if(k==='board'&&R.items.eraser){R.items.eraser.classList.add('done');R.say('Board is clean! ✨',1200);}
-    if(k==='trash'&&R.items.paper){R.items.paper.classList.add('gone');R.say('In the trash! 🗑️',1200);}
+    // Real visual for every action
+    const fx=(emoji,spot)=>{const d=document.createElement('div');d.className='rp-water';d.textContent=emoji;const s=RP_SPOTS.schoolroom[spot];if(!s)return;const c=sc3Proj('schoolroom',s[1],s[2],s[3]);d.style.left=c[0]+'%';d.style.top=(c[1]-6)+'%';R.st.appendChild(d);setTimeout(()=>d.remove(),1800);};
+    if(k==='pencil'&&R.items.pencil){const img=R.items.pencil.querySelector('img');if(img){const u=p3Render('pencil');if(u)img.src=u;}fx('✨','pencil');R.say('Whirrr! ✏️ Sharp!',1400);}
+    else if(k==='plant'){fx('💧💧','plant');R.say('The plant looks happy! 🌱',1400);}
+    else if(k==='board'){fx('✨','board');if(R.items.eraser)R.items.eraser.classList.add('done');R.say('Board is clean! 🧽',1200);}
+    else if(k==='trash'&&R.items.paper){R.items.paper.classList.add('gone');fx('🗑️','trash');R.say('In the trash!',1200);}
+    else if(k==='hook'&&R.items.coat){R.items.coat.classList.add('gone');fx('🧥','hook');R.say('Coat is hung up!',1200);}
+    else if(k==='cubby'&&R.items.backpack){R.items.backpack.classList.add('gone');fx('🎒','cubby');R.say('In your cubby!',1200);}
+    else if(k==='shelf'&&R.items.book){R.items.book.classList.add('gone');fx('📚','shelf');R.say('On the shelf!',1200);}
+    else if(k==='crayons'){CR.forEach(id=>{if(R.items[id])R.items[id].classList.add('gone');});fx('🖍️','crayons');R.say('All in the box!',1200);}
+    else if(k==='toy bin'&&R.items.teddyb){R.items.teddyb.classList.add('gone');fx('🧸','bin');R.say('In the toy bin!',1200);}
+    else if(k==='rug'){fx('🟦','rug');R.say('Sitting on the rug!',1200);}
+    else if(k==='water'){fx('🚰','water');R.say('Got a drink!',1200);}
+    else if(k==='door'){fx('🚪','door');R.say('Lined up at the door!',1200);}
+    else if(k==='folder'&&R.items.folder){R.items.folder.classList.add('gone');fx('📁','folder');R.say('Got the folder!',1200);}
+    else if(k==='star'){fx('⭐','star');R.say('At the star desk!',1200);}
+    else if(k==='tray'||k==='worksheet'){if(R.items.worksheet)R.items.worksheet.classList.add('gone');fx('📝','tray');R.say('In the tray!',1200);}
+    else if(k==='books'&&R.items.book){R.items.book.classList.add('gone');fx('📚','shelf');R.say('On the shelf!',1200);}
+    else{R.say(['Done! ✨','Got it!','On it!'][Math.floor(Math.random()*3)],1200);}
     return 'ok';
   }
    R.say('Oops, that wasn’t the job!');return 'no';}});
