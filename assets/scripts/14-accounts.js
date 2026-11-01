@@ -20,7 +20,7 @@ async function api(path,method='GET',body,token=session?.access_token){
 async function refresh(){if(!session)return false;if(session.expires_at && Date.now()/1000<session.expires_at-90)return true;
  try{const x=await api('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:session.refresh_token},null);session={...x,expires_at:Math.floor(Date.now()/1000)+x.expires_in};sessionStorage.setItem(AUTH,JSON.stringify(session));return true}catch{logout();return false}}
 function status(s){const n=$('rkAccountStatus');if(n)n.textContent=s}
-function greet(){const name=sessionStorage.getItem(DISPLAY);const el=document.querySelector('.hub-hi h1');if(el)el.textContent='Hi '+(name||'Riki')+'! 👋';}
+function greet(){const name=sessionStorage.getItem(DISPLAY);const el=document.querySelector('.hub-hi h1');if(el){const desired='Hi '+(name||'Riki')+'! 👋';if(el.textContent!==desired)el.textContent=desired;}}
 const greetingObserver=new MutationObserver(greet);
 function modal(html){$('rkAccountPanel').innerHTML=html;$('rkAccountDialog').hidden=false}
 function close(){$('rkAccountDialog').hidden=true}
