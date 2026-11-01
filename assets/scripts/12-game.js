@@ -1025,10 +1025,14 @@ function photoProp(g,url,w,h){
   const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m);
   mesh.position.y=h/2;
   mesh.castShadow=false;
+  // Turn to face the camera (around the vertical axis) so the picture never goes paper-thin when the room is rotated
+  const wp=new THREE.Vector3(),pq=new THREE.Quaternion(),pe=new THREE.Euler();
+  mesh.onBeforeRender=function(r,sc,cam){this.getWorldPosition(wp);const yaw=Math.atan2(cam.position.x-wp.x,cam.position.z-wp.z);if(this.parent){this.parent.getWorldQuaternion(pq);pe.setFromQuaternion(pq,'YXZ');this.rotation.y=yaw-pe.y;}else this.rotation.y=yaw;};
   g.add(mesh);
 }
-M.bed=g=>photoProp(g,'assets/images/clay/photo-bed.png',1.7,1.14);
-M.softsofa=g=>photoProp(g,'assets/images/clay/photo-sofa.png',1.9,.94);
+const PM=(window.RK3&&window.RK3.MODEL)||{};
+PM.bed=g=>photoProp(g,'assets/images/clay/photo-bed.png',1.7,1.14);
+PM.softsofa=g=>photoProp(g,'assets/images/clay/photo-sofa.png',1.9,.94);
 if(Array.isArray(ITEMS)&&!ITEMS.some(x=>x[0]==='softsofa'))ITEMS.push(['softsofa','🛋️','Soft pink sofa',36,'bedroom']);
 META.softsofa={room:'bedroom',category:'Seating',name:'Soft pink sofa',new:true};
 try{
