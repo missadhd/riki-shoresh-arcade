@@ -63,6 +63,10 @@ function starPath(x,cx,cy,r){x.beginPath();for(let i=0;i<10;i++){const a=-Math.P
 function heartPath(x,cx,cy,s){x.beginPath();x.moveTo(cx,cy+s*.35);x.bezierCurveTo(cx-s,cy-s*.3,cx-s*.4,cy-s,cx,cy-s*.45);x.bezierCurveTo(cx+s*.4,cy-s,cx+s,cy-s*.3,cx,cy+s*.35);x.closePath();}
 function patternKey(t){const s=(t[0]+' '+t[2]).toLowerCase();return s.includes('rose')?'roses':/heart|sweet|love/.test(s)?'hearts':/star|twinkle|galaxy/.test(s)?'stars':s.includes('cloud')?'clouds':/daisy|flower|meadow|floral/.test(s)?'daisies':/stripe|candy|pleat/.test(s)?'stripes':/dot|polka|lemon|confetti/.test(s)?'dots':'plain';}
 function wallTex(key,base){return canvasTex('wall'+key+base,256,256,(x)=>{
+  // Soft clay wall: gentle gradient, soft edges
+  const g=x.createRadialGradient(128,128,0,128,128,180);
+  g.addColorStop(0,base);g.addColorStop(1,shadeHex(base,.92));
+  x.fillStyle=g;x.fillRect(0,0,256,256);
   x.fillStyle=base;x.fillRect(0,0,256,256);
   for(let i=0;i<3000;i++){x.fillStyle=`rgba(255,255,255,${rnd()*.05})`;x.fillRect(rnd()*256,rnd()*256,1,1);}
   const grid=(step,fn)=>{for(let r=0;r<=256/step;r++)for(let q=0;q<=256/step;q++)fn(q*step+(r%2?step/2:0),r*step,r);};
