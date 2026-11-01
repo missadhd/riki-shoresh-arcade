@@ -112,18 +112,39 @@ const eye=()=>mat('#2a1622',.12);
 /* ================= furniture models ================= */
 function legs4(g,w,d,h,m,inset=.06,r=.03){[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>CY(g,r,r*.75,h,m,a*(w/2-inset),h/2,b*(d/2-inset),12));}
 const B={
- bed(g,c){c=c||'#f28db2';const wd=wood('#c08a5a');RB(g,1.2,.22,1.7,.04,wd,0,.25,0);legs4(g,1.2,1.7,.16,wd,.08,.04);
-  RB(g,1.1,.2,1.6,.08,fabric('#fbf7f2'),0,.45,0);RB(g,1.16,.09,1.05,.04,fabric(c),0,.58,.3);RB(g,1.16,.05,.18,.03,fabric(shadeHex(c,.92)),0,.6,-.2);
-  RB(g,.48,.13,.3,.06,fabric('#fffaf5'),-.27,.63,-.6);RB(g,.48,.13,.3,.06,fabric('#fffaf5'),.27,.63,-.6);
-  RB(g,1.24,.95,.1,.05,wd,0,.62,-.85);RB(g,1.0,.55,.04,.04,fabric(shadeHex(c,1.05)),0,.74,-.79);},
+ bed(g,c){c=c||'#f28db2';const wd=wood('#c08a5a');
+  RB(g,1.25,.28,1.75,.06,wd,0,.22,0);legs4(g,1.2,1.7,.14,wd,.09,.045);
+  RB(g,1.12,.28,1.62,.1,fabric('#fbf7f2'),0,.48,0);
+  RB(g,1.18,.12,1.1,.05,fabric(c),0,.64,.28);
+  SP(g,.22,fabric('#fffaf5'),-.28,.72,-.55,1.1,.55,.7);
+  SP(g,.22,fabric('#fffaf5'),.28,.72,-.55,1.1,.55,.7);
+  RB(g,1.28,1.05,.12,.06,wd,0,.68,-.88);
+  RB(g,1.05,.6,.05,.04,fabric(shadeHex(c,1.05)),0,.8,-.8);},
  canopy(g,c){c=c||'#f7b2c4';B.bed(g,c);[[-.58,-.82],[.58,-.82],[-.58,.82],[.58,.82]].forEach(([x,z])=>{CY(g,.035,.035,1.75,mat('#fff4e6',.4),x,1.0,z,14);SP(g,.05,metalM(),x,1.9,z);});
   const sheer=new THREE.MeshStandardMaterial({color:new THREE.Color(c).convertSRGBToLinear(),transparent:true,opacity:.42,side:THREE.DoubleSide,roughness:.9});
   BX(g,1.2,.04,1.7,sheer,0,1.86,0);[-.6,.6].forEach(x=>{const p=add(g,new THREE.PlaneGeometry(1.7,.9),sheer,x,1.45,0);p.rotation.y=Math.PI/2;p.castShadow=false;});},
- sofa(g,c){c=c||'#8fc6e8';const f=fabric(c),f2=fabric(shadeHex(c,1.08));RB(g,1.6,.28,.72,.08,f,0,.3,0);RB(g,1.6,.55,.22,.1,f,0,.62,-.26);RB(g,.2,.42,.72,.09,f,-.8,.48,0);RB(g,.2,.42,.72,.09,f,.8,.48,0);
-  [-.34,.34].forEach(x=>{RB(g,.66,.13,.58,.06,f2,x,.5,.05);RB(g,.66,.4,.14,.07,f2,x,.72,-.13);});RB(g,.3,.28,.1,.05,fabric('#ffd96b'),-.5,.7,-.02).rotation.z=.2;
-  legs4(g,1.5,.6,.16,wood('#8a5a35'),.04,.025);},
- chair(g,c){c=c||'#f28db2';const wd=wood('#c08a5a');RB(g,.52,.08,.5,.03,wd,0,.46,0);RB(g,.48,.08,.46,.04,fabric(c),0,.53,0);RB(g,.5,.55,.07,.035,wd,0,.83,-.22);RB(g,.42,.36,.06,.04,fabric(c),0,.86,-.18);legs4(g,.5,.48,.44,wd,.05,.025);},
- table(g,c){const top=c?mat(c,.35):wood('#c99363');CY(g,.55,.55,.06,top,0,.66,0,40);CY(g,.52,.5,.04,wood('#a8744a'),0,.62,0,40);CY(g,.06,.08,.56,wood('#a8744a'),0,.33,0,16);CY(g,.3,.33,.05,wood('#a8744a'),0,.03,0,32);},
+ sofa(g,c){c=c||'#8fc6e8';const f=fabric(c),f2=fabric(shadeHex(c,1.08));
+  RB(g,1.65,.35,.78,.12,f,0,.28,0);
+  RB(g,1.65,.6,.28,.12,f,0,.62,-.28);
+  SP(g,.28,f,-.82,.5,0,0.7,1.1,0.85);
+  SP(g,.28,f,.82,.5,0,0.7,1.1,0.85);
+  [-.35,.35].forEach(x=>{
+    RB(g,.62,.16,.55,.08,f2,x,.5,.06);
+    SP(g,.18,f2,x,.72,-.1,1.2,.7,.6);
+  });
+  SP(g,.12,fabric('#ffd96b'),-.45,.68,0.05,1,.6,.5);
+  legs4(g,1.5,.6,.14,wood('#8a5a35'),.05,.03);},
+ chair(g,c){c=c||'#f28db2';const wd=wood('#c08a5a');
+  RB(g,.55,.1,.52,.04,wd,0,.44,0);
+  RB(g,.5,.12,.48,.06,fabric(c),0,.54,0);
+  RB(g,.52,.6,.1,.05,wd,0,.85,-.24);
+  SP(g,.2,fabric(c),0,.88,-.16,1.1,.8,.5);
+  legs4(g,.5,.48,.42,wd,.055,.03);},
+ table(g,c){const top=c?mat(c,.4):wood('#c99363');
+  CY(g,.58,.58,.08,top,0,.68,0,40);
+  CY(g,.54,.52,.05,wood('#a8744a'),0,.62,0,40);
+  CY(g,.07,.09,.58,wood('#a8744a'),0,.32,0,16);
+  CY(g,.32,.34,.06,wood('#a8744a'),0,.04,0,32);},
  dining(g,c){const w=wood('#b47c4c');RB(g,1.5,.07,.85,.025,c?mat(c,.35):w,0,.7,0);legs4(g,1.5,.85,.67,w,.08,.035);RB(g,1.3,.08,.65,.02,w,0,.62,0);},
  tea(g){B.table(g);const p=gloss('#ffffff');SP(g,.12,p,0,.82,0,1,.85,1);CY(g,.02,.03,.14,p,.14,.82,0,10).rotation.z=-.9;CY(g,.05,.06,.03,p,0,.93,0);SP(g,.02,metalM(),0,.96,0);[[.3,.15],[-.28,.2],[.05,-.32]].forEach(([x,z])=>{CY(g,.05,.04,.06,p,x,.72,z,16);CY(g,.07,.07,.008,p,x,.69,z,20);});},
  lamp(g){const m=metalM();CY(g,.2,.24,.04,m,0,.02,0,32);CY(g,.018,.018,1.25,m,0,.66,0,10);
