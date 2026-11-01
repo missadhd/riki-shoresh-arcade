@@ -815,6 +815,10 @@ K.prepareStorage=function(g,it){
     slotItem.spaceW=bw/3-.035;slotItem.spaceH=.17;
    });
   });
+  // Fill the original visible gap between drawer fronts (top about 1.01)
+  // and the worktop underside (about 1.11). This fixed pink apron sits BEHIND
+  // both sliding drawers, so they can still open independently and remain usable.
+  RB(g,w+.015,.155,.095,.026,P,0,1.05,d/2-.055);
   // Sculpted countertop above the working cabinets.
   RB(g,w+.12,.105,d+.12,.045,rim,0,1.16,0);
   // Inset pale mint sink on left, outlined with thick cream clay.
