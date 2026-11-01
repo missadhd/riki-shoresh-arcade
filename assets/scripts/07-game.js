@@ -2039,9 +2039,9 @@ Object.assign(SC3_SETS,{
 /* spots: id -> [hint name, x, yMid, z, radius] */
 const RP_SPOTS={
  helproom:{sink:['sink',-2.15,.65,-1.3,.5],drawer:['dresser',-1.0,.6,-1.35,.5],tv:['TV',.3,.75,-1.4,.5],bin:['toy bin',1.35,.4,-1.25,.5],shelf:['bookshelf',2.35,.9,-1.3,.5],kitty:['kitty',-1.75,.3,.5,.45],plant:['plant',2.0,.55,.45,.4],hamper:['hamper',1.6,.45,1.6,.45],mat:['shoe mat',.75,.05,2.05,.45],box:['craft box',-1.55,.3,1.65,.4]},
- schoolroom:{hook:['your hook',-1.6,.85,-1.45,.16],hookZ:['Zoe’s hook',-2.0,.85,-1.45,.16],hookM:['Maya’s hook',-2.4,.85,-1.45,.16],cubby:['your cubby',-1.15,.33,-1.3,.16],cubbyZ:['Zoe’s cubby',-.75,.33,-1.3,.16],cubbyM:['Maya’s cubby',-1.15,.66,-1.3,.16],cubbyA:['Ava’s cubby',-.75,.66,-1.3,.16],board:['whiteboard',-.35,1.95,-1.56,.7],water:['water fountain',.65,.65,-1.42,.42],door:['door',1.5,.9,-1.5,.45],shelf:['bookshelf',2.4,.9,-1.32,.5],crayons:['crayon box',-1.7,.72,.35,.32],pencil:['pencil sharpener',.32,.7,-.35,.25],tray:['Ms. Dana’s tray',-.55,.68,-.4,.28],star:['star table',1.75,.6,.3,.45],bin:['toy bin',-2.15,.4,1.2,.4],rug:['rug',-1.25,.05,1.8,.5],trash:['trash can',2.0,.4,1.85,.4],plant:['plant',2.35,.6,1.1,.36]}};
+ schoolroom:{hook:['your hook',-1.6,.85,-1.45,.16],hookZ:['Zoe’s hook',-2.0,.85,-1.45,.16],hookM:['Maya’s hook',-2.4,.85,-1.45,.16],cubby:['your cubby',-1.15,.33,-1.3,.16],cubbyZ:['Zoe’s cubby',-.75,.33,-1.3,.16],cubbyM:['Maya’s cubby',-1.15,.66,-1.3,.16],cubbyA:['Ava’s cubby',-.75,.66,-1.3,.16],board:['whiteboard',-.35,1.95,-1.56,.7],water:['water fountain',.65,.65,-1.42,.42],door:['door',1.5,.9,-1.5,.45],shelf:['bookshelf',2.4,.9,-1.32,.5],crayons:['crayon box',-1.7,.72,.35,.32],pencil:['pencil sharpener',.32,.7,-.35,.25],tray:['Ms. Dana’s tray',-.55,.68,-.4,.28],star:['star table',1.75,.6,.3,.45],bin:['toy bin',-2.15,.4,1.2,.4],rug:['rug',-1.25,.05,1.8,.5],trash:['trash can',2.0,.4,1.85,.4],plant:['plant',2.1,.75,1.0,.55]}};
 const RP_PROPS={schoolroom:[['door',1.5,0,-1.5,1.75],['trashcan',2.0,0,1.85,.72],['starsign',1.75,.6,.3,.5],['pencilcup',.32,.62,-.35,.3],['tray',-.55,.62,-.4,.14],['crayonbox',-1.7,.6,.35,.22]]};
-const RP_NAMES={schoolroom:[['Riki','hook'],['Zoe','hookZ'],['Maya','hookM'],['Riki','cubby'],['Zoe','cubbyZ'],['Maya','cubbyM'],['Ava','cubbyA']]};
+const RP_NAMES={schoolroom:[['Riki','hook'],['Riki','cubby']]};
 const RP_FUN={schoolroom:[['hamster',-.95,1.05,-1.35,.25,['Hi, little hamster! 🐹','He’s so fluffy!']],['globe',.25,.75,-.4,.2,['Round and round! 🌍']],['clock',.85,2.75,-1.58,.25,['Tick tock! ⏰']]],helproom:[['kitty',-1.75,.35,.5,.4,['Meow! 🐱','Hi kitty!']],['plant',2.0,.6,.45,.35,['Pretty plant 🌱']]]};
 
 function rpUnproj(key,px,py){const cam=sc3Cam(key);const v=new THREE.Vector3(px/50-1,1-py/50,.5).unproject(cam);const d=v.sub(cam.position).normalize();const t=-cam.position.y/d.y;return [cam.position.x+d.x*t,cam.position.z+d.z*t];}
@@ -2055,7 +2055,7 @@ function rpRoom(host,key,{start=[0,2.15],dropOk,onTap}={}){
  R.home=()=>R.walk(start[0],start[1]);
  R.addItem=(id,kind,x,z,h=.42,y0=0,tap=null)=>{const el=document.createElement('div');el.className='rp-item';el.dataset.id=id;el.dataset.home=JSON.stringify([x,z,h,y0]);const u=p3Render(kind);el.innerHTML=u?`<img alt="" src="${u}">`:'<b>✨</b>';st.appendChild(el);placeFloor(el,x,z,h,y0);R.items[id]=el;el._tap=tap;R.drag(el);return el;};
  R.reset=id=>{const el=R.items[id];if(!el)return;const [x,z,h,y0]=JSON.parse(el.dataset.home);el.classList.remove('gone','in');el.style.transform='';placeFloor(el,x,z,h,y0);};
- R.zones=()=>{const b=st.getBoundingClientRect();const out=Object.entries(RP_SPOTS[key]).map(([id,s])=>{const c=P(s[1],s[2],s[3]),e=P(s[1]+s[4],s[2],s[3]);return {id,x:b.left+c[0]/100*b.width,y:b.top+c[1]/100*b.height,r:Math.max(16,(e[0]-c[0])/100*b.width)};});if(R.riki){const r=R.riki.getBoundingClientRect();out.push({id:'riki',x:r.left+r.width/2,y:r.top+r.height*.55,r:Math.max(30,r.width*.6)});}return out;};
+ R.zones=()=>{const b=st.getBoundingClientRect();const out=Object.entries(RP_SPOTS[key]).map(([id,s])=>{const c=P(s[1],s[2],s[3]),e=P(s[1]+s[4],s[2],s[3]);return {id,x:b.left+c[0]/100*b.width,y:b.top+c[1]/100*b.height,r:Math.max(28,(e[0]-c[0])/100*b.width*1.4)};});if(R.riki){const r=R.riki.getBoundingClientRect();out.push({id:'riki',x:r.left+r.width/2,y:r.top+r.height*.55,r:Math.max(30,r.width*.6)});}return out;};
  const hit=(x,y,skip)=>{let best=null,bd=1e9;R.zones().forEach(z=>{if(z.id===skip)return;const d=Math.hypot(x-z.x,y-z.y)/z.r;if(d<1.15&&d<bd){bd=d;best=z.id;}});return best;};
  R.hint=id=>{const s=RP_SPOTS[key][id];if(!s)return;let t=st.querySelector('.rp-hint');if(!t){t=document.createElement('span');t.className='rp-hint';st.appendChild(t);}const c=P(s[1],s[2],s[3]);t.style.left=c[0]+'%';t.style.top=c[1]+'%';t.textContent='✨ '+s[0];t.classList.remove('on');void t.offsetWidth;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),3800);};
  R.drag=el=>{el.style.touchAction='none';el.addEventListener('pointerdown',e=>{if(el.classList.contains('gone')||R.lock)return;e.preventDefault();e.stopPropagation();try{el.setPointerCapture(e.pointerId);}catch(_){}const sx=e.clientX,sy=e.clientY;let moved=false;el.classList.add('drag');
@@ -2124,7 +2124,7 @@ ESC_SPOTS.push(['worksheet','📝','math worksheet','finish your math worksheet 
 const CR=['cr1','cr2','cr3'];
 const RP_TASK={hook:['coat','hook'],cubby:['backpack','cubby'],trash:['paper','trash'],shelf:['book','shelf'],crayons:[CR,'crayons'],'toy bin':['teddyb','bin'],rug:['riki','rug'],water:['riki','water'],door:['riki','door'],folder:['folder','riki'],star:['riki','star'],pencil:['pencil','pencil'],books:['book','shelf'],board:['eraser','board'],plant:['wateringcan','plant'],tray:['worksheet','tray'],worksheet:['worksheet','tray']};
 /* where things really are: by Riki's desk, on her chair, spilled under the art table, on Ms. Dana's desk… */
-const RP_START={backpack:['backpack',1.05,1.55,.5],coat:['coat',.4,1.95,.42,.38],paper:['paper',-.05,1.25,.22,.58],worksheet:['worksheet',.42,1.35,.34,.58],pencil:['brokenpencil',.85,1.2,.24,.58],cr1:['crayon',-1.45,.85,.26],cr2:['crayonb',-1.95,.8,.26],cr3:['crayong',-1.25,.6,.26],book:['book',-1.45,1.9,.3],teddyb:['teddyb',-.85,1.4,.42],folder:['folder',-.4,-.4,.34,.64],eraser:['eraser',.0,-.4,.24,.64],wateringcan:['wateringcan',1.05,-.95,.36]};
+const RP_START={backpack:['backpack',1.05,1.55,.5],coat:['coat',.4,1.95,.42,.38],paper:['paper',-.05,1.25,.22,.58],worksheet:['worksheet',.42,1.35,.34,.58],pencil:['brokenpencil',.85,1.2,.24,.58],cr1:['crayon',-1.45,.85,.26],cr2:['crayonb',-1.95,.8,.26],cr3:['crayong',-1.25,.6,.26],book:['book',-1.45,1.9,.3],teddyb:['teddyb',-.85,1.4,.42],folder:['folder',-.4,-.4,.34,.64],eraser:['eraser',.0,-.4,.24,.64],wateringcan:['wateringcan',.9,-.7,.5]};
 const RP_SAY={hook:'hooks',cubby:'cubby',trash:'trash can',shelf:'bookshelf',rug:'rug',water:'water fountain',door:'door',star:'star table',pencil:'pencil sharpener',board:'whiteboard',plant:'plant',bin:'toy bin',riki:'Riki',crayons:'crayon box',tray:'tray'};
 function rpClassroom(roomSel,btnSel,keyOf,expect,{onRound}={}){const old=$id(roomSel);if(!old)return;const host=document.createElement('div');old.after(host);old.classList.add('rp-hidden');const byKey={};[...old.querySelectorAll(btnSel)].forEach(b=>byKey[keyOf(b)]=b);let sheetDone=false,crIn=0;
  const click=k=>{const b=byKey[k];b.classList.remove('ok','no');b.click();return b.classList.contains('ok');};
@@ -2138,7 +2138,29 @@ function rpClassroom(roomSel,btnSel,keyOf,expect,{onRound}={}){const old=$id(roo
    if(Array.isArray(it)){if(exp!==k){click(k);R.say('Oops, that wasn’t the job!');return 'no';}crIn++;audio('good');if(crIn<CR.length){R.say(`${CR.length-crIn} more!`,1000);return 'keep';}click(k);R.say('All picked up! ✨',1300);return 'ok';}
    if(click(k)){R.say(['Done! ✨','Got it!','On it!'][Math.floor(Math.random()*3)],1300);if(k==='pencil'){R.say('Whirrr! ✏️ Sharp!',1500);}return 'ok';}
    R.say('Oops, that wasn’t the job!');return 'no';}});
- R.ready.then(()=>{const need=new Set();Object.keys(byKey).forEach(k=>{const tk=RP_TASK[k];if(!tk||tk[0]==='riki')return;(Array.isArray(tk[0])?tk[0]:[tk[0]]).forEach(i=>need.add(i));});
+ R.ready.then(()=>{
+  // Show current job in plain text
+  let banner = R.st.querySelector('.rp-job');
+  if (!banner) { banner = document.createElement('div'); banner.className = 'rp-job'; R.st.appendChild(banner); }
+  const showJob = () => {
+    const k = expect();
+    if (!k) { banner.textContent = ''; banner.style.display = 'none'; return; }
+    const spot = RP_SPOTS.schoolroom[RP_TASK[k]?.[1]];
+    const label = spot ? spot[0] : k;
+    banner.textContent = 'Now: ' + label;
+    banner.style.display = 'block';
+    // Highlight the thing to use and where it goes
+    R.st.querySelectorAll('.rp-item.hinted, .rp-prop.hinted').forEach(el => el.classList.remove('hinted'));
+    const tk = RP_TASK[k];
+    if (tk) {
+      const ids = Array.isArray(tk[0]) ? tk[0] : [tk[0]];
+      ids.forEach(id => { const el = R.items[id]; if (el && !el.classList.contains('gone')) el.classList.add('hinted'); });
+      R.hint(tk[1]);
+    }
+  };
+  showJob();
+  const jobTimer = setInterval(() => { if (!R.st.isConnected) { clearInterval(jobTimer); return; } showJob(); }, 800);
+  const need=new Set();Object.keys(byKey).forEach(k=>{const tk=RP_TASK[k];if(!tk||tk[0]==='riki')return;(Array.isArray(tk[0])?tk[0]:[tk[0]]).forEach(i=>need.add(i));});
   need.forEach(id=>{const s=RP_START[id];if(!s)return;R.addItem(id,s[0],s[1],s[2],s[3],s[4]||0,id==='worksheet'?()=>{if(sheetDone){R.say('Done! Now it goes in Ms. Dana’s tray.');return;}rpWorksheet(R,ok=>{sheetDone=true;if(ok)slGain(1);R.items.worksheet&&R.items.worksheet.classList.add('done');R.say('Finished! ⭐');});}:null);});
   const ps=document.getElementById('escPsst');if(ps)R.st.appendChild(ps);
   const hi=zEvery(()=>{if(!R.st.isConnected){clearInterval(hi);return;}if(old.hidden)return;if(Date.now()-R.last<(easy(curUnit())?10000:16000))return;const k=expect();const tk=k&&RP_TASK[k];if(!tk)return;if(tk[0]==='riki'||k==='folder'){R.hint(tk[0]==='riki'?tk[1]:null);if(k==='folder'){const f=R.items.folder;f&&f.classList.add('hinted');setTimeout(()=>f&&f.classList.remove('hinted'),3500);}}else{const ids=Array.isArray(tk[0])?tk[0]:[tk[0]];const it=ids.map(i=>R.items[i]).find(e=>e&&!e.classList.contains('gone'));if(it){it.classList.add('hinted');setTimeout(()=>it.classList.remove('hinted'),3500);}}R.last=Date.now();},1000);});
@@ -2152,7 +2174,7 @@ if(!document.getElementById('rpCss')){const st=document.createElement('style');s
 .rp-stage{position:relative;width:100%;border-radius:24px;overflow:hidden;background:#fdeef5 center/100% 100% no-repeat;box-shadow:inset 0 0 0 3px #fff,0 12px 26px -14px #4a233866;margin:6px 0;user-select:none;-webkit-user-select:none}.rp-load{position:absolute;inset:0;display:grid;place-items:center;font-weight:900;color:#6b4a5c}
 .rp-item,.rp-riki,.rp-prop{position:absolute;transform:translate(-50%,-100%);aspect-ratio:1}.rp-item img,.rp-prop img{width:100%;height:100%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 5px 4px rgba(80,40,40,.28));pointer-events:none}
 .rp-item{cursor:grab;touch-action:none}.rp-item.drag{z-index:9999!important;cursor:grabbing}.rp-item.drag img{filter:drop-shadow(0 14px 10px rgba(80,40,40,.35))}.rp-item.gone{opacity:0;pointer-events:none}
-.rp-item.wig{animation:bpWig .45s ease-in-out}.rp-item.hinted img{filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 10px #ffd34d)}.rp-item.hinted{animation:rpHop .6s ease-in-out 3}@keyframes rpHop{50%{margin-top:-8px}}
+.rp-item.wig{animation:bpWig .45s ease-in-out}.rp-item.hinted img,.rp-prop.hinted img{filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 16px #ffd34d)}.rp-item.hinted{animation:rpHop .6s ease-in-out 3}.rp-job{position:absolute;left:8px;top:8px;background:#fff;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:900;color:#4a2338;box-shadow:0 2px 8px #0002;z-index:3000;pointer-events:none}@keyframes rpHop{50%{margin-top:-8px}}
 .rp-item.done::after{content:'⭐';position:absolute;right:-4px;top:-4px;font-size:16px}
 .rp-prop{pointer-events:none}
 .rp-name{position:absolute;transform:translate(-50%,-50%);background:#fffbe6;border:1px solid #d9c48a;border-radius:3px;padding:0 3px;font-size:7.5px;font-weight:900;color:#6b4a1f;pointer-events:none;z-index:1900;font-family:'Comic Sans MS',cursive,sans-serif}.rp-name.me{background:#ffe6f1;border-color:#ff7eb6;color:#c2185b}
