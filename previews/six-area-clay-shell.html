@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Six-area clay dollhouse shell preview</title><style>
+:root{font-family:system-ui,sans-serif;color:#493653;background:#fff4fa}body{margin:0}header{padding:16px 20px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#fff;align-items:center}h1{font-size:1.3rem;margin:0}p{margin:4px 0}button{border:2px solid #d9acda;border-radius:12px;background:#fff;color:#55335b;font:inherit;font-weight:700;padding:9px 13px;cursor:pointer}button[aria-pressed=true]{background:#f4d3ef}#view{height:min(78vh,740px);min-height:400px;position:relative}canvas{display:block}nav{display:flex;gap:7px;flex-wrap:wrap;align-items:center}footer{padding:12px 20px;font-size:.85rem}#error{position:absolute;top:20px;left:20px;color:#ad274b}</style></head><body>
+<header><div><h1>🏡 Six-area clay dollhouse — concept preview</h1><p>Architectural shell only. Existing game, coins, furniture, and saves are untouched.</p></div><nav aria-label="Preview views"><button data-view="all" aria-pressed="true">Whole house</button><button data-view="upper">Upper floor</button><button data-view="lower">Lower floor</button><button data-view="garden">Garden</button><button id="roof" aria-pressed="false">Show roof</button></nav></header><main id="view" aria-label="Interactive 3D six-area dollhouse preview"><div id="error" role="alert"></div></main><footer>Drag to rotate · Scroll/pinch to zoom · A concept model, not a generated Tripo GLB. The garden remains outdoors; Bedroom, Study, Playroom, Living Room, Kitchen and Bathroom occupy the two floors.</footer>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
+const host=document.getElementById('view'),scene=new THREE.Scene();scene.background=new THREE.Color('#fff2fa');
+const cam=new THREE.PerspectiveCamera(37,1,.1,100);cam.position.set(13,10,17);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.7));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;host.append(renderer.domElement);
+scene.add(new THREE.HemisphereLight('#e4f5ff','#ead2ce',2));const key=new THREE.DirectionalLight('#ffe7f0',2.1);key.position.set(-7,14,10);key.castShadow=true;scene.add(key);
+const root=new THREE.Group();scene.add(root);const mats={},m=c=>mats[c]||(mats[c]=new THREE.MeshStandardMaterial({color:c,roughness:.94,metalness:.02,flatShading:false}));
+function box(group,x,y,z,w,h,d,c){const a=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m(c));a.position.set(x,y,z);a.receiveShadow=true;a.castShadow=true;group.add(a);return a}
+function ball(group,x,y,z,r,c){const a=new THREE.Mesh(new THREE.SphereGeometry(r,12,9),m(c));a.position.set(x,y,z);a.castShadow=true;group.add(a)}
+const floors=[new THREE.Group(),new THREE.Group()];floors.forEach(g=>root.add(g));const W=4.7,D=4.3,H=3.15;
+const rooms=[['Living Room','#f8bdd7',-W,0,0],['Kitchen','#fee0a7',0,0,0],['Bathroom','#bedeea',W,0,0],['Bedroom','#e7c5f6',-W,H+.24,0],['Study','#c5e8d5',0,H+.24,0],['Playroom','#ffe1ad',W,H+.24,0]];
+rooms.forEach(([name,color,x,y,z],i)=>{const g=floors[i>2?1:0];box(g,x,y-.09,z,W-.12,.22,D-.12,'#faf1e3');box(g,x-W/2+.09,y+H/2,z,.18,H,D,color);box(g,x+W/2-.09,y+H/2,z,.18,H,D,color);box(g,x,y+H/2,z-D/2+.09,W,H,.18,color);
+box(g,x,y+H-.18,z-D/2+.34,1,.24,.38,'#fffdf8');ball(g,x-.7,y+.45,z-.9,.36,'#fffaf8');
+const label=document.createElement('span');label.textContent=name;label.style.display='none';});
+const garden=new THREE.Group();root.add(garden);box(garden,0,-.52,5.8,16,.22,6.5,'#a8d8a3');for(let x=-6;x<=6;x+=2.4){box(garden,x,-.18,8.5,.14,.7,.14,'#fff9ee');box(garden,x,-.18,3,.14,.7,.14,'#fff9ee')}
+function tree(x,z){box(garden,x,.65,z,.24,1.5,.24,'#a88a73');ball(garden,x,1.55,z,.9,'#91c992')}tree(-5,6.3);tree(5,7.2);
+const roof=new THREE.Group();root.add(roof);const top=H*2+.6;for(let x=-4.7;x<=4.7;x+=.9){const roofPanel=box(roof,x,top+1.25,0,.92,.16,5.4,'#e88eae');roofPanel.rotation.z=x<0?.35:-.35}roof.visible=false;
+const matGrass=box(root,0,-.7,2.2,17,.25,15,'#c7eab8');matGrass.position.y=-.77;
+const target=new THREE.Vector3(0,2.4,2.3);let az=.48,el=.36,dist=21,drag=false,px=0,py=0,raf=0;
+function draw(){raf=requestAnimationFrame(draw);cam.position.set(target.x+dist*Math.sin(az)*Math.cos(el),target.y+dist*Math.sin(el),target.z+dist*Math.cos(az)*Math.cos(el));cam.lookAt(target);renderer.render(scene,cam)}
+function resize(){const w=host.clientWidth,h=host.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}new ResizeObserver(resize).observe(host);resize();draw();
+renderer.domElement.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointerup',()=>drag=false);renderer.domElement.addEventListener('pointermove',e=>{if(!drag)return;az+=(e.clientX-px)*.006;el=Math.max(-.07,Math.min(.95,el+(e.clientY-py)*.006));px=e.clientX;py=e.clientY});renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(9,Math.min(38,dist+e.deltaY*.015))},{passive:false});
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));const v=b.dataset.view;floors[0].visible=v!=='upper';floors[1].visible=v!=='lower';garden.visible=v==='all'||v==='garden';target.set(0,v==='upper'?5.2:v==='garden'?.5:2.4,v==='garden'?5.7:2.3);dist=v==='all'?21:17});
+document.getElementById('roof').onclick=e=>{roof.visible=!roof.visible;e.target.setAttribute('aria-pressed',String(roof.visible))};
+window.addEventListener('pagehide',()=>{cancelAnimationFrame(raf);renderer.dispose();Object.values(mats).forEach(x=>x.dispose());root.traverse(x=>x.geometry?.dispose?.())},{once:true});
+</script></body></html>
