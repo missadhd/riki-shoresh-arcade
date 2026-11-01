@@ -2035,14 +2035,26 @@ delete P3_MAKE.coffeecup;
 /* rooms (3D backdrops) */
 const RPCAM={size:[960,960],cam:{fov:40,pos:[0,3.6,6.2],at:[0,.35,-.1]}};
 Object.assign(SC3_SETS,{
- schoolroom:{wall:'#cfe6f7',low:'#8fb9d9',pat:'stripe',floor:'tile',board:1,win:0,bunt:1,...RPCAM,items:[['towelrack',-2.0,-1.48,0,1.0],['rainbowcubbies',-.95,-1.35,0,.95],['pethamster',-.95,-1.35,0,.22,.95],['bathsink',.65,-1.42,0,.85],['bookshelfplay',2.4,-1.32,-.15,1.3],['arttable',-1.7,.35,0,.6],['tablewood',1.75,.3,0,.6],['tablewood',-.2,-.4,0,.62],['clawglobe',.25,-.4,0,.24,.62],['tablewood',.4,1.3,0,.58],['chairmint',.4,1.85,Math.PI,.62],['toybox',-2.15,1.2,.4,.55],['sparklerug',-1.25,1.8,0,.04],['plant',2.35,1.1,0,.8]]},
- helproom:{wall:'#ffe3ee',low:'#ffb8d2',pat:'dot',floor:'wood',win:0,size:[960,900],cam:{fov:40,pos:[0,4.1,5.5],at:[0,.15,.1]},items:[['sink',-2.15,-1.3,0,.9],['dresser',-1.0,-1.35,0,.85],['tvcabinet',.3,-1.4,0,.95],['toybox',1.35,-1.25,0,.6],['bookshelfplay',2.35,-1.3,-.15,1.3],['petbedpink',-1.75,.5,.3,.28],['petkitten',-1.75,.5,.3,.38,.1],['plant',2.0,.45,0,.85],['hamper',1.6,1.6,-.2,.62],['bathmat',.75,2.05,0,.04],['crafts',-1.55,1.65,.2,.4],['sparklerug',0,.95,0,.04],['coffeetable',0,.6,0,.38]]}});
+ schoolroom:{wall:'#cfe6f7',low:'#8fb9d9',pat:'stripe',floor:'tile',board:1,win:0,bunt:1,...RPCAM,items:[['towelrack',-2.0,-1.48,0,1.0],['rainbowcubbies',-.95,-1.35,0,.95],['pethamster',-.95,-1.35,0,.22,.95],['bathsink',.65,-1.42,0,.85],['bookshelfplay',2.4,-1.32,-.15,1.3],['arttable',-1.7,.35,0,.6],['tablewood',1.75,.3,0,.6],['tablewood',-.2,-.4,0,.62],['clawglobe',.25,-.4,0,.24,.62],['tablewood',.4,1.3,0,.58],['chairmint',.4,1.85,Math.PI,.62],['toybox',-2.15,1.2,.4,.55],['sparklerug',-1.25,1.8,0,.04],['plant',2.15,1.0,0,1.15]]},
+ helproom:{wall:'#ffe3ee',low:'#ffb8d2',pat:'dot',floor:'wood',win:0,size:[960,900],cam:{fov:40,pos:[0,4.1,5.5],at:[0,.15,.1]},items:[['sink',-2.15,-1.3,0,.9],['dresser',-1.0,-1.35,0,.85],['tvcabinet',.3,-1.4,0,.95],['toybox',1.35,-1.25,0,.6],['bookshelfplay',2.35,-1.3,-.15,1.3],['petbedpink',-1.75,.5,.3,.28],['petkitten',-1.75,.5,.3,.38,.1],['plant',2.0,.35,0,1.2],['hamper',1.6,1.6,-.2,.62],['bathmat',.75,2.05,0,.04],['crafts',-1.55,1.65,.2,.4],['sparklerug',0,.95,0,.04],['coffeetable',0,.6,0,.38]]}});
 /* spots: id -> [hint name, x, yMid, z, radius] */
 const RP_SPOTS={
  helproom:{sink:['sink',-2.15,.65,-1.3,.5],drawer:['dresser',-1.0,.6,-1.35,.5],tv:['TV',.3,.75,-1.4,.5],bin:['toy bin',1.35,.4,-1.25,.5],shelf:['bookshelf',2.35,.9,-1.3,.5],kitty:['kitty',-1.75,.3,.5,.45],plant:['plant',2.0,.55,.45,.4],hamper:['hamper',1.6,.45,1.6,.45],mat:['shoe mat',.75,.05,2.05,.45],box:['craft box',-1.55,.3,1.65,.4]},
  schoolroom:{hook:['your hook',-1.6,.85,-1.45,.16],hookZ:['Zoe’s hook',-2.0,.85,-1.45,.16],hookM:['Maya’s hook',-2.4,.85,-1.45,.16],cubby:['your cubby',-1.15,.33,-1.3,.16],cubbyZ:['Zoe’s cubby',-.75,.33,-1.3,.16],cubbyM:['Maya’s cubby',-1.15,.66,-1.3,.16],cubbyA:['Ava’s cubby',-.75,.66,-1.3,.16],board:['whiteboard',-.35,1.95,-1.56,.7],water:['water fountain',.65,.65,-1.42,.42],door:['door',1.5,.9,-1.5,.45],shelf:['bookshelf',2.4,.9,-1.32,.5],crayons:['crayon box',-1.7,.72,.35,.32],pencil:['pencil sharpener',.32,.7,-.35,.25],tray:['Ms. Dana’s tray',-.55,.68,-.4,.28],star:['star table',1.75,.6,.3,.45],bin:['toy bin',-2.15,.4,1.2,.4],rug:['rug',-1.25,.05,1.8,.5],trash:['trash can',2.0,.4,1.85,.4],plant:['plant',2.1,.75,1.0,.55]}};
 const RP_PROPS={schoolroom:[['door',1.5,0,-1.5,1.75],['trashcan',2.0,0,1.85,.72],['starsign',1.75,.6,.3,.5],['pencilcup',.32,.62,-.35,.3],['tray',-.55,.62,-.4,.14],['crayonbox',-1.7,.6,.35,.22]]};
-const RP_NAMES={schoolroom:[['Riki','hook'],['Riki','cubby']]};
+const RP_NAMES={
+  schoolroom:[
+    ['Riki','hook'],['Riki','cubby'],
+    ['Plant','plant'],['Door','door'],['Board','board'],
+    ['Trash','trash'],['Shelf','shelf'],['Star table','star'],
+    ['Pencils','pencil'],['Fountain','water'],['Rug','rug'],['Toy bin','bin']
+  ],
+  helproom:[
+    ['Sink','sink'],['Dresser','drawer'],['TV','tv'],
+    ['Toy bin','bin'],['Books','shelf'],['Kitty','kitty'],
+    ['Plant','plant'],['Hamper','hamper'],['Shoes','mat'],['Crafts','box']
+  ]
+};
 const RP_FUN={schoolroom:[['hamster',-.95,1.05,-1.35,.25,['Hi, little hamster! 🐹','He’s so fluffy!']],['globe',.25,.75,-.4,.2,['Round and round! 🌍']],['clock',.85,2.75,-1.58,.25,['Tick tock! ⏰']]],helproom:[['kitty',-1.75,.35,.5,.4,['Meow! 🐱','Hi kitty!']],['plant',2.0,.6,.45,.35,['Pretty plant 🌱']]]};
 
 function rpUnproj(key,px,py){const cam=sc3Cam(key);const v=new THREE.Vector3(px/50-1,1-py/50,.5).unproject(cam);const d=v.sub(cam.position).normalize();const t=-cam.position.y/d.y;return [cam.position.x+d.x*t,cam.position.z+d.z*t];}
@@ -2140,27 +2152,6 @@ function rpClassroom(roomSel,btnSel,keyOf,expect,{onRound}={}){const old=$id(roo
    if(click(k)){R.say(['Done! ✨','Got it!','On it!'][Math.floor(Math.random()*3)],1300);if(k==='pencil'){R.say('Whirrr! ✏️ Sharp!',1500);}return 'ok';}
    R.say('Oops, that wasn’t the job!');return 'no';}});
  R.ready.then(()=>{
-  // Show current job in plain text
-  let banner = R.st.querySelector('.rp-job');
-  if (!banner) { banner = document.createElement('div'); banner.className = 'rp-job'; R.st.appendChild(banner); }
-  const showJob = () => {
-    const k = expect();
-    if (!k) { banner.textContent = ''; banner.style.display = 'none'; return; }
-    const spot = RP_SPOTS.schoolroom[RP_TASK[k]?.[1]];
-    const label = spot ? spot[0] : k;
-    banner.textContent = 'Now: ' + label;
-    banner.style.display = 'block';
-    // Highlight the thing to use and where it goes
-    R.st.querySelectorAll('.rp-item.hinted, .rp-prop.hinted').forEach(el => el.classList.remove('hinted'));
-    const tk = RP_TASK[k];
-    if (tk) {
-      const ids = Array.isArray(tk[0]) ? tk[0] : [tk[0]];
-      ids.forEach(id => { const el = R.items[id]; if (el && !el.classList.contains('gone')) el.classList.add('hinted'); });
-      R.hint(tk[1]);
-    }
-  };
-  showJob();
-  const jobTimer = setInterval(() => { if (!R.st.isConnected) { clearInterval(jobTimer); return; } showJob(); }, 800);
   const need=new Set();Object.keys(byKey).forEach(k=>{const tk=RP_TASK[k];if(!tk||tk[0]==='riki')return;(Array.isArray(tk[0])?tk[0]:[tk[0]]).forEach(i=>need.add(i));});
   need.forEach(id=>{const s=RP_START[id];if(!s)return;R.addItem(id,s[0],s[1],s[2],s[3],s[4]||0,id==='worksheet'?()=>{if(sheetDone){R.say('Done! Now it goes in Ms. Dana’s tray.');return;}rpWorksheet(R,ok=>{sheetDone=true;if(ok)slGain(1);R.items.worksheet&&R.items.worksheet.classList.add('done');R.say('Finished! ⭐');});}:null);});
   const ps=document.getElementById('escPsst');if(ps)R.st.appendChild(ps);
@@ -2175,10 +2166,10 @@ if(!document.getElementById('rpCss')){const st=document.createElement('style');s
 .rp-stage{position:relative;width:100%;border-radius:24px;overflow:hidden;background:#fdeef5 center/100% 100% no-repeat;box-shadow:inset 0 0 0 3px #fff,0 12px 26px -14px #4a233866;margin:6px 0;user-select:none;-webkit-user-select:none}.rp-load{position:absolute;inset:0;display:grid;place-items:center;font-weight:900;color:#6b4a5c}
 .rp-item,.rp-riki,.rp-prop{position:absolute;transform:translate(-50%,-100%);aspect-ratio:1}.rp-item img,.rp-prop img{width:100%;height:100%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 5px 4px rgba(80,40,40,.28));pointer-events:none}
 .rp-item{cursor:grab;touch-action:none}.rp-item.drag{z-index:9999!important;cursor:grabbing}.rp-item.drag img{filter:drop-shadow(0 14px 10px rgba(80,40,40,.35))}.rp-item.gone{opacity:0;pointer-events:none}
-.rp-item.wig{animation:bpWig .45s ease-in-out}.rp-item.hinted img,.rp-prop.hinted img{filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 16px #ffd34d)}.rp-item.hinted{animation:rpHop .6s ease-in-out 3}.rp-job{position:absolute;left:8px;top:8px;background:#fff;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:900;color:#4a2338;box-shadow:0 2px 8px #0002;z-index:3000;pointer-events:none}@keyframes rpHop{50%{margin-top:-8px}}
+.rp-item.wig{animation:bpWig .45s ease-in-out}.rp-item.hinted img,.rp-prop.hinted img{filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 16px #ffd34d)}.rp-item.hinted{animation:rpHop .6s ease-in-out 3}@keyframes rpHop{50%{margin-top:-8px}}
 .rp-item.done::after{content:'⭐';position:absolute;right:-4px;top:-4px;font-size:16px}
 .rp-prop{pointer-events:none}
-.rp-name{position:absolute;transform:translate(-50%,-50%);background:#fffbe6;border:1px solid #d9c48a;border-radius:3px;padding:0 3px;font-size:7.5px;font-weight:900;color:#6b4a1f;pointer-events:none;z-index:1900;font-family:'Comic Sans MS',cursive,sans-serif}.rp-name.me{background:#ffe6f1;border-color:#ff7eb6;color:#c2185b}
+.rp-name{position:absolute;transform:translate(-50%,-50%);background:#fff;border:2px solid #4a2338;border-radius:999px;padding:2px 7px;font-size:11px;font-weight:900;color:#4a2338;pointer-events:none;z-index:1900;white-space:nowrap;box-shadow:0 1px 4px #0002}.rp-name.me{background:#ffe6f1;border-color:#ff7eb6;color:#c2185b}
 .rp-riki{aspect-ratio:.62;transition-property:left,top,height;transition-timing-function:cubic-bezier(0.45,0,0.55,1);cursor:grab;touch-action:none}.rp-riki .rp-img{width:100%;height:100%;filter:drop-shadow(0 6px 4px rgba(80,40,40,.25))}.rp-riki .rp-img svg,.rp-riki .rp-img img{width:100%;height:100%;object-fit:contain;object-position:bottom}.rp-riki.flip .rp-img{transform:scaleX(-1)}.rp-riki.drag{transition:none;z-index:9999!important}
 .rp-riki.walk .rp-img{animation:cpBob .32s ease-in-out infinite}.rp-riki.cheer .rp-img{animation:rigHop .55s cubic-bezier(.3,1.4,.5,1) 2}
 .rp-hint{position:absolute;transform:translate(-50%,-50%) scale(.8);background:#fff;border-radius:999px;padding:3px 9px;font-size:11px;font-weight:900;color:#c2185b;white-space:nowrap;pointer-events:none;z-index:2000;box-shadow:0 0 0 3px #ffd34d,0 0 18px 6px rgba(255,211,77,.7);opacity:0;transition:opacity .25s,transform .25s cubic-bezier(0.23,1,0.32,1)}.rp-hint.on{opacity:1;transform:translate(-50%,-50%) scale(1);animation:rpPulse 1s ease-in-out infinite}@keyframes rpPulse{50%{box-shadow:0 0 0 3px #ffd34d,0 0 26px 10px rgba(255,211,77,.9)}}
