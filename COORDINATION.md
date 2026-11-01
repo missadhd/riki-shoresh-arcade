@@ -4,6 +4,7 @@ Open draft pull requests are the live record of who is editing what. This file i
 Add a row when you open your draft PR and remove it in the same PR when you finish.
 
 | Who | Branch | Files | Status |
+| Grok | grok/floors-shop-decorate | assets/scripts/11-game.js, COORDINATION.md | In progress — floors buy in shop, apply in decorate |
 
 ## Map of the code
 
