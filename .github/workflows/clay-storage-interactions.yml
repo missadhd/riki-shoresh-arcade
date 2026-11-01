@@ -1,0 +1,43 @@
+name: Interactive furniture and clay prototype
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'assets/scripts/12-game.js'
+      - 'examples/pink-heart-cabinet.html'
+      - 'tests/clay-storage-interactions-ci.mjs'
+      - '.github/workflows/clay-storage-interactions.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  interactive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start local static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/room-sample.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0; sleep 1; done
+          exit 1
+      - name: Test storage parts and sample cabinet
+        run: node tests/clay-storage-interactions-ci.mjs
+      - name: Upload demo screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: interactive-cabinet-screenshots
+          path: interactive-sample-*.png
+          retention-days: 7
+          if-no-files-found: ignore
