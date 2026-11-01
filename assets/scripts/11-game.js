@@ -104,7 +104,7 @@ const fabric=c=>mat(c,.82),gloss=c=>mat(c,.18),wood=(c='#e8c9a0')=>mat(c,.72),me
 const geoCache={};
 function rbox(w,h,d,r){const k=[w,h,d,r].join();if(geoCache[k])return geoCache[k];r=Math.min(r,w/2-.001,h/2-.001,d/2-.001);
   const s=new THREE.Shape(),x=-w/2+r,y=-h/2+r,W=w-2*r,H=h-2*r;s.moveTo(x,y);s.lineTo(x+W,y);s.lineTo(x+W,y+H);s.lineTo(x,y+H);s.lineTo(x,y);
-  const g=new THREE.ExtrudeGeometry(s,{depth:Math.max(.001,d-2*r),bevelEnabled:true,bevelSize:r,bevelThickness:r,bevelSegments:4,curveSegments:4});g.center();g.computeVertexNormals();g.userData.rikiShared=true;geoCache[k]=g;return g;}
+  const g=new THREE.ExtrudeGeometry(s,{depth:Math.max(.001,d-2*r),bevelEnabled:true,bevelSize:r,bevelThickness:r,bevelSegments:4,curveSegments:4});g.center();g.computeVertexNormals();g.userData.rikiShared=true;g.userData.dims=[w,h,d,r];geoCache[k]=g;return g;}
 function add(g,geo,m,x,y,z){const o=new THREE.Mesh(geo,m);o.position.set(x||0,y||0,z||0);o.castShadow=true;o.receiveShadow=true;g.add(o);return o;}
 const RB=(g,w,h,d,r,m,x,y,z)=>add(g,rbox(w,h,d,r),m,x,y,z);
 const BX=(g,w,h,d,m,x,y,z)=>add(g,new THREE.BoxGeometry(w,h,d),m,x,y,z);
@@ -248,7 +248,17 @@ function emojiCard(g,e,onWall){
   if(onWall){RB(g,.62,.62,.04,.015,wood('#d9a36f'),0,0,0);const p=add(g,new THREE.PlaneGeometry(.52,.52),new THREE.MeshStandardMaterial({map:tex,transparent:true,roughness:.6}),0,0,.025);p.castShadow=false;return;}
   CY(g,.22,.26,.1,mat('#fff4e6',.5),0,.05,0,28);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));sp.scale.set(.75,.75,.75);sp.position.y=.48;g.add(sp);
 }
-function makeItem(it){
+/* Clay pass (Claude, Nov 1): every item gets soft rounded edges and a fine clay surface, like the reference dioramas */
+let clayBumpTex=null;
+function clayBump(){if(clayBumpTex)return clayBumpTex;const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.fillStyle='#808080';x.fillRect(0,0,128,128);
+  for(let i=0;i<260;i++){const r=2+Math.random()*7,px=Math.random()*128,py=Math.random()*128,v=Math.random()<.5?110:150;const g=x.createRadialGradient(px,py,0,px,py,r);g.addColorStop(0,`rgba(${v},${v},${v},.35)`);g.addColorStop(1,'rgba(128,128,128,0)');x.fillStyle=g;x.beginPath();x.arc(px,py,r,0,7);x.fill();}
+  clayBumpTex=new THREE.CanvasTexture(c);clayBumpTex.wrapS=clayBumpTex.wrapT=THREE.RepeatWrapping;clayBumpTex.repeat.set(1.5,1.5);return clayBumpTex;}
+function clayify(g){const done=new Set();g.traverse(o=>{if(!o.isMesh||!o.geometry)return;const geo=o.geometry;
+   if(geo.type==='BoxGeometry'&&geo.parameters){const {width:w,height:h,depth:d}=geo.parameters;const m=Math.min(w,h,d);if(m>.012){const r=Math.min(.08,m*.24);o.geometry=rbox(w,h,d,r);}}
+   else if(geo.userData&&geo.userData.dims){const [w,h,d,r]=geo.userData.dims;const m=Math.min(w,h,d);const want=Math.min(.09,m*.22);if(m>.012&&r<want*.8)o.geometry=rbox(w,h,d,want);}
+   const mt=o.material;if(mt&&mt.isMeshStandardMaterial&&!mt.transparent&&!mt.emissiveMap&&!done.has(mt)&&!mt.userData.clay){done.add(mt);mt.userData.clay=1;if(!mt.bumpMap){mt.bumpMap=clayBump();mt.bumpScale=.012;}if(mt.roughness<.6&&mt.metalness<.5)mt.roughness=.6;mt.needsUpdate=true;}});return g;}
+function makeItem(it){const g=makeItemRaw(it);try{clayify(g);}catch(e){}return g;}
+function makeItemRaw(it){
   const MD=window.RK3&&window.RK3.MODEL&&window.RK3.MODEL[it[0]];if(MD){const g=new THREE.Group();MD(g,it);g.userData.onWall=!!MD.wall;if(window.RK3.prepareStorage)window.RK3.prepareStorage(g,it);return g;}
   const g=new THREE.Group(),p=pick(it[0],it[2]),wall=ON_WALL.test((it[0]+' '+it[2]).toLowerCase())&&!p;
   if(p&&B[p[0]])B[p[0]](g,p[1]);else emojiCard(g,it[1],wall);
@@ -715,6 +725,7 @@ function edBuild(room){
   lights(s,Math.max(W,D),1024);
   const shell=new THREE.Group();s.add(shell);roomShell(shell,room,W,D,H);roomIdentity(shell,room,W,D,H);
   if(room!=='garden'){const L=new THREE.PointLight(0xffe2b8,.35,9,2);L.position.set(0,H-.4,.6);s.add(L);}
+  dioDress(shell,s,room,W,D,H);if(DIO.on){ED.az=ED.azT=DIO.az;ED.el=ED.elT=DIO.el;ED.zoom=DIO.zoom;}
   ED.group=new THREE.Group();s.add(ED.group);ED.items=fillItems(ED.group,room,W,D,1.35);if(window.RK3.hydrateStorage)ED.items.forEach(g=>window.RK3.hydrateStorage(g,room));
   ED.ceiling = shell.userData.ceiling || null;
   const ceilBtn = document.getElementById('rk3CeilingToggle');
@@ -728,14 +739,52 @@ function edBuild(room){
   if (zIn) zIn.onclick = () => { ED.zoom = cl(ED.zoom - 0.12, 0.4, 1.6); };
   if (zOut) zOut.onclick = () => { ED.zoom = cl(ED.zoom + 0.12, 0.4, 1.6); };
   const center = document.getElementById('rk3Center');
-  if (center) center.onclick = () => { ED.azT = 0; ED.elT = 0.42; ED.zoom = 1.55; };
+  if (center) center.onclick = () => { if(DIO.on){ED.azT=DIO.az;ED.elT=DIO.el;ED.zoom=DIO.zoom;return;} ED.azT = 0; ED.elT = 0.42; ED.zoom = 1.55; };
 
   const ring=new THREE.Mesh(new THREE.RingGeometry(.62,.72,48),new THREE.MeshBasicMaterial({color:0xe2457a,transparent:true,opacity:.85,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=.02;ring.visible=false;s.add(ring);ED.ring=ring;
   ED.floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
   const selId=ED.sel;ED.sel=null;if(selId)edSelect(selId,true);
 }
+/* ===== Diorama view (Claude, Nov 1): look into the room from outside, like a cutaway dollhouse box ===== */
+const DIO={on:true,az:-.62,el:.5,zoom:1,glow:null};
+function dioMix(a,b,t){const A=parseInt(a.slice(1),16),Bq=parseInt(b.slice(1),16);const f=(s)=>Math.round(((A>>s)&255)*(1-t)+((Bq>>s)&255)*t);return '#'+((1<<24)|(f(16)<<16)|(f(8)<<8)|f(0)).toString(16).slice(1);}
+function dioWall(room){const owned=G('owned')||[],ri=(G('roomInteriors')||{})[room]||{},INTER=G('INTERIORS')||[];const w=INTER.find(t=>t[0]===ri.wall&&owned.includes(t[0]));if(w&&/^#[0-9a-f]{6}$/i.test(w[3]))return w[3];const rooms=G('ROOMS')||[];const b=(G('wallColors')||{})[room]||(rooms.find(x=>x.id===room)||{}).wall||'#fbe3f4';return /^#[0-9a-f]{6}$/i.test(b)?b:'#fbe3f4';}
+function dioGlow(){if(DIO.glow)return DIO.glow;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');const g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,240,200,1)');g.addColorStop(.22,'rgba(255,214,150,.6)');g.addColorStop(1,'rgba(255,200,120,0)');x.fillStyle=g;x.fillRect(0,0,64,64);DIO.glow=new THREE.CanvasTexture(c);return DIO.glow;}
+function dioBg(wall){const c=document.createElement('canvas');c.width=8;c.height=256;const x=c.getContext('2d');const g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,dioMix(wall,'#9c7a82',.32));g.addColorStop(1,dioMix(wall,'#7d5e66',.5));x.fillStyle=g;x.fillRect(0,0,8,256);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;return t;}
+function dioString(g,pts,sag){const bulbM=new THREE.MeshBasicMaterial({color:0xffe09a}),wireM=mat('#5a4038',.8);const P=[];const n=Math.max(4,Math.round(pts[0].distanceTo(pts[1])/.42));
+  for(let i=0;i<=n;i++){const t=i/n;const p=pts[0].clone().lerp(pts[1],t);p.y-=Math.sin(t*Math.PI*Math.max(1,Math.round(n/5)))**2*sag;P.push(p);}
+  const wire=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(P),n*4,.008,4,false),wireM);g.add(wire);
+  P.forEach((p,i)=>{if(i===0||i===n)return;const cap=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,.03,8),mat('#b8915a',.5,.3));cap.position.set(p.x,p.y-.02,p.z);g.add(cap);const b=new THREE.Mesh(new THREE.SphereGeometry(.042,12,10),bulbM);b.position.set(p.x,p.y-.065,p.z);g.add(b);
+   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:dioGlow(),color:0xffc878,opacity:.55,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));sp.scale.set(.24,.24,1);sp.position.copy(b.position);sp.userData.dioGlow=1;g.add(sp);});}
+function dioDress(shell,scene,room,W,D,H){ED.dioMeshes=null;ED.dioExtra=null;if(!DIO.on){if(room!=='garden')scene.background=null;return;}
+  if(room==='garden'){const soil=RB(shell,W+2.3,.42,D+1.8,.14,mat('#b98c66',.92),0,-.3,.3);soil.castShadow=false;const lip=RB(shell,W+2.36,.08,D+1.86,.04,mat('#8fca7a',.9),0,-.07,.3);lip.castShadow=false;ED.dioMeshes=[];return;}
+  const wall=dioWall(room);scene.background=dioBg(wall);
+  const extra=new THREE.Group();extra.name='dioExtra';shell.add(extra);ED.dioExtra=extra;
+  const slab=RB(extra,W+.62,.34,D+.5,.12,mat(dioMix(wall,'#f6e7d6',.65),.9),0,-.33,-.06);slab.castShadow=false;
+  const cap=mat('#fff6ee',.85);
+  const ceilM=mat(dioMix(wall,'#fff6ee',.6),.88),L=.85;
+  RB(extra,W+.5,.22,L+.18,.08,ceilM,0,H+.05,-D/2-.09+L/2);
+  [-1,1].forEach(sd=>{RB(extra,L+.18,.22,D+.18,.08,ceilM,sd*(W/2+.09-L/2),H+.05,.0);RB(extra,.32,H+.12,.12,.06,cap,sd*(W/2+.09),H/2,D/2+.06);});
+  dioString(extra,[new THREE.Vector3(-W/2+L,H-.1,-D/2+L-.08),new THREE.Vector3(W/2-L,H-.1,-D/2+L-.08)],.12);
+  [-1,1].forEach(sd=>dioString(extra,[new THREE.Vector3(sd*(W/2-L+.08),H-.1,-D/2+L+.1),new THREE.Vector3(sd*(W/2-L+.08),H-.1,D/2-.1)],.12));
+  scene.traverse(o=>{if(o.isHemisphereLight){o.intensity=.46;o.color.set(0xfff0e4);o.groundColor.set(0xd9b8a8);}if(o.isAmbientLight)o.intensity=.1;if(o.isDirectionalLight&&o.castShadow){o.intensity=.95;o.color.set(0xffe2c0);}});
+  scene.traverse(o=>{if(o.isPointLight){o.color.set(0xffd49a);o.intensity=.55;o.distance=8;o.position.set(0,H-.35,-D/2+1.1);}});
+  const box=new THREE.Box3(),v=new THREE.Vector3();shell.updateMatrixWorld(true);const list=[];
+  shell.traverse(o=>{if(!(o.isMesh||o.isSprite))return;let p=o,inCeil=false;while(p){if(p===shell.userData.ceiling){inCeil=true;break;}p=p.parent;}if(inCeil)return;box.setFromObject(o);box.getCenter(v);o.userData.dc=[v.x,v.y,v.z];let q=o,inX=false;while(q){if(q===extra){inX=true;break;}q=q.parent;}if(inX&&Math.abs(v.x)>W/2-.8&&v.z>-D/2+.85-.02)o.userData.dside=Math.sign(v.x);list.push(o);});
+  ED.dioMeshes=list;}
+function dioCut(){if(!ED.dioMeshes)return;const cx=ED.cam.position.x,W=ED.W;const hideR=cx>W/2,hideL=cx<-W/2;
+  ED.dioMeshes.forEach(o=>{const x=o.userData.dc[0];o.visible=!((hideR&&x>W/2-.26)||(hideL&&x<-W/2+.26)||(o.userData.dside&&((hideR&&o.userData.dside>0)||(hideL&&o.userData.dside<0))));});if(ED.ceiling)ED.ceiling.visible=false;}
+function dioCamera(){if(ED.R.toneMappingExposure!==.84)ED.R.toneMappingExposure=.84;const c=ED.R.domElement,w=c.clientWidth||1,h=c.clientHeight||1;ED.cam.aspect=w/h;ED.cam.fov=30;
+  const vf=ED.cam.fov*Math.PI/180,hf=2*Math.atan(Math.tan(vf/2)*ED.cam.aspect);const r=Math.hypot(ED.W+.6,ED.D+.5,ED.H)/2;
+  const dist=r/Math.tan(Math.min(vf,hf)/2)*.9*ED.zoom;const tgt=new THREE.Vector3(0,ED.H*.56,-.1);
+  ED.cam.position.set(tgt.x+Math.sin(ED.az)*Math.cos(ED.el)*dist,tgt.y+Math.sin(ED.el)*dist,tgt.z+Math.cos(ED.az)*Math.cos(ED.el)*dist);ED.cam.lookAt(tgt);ED.cam.near=.1;ED.cam.far=dist*4;ED.cam.updateProjectionMatrix();}
+function dioToggleBtn(box){let b=box.querySelector('.rk3-dio');if(!b){b=document.createElement('button');b.type='button';b.className='rk3-dio';box.appendChild(b);b.onclick=e=>{e.stopPropagation();DIO.on=!DIO.on;edBuild(ED.room);dioToggleBtn(box);};}
+  b.textContent=DIO.on?'👀 Look inside':'🏠 Dollhouse view';const cb=document.getElementById('rk3CeilingToggle');if(cb)cb.style.display=DIO.on?'none':'';
+  if(!document.getElementById('dioCss')){const st=document.createElement('style');st.id='dioCss';st.textContent='.rk3-dio{position:absolute;left:10px;bottom:10px;z-index:6;border:0;border-radius:999px;padding:8px 13px;background:#fff;color:#4a2338;font-weight:900;font-size:13px;box-shadow:0 3px 10px #0002;cursor:pointer}';document.head.appendChild(st);}}
 function edCamera(){
   if(storageCamera())return;
+  if(DIO.on){dioCamera();return;}
+  if(ED.R.toneMappingExposure!==1.12)ED.R.toneMappingExposure=1.12;
   const c=ED.R.domElement,w=c.clientWidth||1,h=c.clientHeight||1;ED.cam.aspect=w/h;ED.cam.fov=42;
   const vf=ED.cam.fov*Math.PI/180,hf=2*Math.atan(Math.tan(vf/2)*ED.cam.aspect);
   const need=Math.max((ED.W/2+.15)/Math.tan(hf/2),(ED.H*.62)/Math.tan(vf/2));const dist=need*ED.zoom+ED.D*.35;
@@ -758,7 +807,7 @@ function edResize(){if(!ED.R)return;const c=ED.R.domElement.parentElement;if(!c)
 function edLoop(){
   if(!ED.R||!ED.R.domElement.isConnected){ED.looping=false;return;}
   requestAnimationFrame(edLoop);
-  ED.az+=(ED.azT-ED.az)*.08;ED.el+=(ED.elT-ED.el)*.08;edCamera();
+  ED.az+=(ED.azT-ED.az)*.08;ED.el+=(ED.elT-ED.el)*.08;edCamera();if(DIO.on&&!ED.storage)dioCut();
   const t=performance.now()/1000;animateItems(ED.items,t);if(window.RK3.animateStorage)ED.items.forEach(g=>window.RK3.animateStorage(g));
   if(ED.ring.visible){ED.ring.material.opacity=.55+Math.sin(t*4)*.3;const g=ED.preview?ED.preview.group:ED.items.find(x=>x.userData.id===ED.sel);if(g&&!g.userData.onWall)ED.ring.position.set(g.position.x,.02,g.position.z);}
   ED.R.render(ED.scene,ED.cam);
@@ -783,7 +832,7 @@ function edPointers(cv){
     if(!d.moved)return;
     if(d.item&&!d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v){d.item.position.x=v.x;d.item.position.z=v.z;}}
     else if(d.item&&d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v)d.item.position.x=v.x;}
-    else{ED.azT=cl(ED.azT-(e.clientX-d.lx)*.0028,-.5,.5);ED.elT=cl(ED.elT+(e.clientY-d.ly)*.0022,.2,.85);}
+    else{ED.azT=cl(ED.azT-(e.clientX-d.lx)*.0028,DIO.on?-1.1:-.5,DIO.on?1.1:.5);ED.elT=cl(ED.elT+(e.clientY-d.ly)*.0022,DIO.on?.25:.2,DIO.on?1.05:.85);}
     d.lx=e.clientX;d.ly=e.clientY;});
   let lastTap = 0, lastTapX = 0, lastTapY = 0;
   const up=e=>{if(ED.storage){storageUp(e);return;}const d=ED.drag;if(!d||d.id!==e.pointerId)return;ED.drag=null;
@@ -839,7 +888,7 @@ function edMount(){
       if(!ED.R){ED.R=makeRenderer();ED.cam=new THREE.PerspectiveCamera(42,1,.1,100);ED.ray=new THREE.Raycaster();edPointers(ED.R.domElement);}
       const ld=box.querySelector('.rk3-load');if(ld)ld.remove();
       box.prepend(ED.R.domElement);
-      edBuild(room);
+      edBuild(room);dioToggleBtn(box);
       if(ED.ro)ED.ro.disconnect();ED.ro=new ResizeObserver(edResize);ED.ro.observe(box);edResize();
       if(!ED.looping){ED.looping=true;edLoop();}
     }catch(err){const ld=box.querySelector('.rk3-load')||box.appendChild(Object.assign(document.createElement('div'),{className:'rk3-load'}));ld.textContent='The 3D room could not start on this device.';console.error(err);}
@@ -923,9 +972,9 @@ if(typeof prevHtml==='function'&&typeof prevBind==='function'){
     box.onclick=null;
     const $=id=>document.getElementById(id);
     if($('rk3ClearSelection'))$('rk3ClearSelection').onclick=()=>{edSelect(null,true);msg('Selection cleared. Choose an item below to decorate.');};
-    if($('orbitLeft'))$('orbitLeft').onclick=()=>{ED.azT=cl(ED.azT-.3,-.55,.55);};
-    if($('orbitRight'))$('orbitRight').onclick=()=>{ED.azT=cl(ED.azT+.3,-.55,.55);};
-    if($('orbitReset'))$('orbitReset').onclick=()=>{ED.azT=0;ED.elT=.5;ED.zoom=1;};
+    if($('orbitLeft'))$('orbitLeft').onclick=()=>{ED.azT=cl(ED.azT-.3,DIO.on?-1.1:-.55,DIO.on?1.1:.55);};
+    if($('orbitRight'))$('orbitRight').onclick=()=>{ED.azT=cl(ED.azT+.3,DIO.on?-1.1:-.55,DIO.on?1.1:.55);};
+    if($('orbitReset'))$('orbitReset').onclick=()=>{if(DIO.on){ED.azT=DIO.az;ED.elT=DIO.el;ED.zoom=DIO.zoom;return;}ED.azT=0;ED.elT=.5;ED.zoom=1;};
     if($('openSelected'))$('openSelected').onclick=()=>{const id=ED.sel||G('selectedItem');const isSt=G('isStorage'),sm=G('storageModal');if(id&&typeof isSt==='function'&&isSt(id)&&typeof sm==='function')sm(id);else msg('Tap a shelf, vanity or dresser in the room first, then tap Open.');};
     edMount();try{rkLayout(box);}catch(err){console.warn('decor layout',err);}};
   window.__rk3Html=newHtml;window.__rk3Bind=newBind;
