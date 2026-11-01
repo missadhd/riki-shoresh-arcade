@@ -53,7 +53,7 @@ try{
   assert.equal((await demo.evaluate(()=>window.RikiSampleCabinet.getState())).doorOpen,true);
   assert.equal(await demo.locator('#doors').getAttribute('aria-pressed'),'true');
   await demo.locator('#drawers').click();
-  await demo.waitForTimeout(350);
+  await demo.waitForFunction(()=>{const x=window.RikiSampleCabinet.getState();return x.doorValue>.5&&x.drawerValue>.5},{timeout:15000});
   const model=await demo.evaluate(()=>window.RikiSampleCabinet.getState());
   assert.ok(model.doorValue>.5&&model.drawerValue>.5,'sample doors and drawers animate open');
   await demo.locator('#reset').click();
