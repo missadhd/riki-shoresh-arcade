@@ -36,7 +36,15 @@ const NEW=[
  ['pinata','🪅','Star piñata',22,'any','Birthday'],
  ['icecreamtower','🍦','Ice cream sundae tower',26,'any','Birthday']
 ];
-const ITEMS=G('ITEMS');if(Array.isArray(ITEMS))NEW.forEach(it=>{if(!ITEMS.some(x=>x[0]===it[0]))ITEMS.push(it);});
+const CLAY=[
+ ['claylamp','💡','Soft clay lamp',22,'any','Decor'],
+ ['clayvase','🏺','Rounded clay vase',16,'any','Decor'],
+ ['claybowl','🥣','Pastel clay bowl',12,'kitchen','Treats'],
+ ['clayplant','🌱','Soft plant pot',18,'any','Decor'],
+ ['claymirror','🪞','Rounded clay mirror',28,'bedroom','Decor'],
+ ['claytray','🍽️','Soft clay tray',14,'kitchen','Decor'],
+];
+const ITEMS=G('ITEMS');if(Array.isArray(ITEMS))[...NEW,...CLAY].forEach(it=>{if(!ITEMS.some(x=>x[0]===it[0]))ITEMS.push(it);});
 
 /* ---------- cute helpers ---------- */
 const C={pink:'#f7a0bd',hot:'#e2457a',mint:'#8ed6c4',sky:'#8fc6e8',lilac:'#c8a2ff',sun:'#ffd25e',cream:'#fff4e6',white:'#fdfbfb',peach:'#ffb48a',gold:'#f2c94c',choc:'#8a5a35',red:'#ef5a6f',green:'#5fb06a',navy:'#4b4a8f'};
@@ -352,6 +360,14 @@ wrap('furnitureArt',a=>a[0]&&a[0][0]);wrap('dreamFurnitureArt',a=>a[0]&&a[0][0])
 try{const gm=G('game');if(gm==='house'){const hr=G('houseRender');hr&&hr();}}catch(_){}
 window.RK3.thumb=renderThumb;
 Object.assign(window.RK3,{face,heartShape,starShape,moonShape,ext,puff,balloon,books,cushion,toy,glow,toadstool,C});
+
+/* clay style extras */
+M.claylamp=g=>{CY(g,.12,.16,.4,toy(C.peach),0,.2,0);SP(g,.18,toy(C.cream),0,.55,0);CY(g,.04,.04,.15,metalM(C.gold),0,.08,0);};
+M.clayvase=g=>{CY(g,.18,.14,.35,toy(C.pink),0,.25,0);CY(g,.12,.16,.08,toy(C.cream),0,.45,0);};
+M.claybowl=g=>{CY(g,.22,.18,.12,toy(C.sky),0,.08,0);SP(g,.04,toy(C.sun),.08,.16,0);SP(g,.03,toy(C.red),-.06,.15,.04);};
+M.clayplant=g=>{CY(g,.14,.16,.2,toy(C.peach),0,.1,0);SP(g,.12,toy(C.green),0,.35,0);SP(g,.08,toy(C.green),.1,.42,.05);SP(g,.07,toy(C.green),-.08,.4,-.03);};
+M.claymirror=g=>{SP(g,.28,metalM(C.gold),0,.7,-.1,1,1.2,.12);SP(g,.24,mat('#e8f4ff',.1),0,.7,-.08,1,1.2,.05);CY(g,.04,.04,.4,toy(C.cream),0,.35,0);};
+M.claytray=g=>{CY(g,.25,.22,.06,toy(C.cream),0,.04,0);SP(g,.03,toy(C.pink),.08,.08,0);};
 })();
 
 /* ============================================================================================
