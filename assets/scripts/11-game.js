@@ -280,13 +280,20 @@ function windowOn(g,x,y,z,ry,room){
 /* ---- buyable floors (Grok) ---- */
 const FLOOR_KEY = 'rikiFloorChoicesV1';
 const FLOORS = [
-  { id: 'wood', name: 'Warm wood', price: 0, color: '#c89363' },
-  { id: 'tile', name: 'Soft tile', price: 40, color: '#e8ddd0' },
-  { id: 'pink', name: 'Blush tile', price: 50, color: '#f4d4e0' },
-  { id: 'carpet', name: 'Cozy carpet', price: 60, color: '#e7c9d4' },
-  { id: 'marble', name: 'Marble', price: 80, color: '#f2efe9' },
+  { id: 'wood', name: 'Honey planks', price: 0, color: '#d6a46e' },
+  { id: 'carpet', name: 'Soft pink carpet', price: 60, color: '#f2cbd6' },
+  { id: 'checker', name: 'Cream & pink checker', price: 50, color: '#fbeee4' },
+  { id: 'mint', name: 'Mint tile', price: 50, color: '#cfeee2' },
+  { id: 'foam', name: 'Rainbow play mat', price: 45, color: '#fde6ef' },
+  { id: 'herring', name: 'Herringbone wood', price: 70, color: '#cf9d6a' },
+  { id: 'whitewash', name: 'Whitewashed planks', price: 55, color: '#f1e7dc' },
+  { id: 'tile', name: 'Soft cream tile', price: 40, color: '#efe5d8' },
+  { id: 'pink', name: 'Blush tile', price: 50, color: '#f6d5e1' },
+  { id: 'terracotta', name: 'Terracotta tile', price: 60, color: '#e3a888' },
+  { id: 'marble', name: 'Marble', price: 80, color: '#f4f1ec' },
   { id: 'grass', name: 'Garden grass', price: 0, color: '#7cc46f' }
 ];
+const FLOOR_DEFAULT = { bathroom: 'mint', kitchen: 'checker', bedroom: 'carpet', living: 'wood', playroom: 'foam', garden: 'grass' };
 function floorChoices(){ try { return JSON.parse(localStorage.getItem(FLOOR_KEY) || '{}') || {}; } catch(e){ return {}; } }
 function floorSave(c){ try { localStorage.setItem(FLOOR_KEY, JSON.stringify(c)); } catch(e){} }
 const FLOOR_OWNED_KEY = 'rikiFloorOwnedV1';
@@ -295,6 +302,7 @@ function floorOwnedSave(o){ try { localStorage.setItem(FLOOR_OWNED_KEY, JSON.str
 function ownsFloor(room, id){
   const f = FLOORS.find(x => x.id === id);
   if (f && f.price === 0) return true;
+  if (FLOOR_DEFAULT[room] === id) return true;
   const o = floorOwned()[room] || [];
   return o.includes(id);
 }
@@ -307,24 +315,31 @@ function grantFloor(room, id){
 function floorFor(room){
   const c = floorChoices()[room];
   if (c) return FLOORS.find(f => f.id === c) || FLOORS[0];
-  const defaults = { bathroom: 'tile', kitchen: 'tile', bedroom: 'carpet', living: 'wood', playroom: 'carpet', garden: 'grass' };
-  const id = defaults[room] || 'wood';
+  const id = FLOOR_DEFAULT[room] || 'wood';
   return FLOORS.find(f => f.id === id) || FLOORS[0];
 }
 function floorTex(id){
   const f = FLOORS.find(x => x.id === id) || FLOORS[0];
-  return canvasTex('fl'+id, 256, 256, (x,w,h) => {
-    x.fillStyle = f.color; x.fillRect(0,0,w,h);
-    if (id === 'wood') {
-      for (let r = 0; r < 8; r++) { x.fillStyle = r%2 ? '#b47c4e' : '#c89363'; x.fillRect(0, r*32, w, 30); x.strokeStyle = 'rgba(80,40,20,.25)'; x.strokeRect(0, r*32, w, 30); }
-    } else if (id === 'tile' || id === 'pink' || id === 'marble') {
-      x.strokeStyle = 'rgba(255,255,255,.45)'; x.lineWidth = 2;
-      for (let i = 0; i < w; i += 64) { x.beginPath(); x.moveTo(i,0); x.lineTo(i,h); x.stroke(); x.beginPath(); x.moveTo(0,i); x.lineTo(w,i); x.stroke(); }
-    } else if (id === 'carpet') {
-      for (let i = 0; i < 800; i++) { x.fillStyle = `rgba(255,255,255,${.04+Math.random()*.06})`; x.fillRect(Math.random()*w, Math.random()*h, 2, 2); }
-    } else if (id === 'grass') {
-      for (let i = 0; i < 600; i++) { x.strokeStyle = `rgba(40,120,50,.4)`; x.beginPath(); const px=Math.random()*w, py=Math.random()*h; x.moveTo(px,py); x.lineTo(px+Math.random()*2-1, py-4); x.stroke(); }
-    }
+  return canvasTex('fl2'+id, 512, 512, (x,w,h) => {
+    const R=(a,b)=>a+Math.random()*(b-a);
+    const rr=(px,py,pw,ph,r,c)=>{x.fillStyle=c;x.beginPath();x.moveTo(px+r,py);x.arcTo(px+pw,py,px+pw,py+ph,r);x.arcTo(px+pw,py+ph,px,py+ph,r);x.arcTo(px,py+ph,px,py,r);x.arcTo(px,py,px+pw,py,r);x.fill();};
+    const speck=(n,a)=>{for(let i=0;i<n;i++){x.fillStyle=`rgba(${Math.random()<.5?'255,255,255':'90,60,50'},${R(.02,a)})`;x.beginPath();x.arc(R(0,w),R(0,h),R(.6,2.2),0,7);x.fill();}};
+    const planks=(tones,gap)=>{x.fillStyle=gap;x.fillRect(0,0,w,h);const rh=64;for(let r=0;r<h/rh;r++){let px=-(r%2)*130;while(px<w){const len=R(170,300);rr(px+2,r*rh+2,len-4,rh-4,6,tones[Math.floor(Math.random()*tones.length)]);for(let g=0;g<4;g++){x.strokeStyle=`rgba(120,70,40,${R(.04,.09)})`;x.lineWidth=R(1,2);x.beginPath();const y0=r*rh+R(10,rh-10);x.moveTo(px+6,y0);x.bezierCurveTo(px+len*.3,y0+R(-3,3),px+len*.7,y0+R(-3,3),px+len-6,y0);x.stroke();}px+=len;}}};
+    const tiles=(n,cols,grout,r)=>{x.fillStyle=grout;x.fillRect(0,0,w,h);const s=w/n;for(let a=0;a<n;a++)for(let b=0;b<n;b++){rr(a*s+3,b*s+3,s-6,s-6,r,typeof cols==='function'?cols(a,b):cols);}};
+    if(id==='wood')planks(['#d9a771','#cf9b65','#e0b07c','#c99460'],'#a87448');
+    else if(id==='whitewash')planks(['#f4ebe1','#efe3d6','#f7efe6','#ebdccd'],'#d4c2b0');
+    else if(id==='herring'){x.fillStyle='#a87448';x.fillRect(0,0,w,h);const L=128,T=32,tones=['#d4a06c','#c8935f','#dcae7c','#c0895a'];for(let yy=-L;yy<h+L;yy+=T*2)for(let xx=-L;xx<w+L;xx+=L){x.save();x.translate(xx+(yy/T%4?0:0),yy);[[0,0,Math.PI/4],[T*1.41,0,-Math.PI/4]].forEach(([dx,dy,a])=>{x.save();x.translate(dx,dy);x.rotate(a);rr(0,0,L-3,T-3,4,tones[Math.floor(Math.random()*4)]);x.restore();});x.restore();}}
+    else if(id==='carpet'){x.fillStyle=f.color;x.fillRect(0,0,w,h);for(let i=0;i<5000;i++){x.fillStyle=`rgba(${Math.random()<.5?'255,255,255':'200,120,150'},${R(.04,.12)})`;x.fillRect(R(0,w),R(0,h),R(1,3),R(1,3));}}
+    else if(id==='checker')tiles(4,(a,b)=>(a+b)%2?'#f6c9d6':'#fdf3ea','#e8d8cc',10);
+    else if(id==='mint')tiles(6,()=>['#cfeee2','#c6e9db','#d7f2e8'][Math.floor(Math.random()*3)],'#f7fbf8',9);
+    else if(id==='tile')tiles(4,()=>['#efe5d8','#ebe0d2','#f3eadf'][Math.floor(Math.random()*3)],'#fffaf3',10);
+    else if(id==='pink')tiles(4,()=>['#f6d5e1','#f3cddb','#f8dde7'][Math.floor(Math.random()*3)],'#fff4f8',10);
+    else if(id==='terracotta'){x.fillStyle='#f3e4d6';x.fillRect(0,0,w,h);const s=w/4;for(let a=0;a<4;a++)for(let b=0;b<4;b++){x.save();x.translate(a*s+s/2,b*s+s/2);x.rotate(Math.PI/4);rr(-s*.34,-s*.34,s*.68,s*.68,8,['#e3a888','#dc9d7c','#e8b295'][Math.floor(Math.random()*3)]);x.restore();}}
+    else if(id==='marble'){x.fillStyle=f.color;x.fillRect(0,0,w,h);for(let i=0;i<14;i++){x.strokeStyle=`rgba(190,170,165,${R(.12,.3)})`;x.lineWidth=R(1,3);x.beginPath();let px=R(0,w),py=R(0,h);x.moveTo(px,py);for(let k=0;k<6;k++){px+=R(-60,90);py+=R(-30,60);x.lineTo(px,py);}x.stroke();}x.strokeStyle='rgba(255,255,255,.7)';x.lineWidth=3;[0,256].forEach(v=>{x.beginPath();x.moveTo(v,0);x.lineTo(v,h);x.stroke();x.beginPath();x.moveTo(0,v);x.lineTo(w,v);x.stroke();});}
+    else if(id==='foam'){const cols=['#ffc8dc','#c9e8ff','#fff1b3','#d6f5d0','#e3d4ff'];tiles(4,(a,b)=>cols[(a+b*2)%5],'#ffffff',14);for(let a=0;a<4;a++)for(let b=0;b<4;b++){x.fillStyle='rgba(255,255,255,.35)';x.beginPath();x.arc(a*128+64,b*128+64,26,0,7);x.fill();}}
+    else if(id==='grass'){x.fillStyle=f.color;x.fillRect(0,0,w,h);for(let i=0;i<1600;i++){x.strokeStyle='rgba(40,120,50,.4)';x.beginPath();const px=Math.random()*w,py=Math.random()*h;x.moveTo(px,py);x.lineTo(px+Math.random()*2-1,py-6);x.stroke();}}
+    else{x.fillStyle=f.color;x.fillRect(0,0,w,h);}
+    if(id!=='grass')speck(900,.06);
   });
 }
 
@@ -347,24 +362,27 @@ function floorTex(id){
         const box = document.createElement('section');
         box.id = 'rkFloorShop';
         box.className = 'panel';
-        box.innerHTML = `<h2 class="sectiontitle">🪵 Floors</h2><div style="display:flex;flex-wrap:wrap;gap:8px">${list.map(f => {
-          const owned = ownsFloor(room, f.id);
-          const label = owned ? 'Owned' : (f.price ? f.price + '🪙' : 'Free');
-          return `<button type="button" class="smallbtn" data-shop-floor="${f.id}" ${owned ? 'disabled' : ''}>${f.name} · ${label}</button>`;
+        box.innerHTML = `<style>.rk-floor i{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:6px;vertical-align:-2px;box-shadow:inset 0 0 0 1px #0002}.rk-floor.cur{opacity:1;border-color:#58c98a}</style><h2 class="sectiontitle">🪵 Floors for this room</h2><div style="display:flex;flex-wrap:wrap;gap:8px">${list.map(f => {
+          const owned = ownsFloor(room, f.id), cur = floorFor(room).id === f.id;
+          const label = cur ? '✓ In use' : owned ? 'Use' : (f.price ? f.price + '🪙' : 'Free');
+          return `<button type="button" class="smallbtn rk-floor${cur?' cur':''}" data-shop-floor="${f.id}" ${cur ? 'disabled' : ''}><i style="background:${f.color}"></i>${f.name} · ${label}</button>`;
         }).join('')}</div>`;
         panel.parentNode.insertBefore(box, panel.nextSibling);
         box.querySelectorAll('[data-shop-floor]').forEach(b => {
           b.onclick = () => {
             const id = b.dataset.shopFloor;
             const f = FLOORS.find(x => x.id === id);
-            if (!f || ownsFloor(room, id)) return;
-            const cns = (0,eval)("coins") || 0;
-            if (f.price > 0 && cns < f.price) return;
-            if (f.price > 0) {
-              (0,eval)(`coins=${cns - f.price};`);
-              try { localStorage.setItem('rickyCoins', String(cns - f.price)); } catch(e){}
+            if (!f) return;
+            if (!ownsFloor(room, id)) {
+              const cns = (0,eval)("coins") || 0;
+              if (f.price > 0 && cns < f.price) { b.textContent = `${f.name} · need ${f.price}🪙`; return; }
+              if (f.price > 0) {
+                (0,eval)(`coins=${cns - f.price};`);
+                try { localStorage.setItem('rickyCoins', String(cns - f.price)); } catch(e){}
+              }
+              grantFloor(room, id);
             }
-            grantFloor(room, id);
+            const ch = floorChoices(); ch[room] = id; floorSave(ch);
             window.houseRender();
           };
         });
@@ -762,11 +780,8 @@ function dioDress(shell,scene,room,W,D,H){ED.dioMeshes=null;ED.dioExtra=null;if(
   const extra=new THREE.Group();extra.name='dioExtra';shell.add(extra);ED.dioExtra=extra;
   const slab=RB(extra,W+.62,.34,D+.5,.12,mat(dioMix(wall,'#f6e7d6',.65),.9),0,-.33,-.06);slab.castShadow=false;
   const cap=mat('#fff6ee',.85);
-  const ceilM=mat(dioMix(wall,'#fff6ee',.6),.88),L=.85;
-  RB(extra,W+.5,.22,L+.18,.08,ceilM,0,H+.05,-D/2-.09+L/2);
-  [-1,1].forEach(sd=>{RB(extra,L+.18,.22,D+.18,.08,ceilM,sd*(W/2+.09-L/2),H+.05,.0);RB(extra,.32,H+.12,.12,.06,cap,sd*(W/2+.09),H/2,D/2+.06);});
-  dioString(extra,[new THREE.Vector3(-W/2+L,H-.1,-D/2+L-.08),new THREE.Vector3(W/2-L,H-.1,-D/2+L-.08)],.12);
-  [-1,1].forEach(sd=>dioString(extra,[new THREE.Vector3(sd*(W/2-L+.08),H-.1,-D/2+L+.1),new THREE.Vector3(sd*(W/2-L+.08),H-.1,D/2-.1)],.12));
+  RB(extra,W+.5,.1,.32,.05,cap,0,H+.03,-D/2-.09);
+  [-1,1].forEach(sd=>{RB(extra,.32,.1,D+.2,.05,cap,sd*(W/2+.09),H+.03,.02);RB(extra,.32,H+.08,.1,.05,cap,sd*(W/2+.09),H/2,D/2+.06);});
   scene.traverse(o=>{if(o.isHemisphereLight){o.intensity=.46;o.color.set(0xfff0e4);o.groundColor.set(0xd9b8a8);}if(o.isAmbientLight)o.intensity=.1;if(o.isDirectionalLight&&o.castShadow){o.intensity=.95;o.color.set(0xffe2c0);}});
   scene.traverse(o=>{if(o.isPointLight){o.color.set(0xffd49a);o.intensity=.55;o.distance=8;o.position.set(0,H-.35,-D/2+1.1);}});
   const box=new THREE.Box3(),v=new THREE.Vector3();shell.updateMatrixWorld(true);const list=[];
