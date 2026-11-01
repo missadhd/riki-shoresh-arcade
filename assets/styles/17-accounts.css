@@ -10,3 +10,8 @@
 #rkAccountBar{max-width:540px;padding:8px 12px;margin:7px auto;background:#fff8fc}
 #rkAccountBar button:focus-visible{outline:3px solid #663591;outline-offset:3px}
 @media(max-width:480px){#rkAccountDialog:not([hidden]){width:calc(100vw - 20px)}#rkAccountPanel .rk-account-players{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Small-screen usability: prevent account strip and top header from consuming the viewport. */
+@media(max-width:640px){.top{flex-wrap:wrap;gap:6px}.top .brand{font-size:clamp(16px,4.5vw,23px);overflow-wrap:anywhere}.top .stats{display:flex;flex-wrap:wrap;align-items:center;gap:5px}.top .stats .pill{min-width:0}#rkAccountBar{gap:8px;margin:6px auto;padding:6px}#rkAccountBar button{flex:0 1 auto;padding:8px 11px}#rkAccountDialog:not([hidden]){max-height:calc(100dvh - 16px)}#rkAccountPanel .rk-profile-card{min-height:110px}}
+#coins{font-weight:900;white-space:nowrap;font-variant-numeric:tabular-nums}
+#rkAccountPanel .rk-account-message{min-height:1em}
