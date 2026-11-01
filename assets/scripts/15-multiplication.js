@@ -58,7 +58,7 @@ function startHome(){
  ['fashion','👗','Fashion Studio','Multiply, then pack the right accessories.'],
  ['array','⚡','Quick Math','Solve the fact in your head and type it.'],
  ['match','🎴','Fact Match','Find the correct product for each fact.']
- ].map(g=>'<button type="button" data-math-game="'+g[0]+'"><span>'+g[1]+'</span><b>'+g[2]+'</b><small>'+g[3]+'</small><em>'+(g[0]==='match'?'4 pairs':'5 questions')+'</em></button>').join('')+'</div>'+
+ ].map(g=>'<button type="button" '+({recipe:'id="rkMathRecipe"',array:'id="rkMathArray"',match:'id="rkMathMatch"'}[g[0]]||'')+' data-math-game="'+g[0]+'"><span>'+g[1]+'</span><b>'+g[2]+'</b><small>'+g[3]+'</small><em>'+(g[0]==='match'?'4 pairs':'5 questions')+'</em></button>').join('')+'</div>'+
  '<button type="button" class="rk-math-link" id="rkMathMain">← Main home</button>');
  app.querySelectorAll('[data-family]').forEach(b=>b.onclick=()=>{
   const n=Number(b.dataset.family);
