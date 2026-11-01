@@ -1,0 +1,42 @@
+name: Regression extra (desktop viewport, doll joints, saved data)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'preview-layered-riki.html'
+      - 'assets/scripts/**'
+      - 'assets/styles/**'
+      - 'tests/**'
+      - '.github/workflows/regression-extra.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser dependencies (no package.json)
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+          # doll joint tests launch /usr/bin/chromium
+          sudo ln -sf "$(ls -d ~/.cache/ms-playwright/chromium-*/chrome-linux*/chrome | head -1)" /usr/bin/chromium
+      - name: Start static servers (8765 and 8768 are used by the tests)
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/s1.log 2>&1 &
+          python3 -m http.server 8768 --bind 127.0.0.1 > /tmp/s2.log 2>&1 &
+          for p in 8765 8768; do for i in $(seq 1 30); do curl -fsS http://127.0.0.1:$p/ >/dev/null && break; sleep 1; done; done
+      - name: Desktop viewport (#145)
+        run: node tests/desktop-viewport-ci.mjs
+      - name: Live doll joints
+        if: always()
+        run: node tests/live-doll-joints.cjs
+      - name: Riki joint attachments
+        if: always()
+        run: node tests/riki-joint-attachments.cjs
