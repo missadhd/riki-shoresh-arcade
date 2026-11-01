@@ -10,7 +10,7 @@ let threeWaiters=null;
 function loadThree(cb,fail){if(window.THREE)return cb();if(threeWaiters){threeWaiters.push([cb,fail]);return;}threeWaiters=[[cb,fail]];const add=(url,next)=>{const s=document.createElement('script');s.src=url;s.onload=()=>{const w=threeWaiters;threeWaiters=null;w.forEach(x=>x[0]());};s.onerror=()=>{s.remove();if(next)return add(next,null);const w=threeWaiters;threeWaiters=null;w.forEach(x=>x[1]&&x[1]());};document.head.appendChild(s);};add(THREE_URL,THREE_CDN);}
 
 /* ================= styles ================= */
-const css=`.rk3-room{position:relative;height:clamp(280px,82vw,390px);width:100%;max-width:840px;border-radius:26px;overflow:hidden;touch-action:none;background:linear-gradient(#f7ebe4,#efe0d6);border:3px solid #fff;box-shadow:0 18px 34px -16px #4a233866;margin:10px auto}
+const css=`.rk3-room{position:relative;height:clamp(300px,94vw,460px);width:100%;max-width:840px;border-radius:26px;overflow:hidden;touch-action:none;background:linear-gradient(#f7ebe4,#efe0d6);border:3px solid #fff;box-shadow:0 18px 34px -16px #4a233866;margin:10px auto}
 .rk3-room canvas{display:block;width:100%;height:100%;outline:none}
 .rk3-room .riki3d-hud{position:absolute;left:10px;right:10px;top:10px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;pointer-events:none;z-index:2}
 @media(max-width:600px){.rk3-room .riki3d-hud{top:6px;left:6px;right:6px;gap:4px;justify-content:center;align-content:start}.rk3-room .riki3d-hud span{font-size:11px;padding:3px 7px}.rk3-room .riki3d-hud span:nth-child(2){display:none}.rk3-room .riki3d-hud button{font-size:12px!important;padding:4px 8px!important;min-height:29px!important;margin-left:0!important}}\n.rk3-room .riki3d-hud span{background:#ffffffde;border-radius:999px;padding:5px 12px;font-weight:800;font-size:13px;color:#4a2338;box-shadow:0 2px 8px #0001}
@@ -472,6 +472,14 @@ function roomShell(g,id,W,D,H,opts={}){
     // A shallow rear canopy reads as a finished ceiling without covering the room.
     const canopy = add(ceil, new THREE.BoxGeometry(W - 0.12, 0.055, D * 0.28), mat(st.color, 0.82, 0, {side: THREE.DoubleSide}), 0, H - 0.115, -D * 0.355);
     canopy.castShadow = false; canopy.receiveShadow = true; canopy.raycast = () => {};
+    // A second inset soffit and continuous inner trim create a finished
+    // ceiling plane while keeping the front open for the cutaway camera.
+    const soffit = add(ceil, new THREE.BoxGeometry(W - 0.28, 0.035, D * 0.18), mat('#fffaf4', 0.55, 0, {side: THREE.DoubleSide}), 0, H - 0.18, -D * 0.385);
+    soffit.castShadow = false; soffit.raycast = () => {};
+    const lip = mat('#fffaf4', 0.48);
+    BX(ceil, W - 0.12, 0.075, 0.085, lip, 0, H - 0.20, -D * 0.215);
+    BX(ceil, 0.075, 0.075, D * 0.28, lip, -W/2 + 0.09, H - 0.20, -D * 0.355);
+    BX(ceil, 0.075, 0.075, D * 0.28, lip, W/2 - 0.09, H - 0.20, -D * 0.355);
     slab.receiveShadow = true;
     slab.raycast = () => {};
 
@@ -880,7 +888,7 @@ function dioCamera(){if(ED.R.toneMappingExposure!==.84)ED.R.toneMappingExposure=
   const W=ED.W,D=ED.D,H=ED.H,gd=ED.room==='garden';const xs=gd?[-W/2-.65,W/2+.65]:[-W/2-.28,W/2+.28],zs=gd?[-D/2-.3,D/2+.5]:[-D/2-.28,D/2+.28],ys=[-.2,gd?1:H+.04];
   const P=[];xs.forEach(x=>zs.forEach(z=>ys.forEach(y=>P.push(new THREE.Vector3(x,y,z)))));
   const dir=new THREE.Vector3(Math.sin(ED.az)*Math.cos(ED.el),Math.sin(ED.el),Math.cos(ED.az)*Math.cos(ED.el));
-  const topPad=Math.min(.29,76/h*2),botPad=Math.min(.105,20/h*2),side=.025;const yMax=1-topPad,yMin=-1+botPad;
+  const topPad=Math.min(.19,52/h*2),botPad=Math.min(.09,18/h*2),side=.018;const yMax=1-topPad,yMin=-1+botPad;
   const tgt=new THREE.Vector3(0,gd?.2:H*.35,gd?.3:0),v=new THREE.Vector3();
   const box=dist=>{ED.cam.position.copy(tgt).addScaledVector(dir,dist);ED.cam.lookAt(tgt);ED.cam.near=.1;ED.cam.far=dist*4+20;ED.cam.updateProjectionMatrix();ED.cam.updateMatrixWorld();let a=9,b=-9,c2=9,d=-9;P.forEach(p=>{v.copy(p).project(ED.cam);a=Math.min(a,v.x);b=Math.max(b,v.x);c2=Math.min(c2,v.y);d=Math.max(d,v.y);});return [a,b,c2,d];};
   const fit=()=>{let lo=1,hi=80;for(let k=0;k<26;k++){const m=(lo+hi)/2,[a,b,c2,d]=box(m);if(b-a<=2-2*side&&d-c2<=yMax-yMin)hi=m;else lo=m;}return hi;};
