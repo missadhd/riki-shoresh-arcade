@@ -358,28 +358,7 @@ function floorTex(id){
             window.houseRender();
           };
         });
-      } else if (page === 'decorate') {
-        const stage = document.querySelector('.house-stage, .rk3-room, #dreamRoom');
-        const host = stage ? stage.parentElement : document.querySelector('.panel');
-        if (!host) return r;
-        const box = document.createElement('div');
-        box.id = 'rkFloorShop';
-        box.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;align-items:center';
-        const owned = list.filter(f => ownsFloor(room, f.id));
-        const current = floorChoices()[room] || floorFor(room).id;
-        box.innerHTML = `<span style="font-weight:800;font-size:13px">Floor:</span>` + owned.map(f => {
-          const on = current === f.id;
-          return `<button type="button" class="smallbtn" data-use-floor="${f.id}" ${on ? 'disabled' : ''}>${on ? '✓ ' : ''}${f.name}</button>`;
-        }).join('');
-        host.insertBefore(box, host.firstChild);
-        box.querySelectorAll('[data-use-floor]').forEach(b => {
-          b.onclick = () => {
-            const id = b.dataset.useFloor;
-            const c = floorChoices(); c[room] = id; floorSave(c);
-            window.houseRender();
-          };
-        });
-      }
+      } // floors only in shop, not decorate
     } catch(e) {}
     return r;
   };
