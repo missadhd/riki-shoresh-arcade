@@ -217,7 +217,7 @@ function plush(g,k){const col=['#ffffff','#c98b5e',P.sun,P.sun,'#f0a061','#fbf6f
 let R=null,scene=null,cam=null,stageEl=null,root=null,anims=[],looping=false,az=.5,azT=.5,el=.38,camCfg=[.8,3,.4],dragCam=null;
 let SNAP=null;
 function ensure(){
-  if(R)return;R=new THREE.WebGLRenderer({antialias:true,alpha:true});R.setPixelRatio(Math.min(1.75,devicePixelRatio||1));R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=.98;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
+  if(R)return;R=new THREE.WebGLRenderer({antialias:true,alpha:true});if(RK3.quality)RK3.quality(R,2);else R.setPixelRatio(Math.min(1.75,devicePixelRatio||1));R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=.9;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
   cam=new THREE.PerspectiveCamera(36,1,.05,80);const cv=R.domElement;
   cv.addEventListener('pointerdown',e=>{dragCam={x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
   cv.addEventListener('pointermove',e=>{if(!dragCam)return;azT-= (e.clientX-dragCam.x)*.008;el=cl(el+(e.clientY-dragCam.y)*.004,.05,1.1);dragCam={x:e.clientX,y:e.clientY};});
@@ -251,12 +251,13 @@ function buildEnv(id){const E=ENV[id];if(!E)return;const g=new THREE.Group();g.u
  scene.add(g);}
 function newScene(def){
   if(scene&&window.RK3&&RK3.disposeScene)RK3.disposeScene(scene);
-  scene=new THREE.Scene();scene.add(new THREE.HemisphereLight(0xfff6ee,0xe8c4b4,.62));
-  const key=new THREE.DirectionalLight(0xfff3e6,1.1);key.position.set(3,7,5);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.radius=5;key.shadow.bias=-.0008;key.shadow.normalBias=.02;const c=key.shadow.camera;c.left=-4;c.right=4;c.top=4;c.bottom=-4;c.far=30;scene.add(key);
-  const rim=new THREE.DirectionalLight(0xffc4dd,.5);rim.position.set(-4,3,-4);scene.add(rim);
-  const ground=new THREE.Mesh(new THREE.PlaneGeometry(30,30),new THREE.ShadowMaterial({opacity:.2}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+  scene=new THREE.Scene();
+  if(RK3.cozyLights)RK3.cozyLights(scene,{box:4,shadow:1024});
+  else{scene.add(new THREE.HemisphereLight(0xfff6ee,0xe8c4b4,.62));const key=new THREE.DirectionalLight(0xfff3e6,1.1);key.position.set(3,7,5);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.radius=5;scene.add(key);}
+  const gm=new THREE.ShadowMaterial({opacity:.26});if(gm.color)gm.color.set(0x6b3d4a);
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(30,30),gm);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
   try{buildEnv(S.id);}catch(e){console.warn(e);}
-  root=new THREE.Group();scene.add(root);root.userData.slots={};def.base.call(def,root);root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+  root=new THREE.Group();scene.add(root);root.userData.slots={};def.base.call(def,root);root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});if(RK3.clay)RK3.clay(scene);
   camCfg=def.cam;az=azT=.5;el=camCfg[2];anims=[];
 }
 function mountStage(el2){ensure();stageEl=el2;el2.prepend(R.domElement);resize();if(!looping){looping=true;requestAnimationFrame(loop);}}
@@ -271,8 +272,9 @@ function loop(t){
     if(o.userData.pop){const p=cl((now-o.userData.pop)/520,0,1);const s=p<1?1+Math.sin(p*Math.PI)*.18*(1-p)+(p<.35?(p/.35)-1:0):1;o.scale.setScalar(Math.max(.001,p<.35?p/.35*1.1:s));if(p>=1){o.scale.setScalar(1);delete o.userData.pop;}}
     if(o.userData.swim){const s=o.userData.swim,a=now/1000*s.s+s.ph;o.position.set(Math.cos(a)*s.r,s.y+Math.sin(a*2)*.05,Math.sin(a)*s.r*.6);o.rotation.y=-a-Math.PI/2;}
     if(o.userData.rise!==undefined){o.position.y=.35+((now/1000*.25+o.userData.rise*.12)%1)*.95;}
+    if(o.isMesh&&!o.userData.rkc&&RK3.clay){o.userData.rkc=1;(Array.isArray(o.material)?o.material:[o.material]).forEach(RK3.clayMat);}
   });
-  R.render(scene,cam);
+  if(RK3.frame)RK3.frame(R);R.render(scene,cam);
 }
 function tween(dur,fn){return new Promise(res=>{anims.push({t0:performance.now(),dur,fn:p=>{fn(p);if(p>=1)res();}});});}
 const ease=p=>p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
