@@ -4,6 +4,7 @@
 const URL='https://hmkcfmogpgljfasvefvs.supabase.co';
 const KEY='sb_publishable_o4hKwwXPGA77H66X0RjSjw_4FLEaqfA';
 const AUTH='rikiGuardianSessionV1';
+const BACKUP='rikiGuestProgressBackupV1';
 const KEYS=['rickyCoins','rickyHouseInventoryV1','rickyHouseDecorV1','rickyHouseWallsV1','rickyDreamStorageV2','rickyDreamPetsV2','rickyDreamPositionsV2','rickyRoomInteriorsV3','rickyTinyOwnedV1','rickyTinyPlacedV1','rickyAdventureXPV1','rickySpatialMusicV1','riki3dOrbit','rikiReal3dAz','rikiRootProgressV1','rikiDreamRotationV1','rikiClawPlushV1','rikiPlayTokensV1'];
 let session=null,player=null,lastSaved='',interval=null;
 const $=id=>document.getElementById(id);
@@ -21,7 +22,7 @@ function status(s){const n=$('rkAccountStatus');if(n)n.textContent=s}
 function modal(html){$('rkAccountPanel').innerHTML=html;$('rkAccountDialog').hidden=false}
 function close(){$('rkAccountDialog').hidden=true}
 function identity(){return session?.user?.email||'Guardian'}
-function logout(){clearInterval(interval);interval=null;session=null;player=null;sessionStorage.removeItem(AUTH);sessionStorage.removeItem('rikiCurrentPlayerV1');status('Guest • this browser');}
+function logout(){clearInterval(interval);interval=null;session=null;player=null;sessionStorage.removeItem(AUTH);sessionStorage.removeItem('rikiCurrentPlayerV1');const backup=localStorage.getItem(BACKUP);if(backup){try{const original=JSON.parse(backup);KEYS.forEach(k=>{if(Object.hasOwn(original,k))localStorage.setItem(k,original[k]);else localStorage.removeItem(k)})}catch{}}status('Guest • this browser');location.reload();}
 async function list(){
  if(!await refresh())return login();
  const guardians=await api('/rest/v1/arcade_guardians?select=user_id&limit=1');
@@ -38,6 +39,7 @@ async function switchTo(id){
   if(player && player!==id)await save();
   const rows=await api('/rest/v1/arcade_progress?select=version,snapshot&player_id=eq.'+encodeURIComponent(id));
   const stored=rows[0]?.snapshot;
+  if(!localStorage.getItem(BACKUP)){try{localStorage.setItem(BACKUP,JSON.stringify(read()))}catch{}}
   player=id;sessionStorage.setItem('rikiCurrentPlayerV1',id);
   if(stored && Object.keys(stored).length){
    KEYS.forEach(k=>{if(Object.hasOwn(stored,k))localStorage.setItem(k,String(stored[k]));else localStorage.removeItem(k)});
@@ -62,7 +64,7 @@ async function save(){
 function login(){
  modal('<h2>Guardian sign in</h2><p>Adults can use an email link to manage separate child profiles. No child email needed.</p><form id="rkSignIn"><label>Your email <input name="email" type="email" autocomplete="email" required></label><button type="submit">Send sign-in link</button></form><p id="rkAccountMsg" role="status"></p><button type="button" id="rkAccountClose">Keep playing as guest</button>');
  $('rkAccountClose').onclick=close;
- $('rkSignIn').onsubmit=async e=>{e.preventDefault();try{const email=e.target.email.value.trim();await api('/auth/v1/otp','POST',{email,create_user:true,gotrue_meta_security:{},options:{email_redirect_to:location.origin+location.pathname}} ,null);$('rkAccountMsg').textContent='Check your email for a sign-in link.'}catch(err){$('rkAccountMsg').textContent=err.message}};
+ $('rkSignIn').onsubmit=async e=>{e.preventDefault();try{const email=e.target.email.value.trim();await api('/auth/v1/otp','POST',{email,create_user:true,options:{email_redirect_to:location.origin+location.pathname}} ,null);$('rkAccountMsg').textContent='Check your email for a sign-in link.'}catch(err){$('rkAccountMsg').textContent=err.message}};
 }
 async function initialize(){
  const token=new URLSearchParams(location.hash.slice(1));
