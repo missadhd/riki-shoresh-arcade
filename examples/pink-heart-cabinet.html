@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Riki Arcade — Pink Heart Cabinet Prototype</title>
+<style>
+:root{font-family:"Trebuchet MS",system-ui,sans-serif;color:#65374f;background:#fff4f3}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:radial-gradient(circle at 50% 10%,#fffdfa,#ffe4e9 65%,#fbd8e0)}
+header{max-width:890px;margin:0 auto;padding:15px 18px 5px;text-align:center}
+h1{font-size:clamp(22px,4vw,31px);margin:7px 0 5px;color:#a45079}p{margin:4px auto 10px;font-size:14px;max-width:650px}
+main{margin:8px auto 0;padding:0 10px;max-width:900px}
+#stage{position:relative;height:min(64vh,580px);min-height:320px;border:5px solid white;border-radius:27px;background:linear-gradient(#ffeaf0,#fff8ef 77%,#fff0eb);box-shadow:0 18px 50px #b55f9033;overflow:hidden;touch-action:none}
+#stage canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}#stage canvas:active{cursor:grabbing}
+#hint{position:absolute;top:12px;left:12px;pointer-events:none;border-radius:14px;padding:7px 10px;font-size:12px;font-weight:700;color:#95546c;background:#ffffffd9}
+#status{margin:9px 0 4px;text-align:center;font-size:13px;min-height:22px}
+.controls{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin:9px auto 15px}
+button{border:2px solid #eba2bf;background:#fff;color:#9e527a;border-radius:999px;padding:12px 17px;font:700 14px "Trebuchet MS",system-ui;cursor:pointer;box-shadow:0 4px 0 #efbdd0;min-height:44px}button:focus-visible{outline:3px solid #81c9e8;outline-offset:3px}button:active{transform:translateY(2px);box-shadow:0 2px 0 #efbdd0}
+.note{font-size:12px;opacity:.8;text-align:center;padding-bottom:15px}a{color:#9e527a}
+@media(max-width:450px){#stage{height:55vh;min-height:315px}header{padding-top:8px}#hint{font-size:11px}.controls{gap:6px}button{font-size:12px;padding:10px 12px}}
+</style></head><body>
+<header><h1>💗 Pink Heart Kitchen Cabinet</h1><p>Interactive 3D furniture prototype inspired by the pastel-pink kitchen reference. Try opening the doors and sliding the drawers.</p></header>
+<main>
+<div id="stage" aria-label="3D model of a pink kitchen cabinet with working doors and drawers"><span id="hint">Drag to rotate · Scroll or pinch to zoom · Tap furniture to open</span></div>
+<div id="status" role="status" aria-live="polite">Everything starts closed.</div>
+<div class="controls"><button type="button" id="doors" aria-pressed="false">Open cabinet doors</button><button type="button" id="drawers" aria-pressed="false">Pull out drawers</button><button type="button" id="reset">Reset view</button></div>
+<p class="note">Standalone style-and-interaction prototype, not a purchased item or a change to Riki’s saved dollhouse.</p>
+</main>
+<script src="../assets/vendor/three-r128.min.js"></script>
+<script>
+(()=>{'use strict';
+const stage=document.getElementById('stage'),status=document.getElementById('status');
+if(!window.THREE){status.textContent='3D library unavailable. Try opening this while connected to the internet.';return;}
+const T=THREE,scene=new T.Scene(),renderer=new T.WebGLRenderer({antialias:true,alpha:true,powerPreference:'low-power'});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.setClearColor(0xffffff,0);renderer.outputEncoding=T.sRGBEncoding;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;stage.appendChild(renderer.domElement);
+const camera=new T.PerspectiveCamera(37,1,.1,80);
+const hemi=new T.HemisphereLight(0xffffff,0xed9baf,1.12);scene.add(hemi);
+const key=new T.DirectionalLight(0xffffff,1.14);key.position.set(-3,8,6);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-7;key.shadow.camera.right=7;key.shadow.camera.top=8;key.shadow.camera.bottom=-6;key.shadow.bias=-.0002;scene.add(key);
+const rim=new T.DirectionalLight(0xf9c8d8,.42);rim.position.set(4,4,-3);scene.add(rim);
+function material(color,roughness=.84){return new T.MeshStandardMaterial({color,roughness,metalness:0})}
+const pink=material('#eaa5bb'),pale=material('#ffdae3'),inner=material('#fff0df'),white=material('#fff8ed'),rose=material('#d77998'),gold=material('#e3b88e'),mint=material('#c1e0d1');
+function roundGeo(w,h,d,r=.06){
+ const shape=new T.Shape(),x=-w/2,y=-h/2; r=Math.min(r,w/3,h/3,d/3);
+ shape.moveTo(x+r,y);shape.lineTo(x+w-r,y);shape.quadraticCurveTo(x+w,y,x+w,y+r);
+ shape.lineTo(x+w,y+h-r);shape.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+ shape.lineTo(x+r,y+h);shape.quadraticCurveTo(x,y+h,x,y+h-r);
+ shape.lineTo(x,y+r);shape.quadraticCurveTo(x,y,x+r,y);
+ const g=new T.ExtrudeGeometry(shape,{depth:d-2*r,steps:1,bevelEnabled:true,bevelSegments:4,bevelThickness:r,bevelSize:r,curveSegments:6});
+ g.translate(0,0,-(d-2*r)/2);g.computeVertexNormals();return g;
+}
+function block(g,w,h,d,mat,x,y,z,r=.06){const m=new T.Mesh(roundGeo(w,h,d,r),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m;}
+function ball(g,r,mat,x,y,z,sx=1,sy=1,sz=1){const o=new T.Mesh(new T.SphereGeometry(r,20,14),mat);o.position.set(x,y,z);o.scale.set(sx,sy,sz);o.castShadow=true;g.add(o);return o;}
+function heart(g,x,y,z,scale=.10,color=rose){
+ const s=new T.Shape();s.moveTo(0,-.39);s.bezierCurveTo(-.8,.2,-.58,.8,0,.32);s.bezierCurveTo(.58,.8,.8,.2,0,-.39);
+ const geo=new T.ExtrudeGeometry(s,{depth:.08,bevelEnabled:true,bevelSegments:3,bevelThickness:.02,bevelSize:.02,steps:1,curveSegments:13});
+ const m=new T.Mesh(geo,color);m.scale.setScalar(scale/.5);m.position.set(x,y,z);m.castShadow=true;g.add(m);return m;
+}
+const cabinet=new T.Group();scene.add(cabinet);
+block(cabinet,2.65,1.94,1.09,pink,0,1.11,0,.11);
+block(cabinet,2.55,1.78,.96,inner,0,1.12,.07,.055);
+block(cabinet,2.75,.16,1.19,white,0,2.14,0,.055);
+block(cabinet,2.67,.16,1.12,rose,0,.18,.01,.055);
+block(cabinet,2.55,.045,.88,pale,0,.9,.09,.015);
+block(cabinet,2.55,.05,.90,pale,0,1.38,.08,.02);
+// The pink drawer compartments open toward the viewer.
+const drawers=[];for(const side of [-1,1]){
+ const g=new T.Group();g.position.set(side*.67,1.84,.61);cabinet.add(g);drawers.push(g);
+ block(g,1.22,.36,.10,pink,0,0,0,.05);
+ block(g,1.11,.27,.014,pale,0,0,.062,.02);
+ heart(g,0,-.015,.085,.11,rose);
+ const tray=new T.Group();g.add(tray);
+ block(tray,1.08,.026,.68,white,0,-.125,-.35,.01);
+ for(const sx of [-1,1])block(tray,.027,.2,.65,white,sx*.54,-.03,-.35,.011);
+ block(tray,1.09,.17,.026,white,0,-.025,-.7,.012);
+}
+// Two lower hinged doors with inset molded panels and little hearts.
+const doors=[];for(const side of [-1,1]){
+ const g=new T.Group();g.position.set(side*1.24,.27,.60);cabinet.add(g);doors.push({group:g,side});
+ const sign=-side;
+ block(g,1.18,1.05,.08,pink,sign*.58,.55,0,.048);
+ block(g,1.04,.90,.022,pale,sign*.58,.55,.057,.028);
+ block(g,.92,.76,.018,white,sign*.58,.55,.075,.022);
+ heart(g,sign*.2,.57,.105,.1,rose);
+}
+// Inside shelves and decorative pretend food become visible when doors open.
+const pot=material('#e4bfd4'),jam=material('#f4c5a2'),lid=material('#ffe9d7');
+block(cabinet,2.45,.07,.84,white,0,.78,.04,.02);
+for(const [x,c] of [[-.65,jam],[0,pot],[.65,mint]]){
+ const body=new T.Mesh(new T.CylinderGeometry(.14,.15,.27,22),c);body.position.set(x,.47,.22);cabinet.add(body);
+ const cap=new T.Mesh(new T.CylinderGeometry(.16,.16,.055,22),lid);cap.position.set(x,.62,.22);cabinet.add(cap);
+}
+const floor=block(scene,8,.16,8,material('#f6d8d4'),0,.02,0,.02);floor.receiveShadow=true;floor.castShadow=false;
+const matRug=block(scene,4,.014,3,material('#ffe9e7'),0,.13,0,.015);matRug.castShadow=false;
+let angle=.58,elev=.31,distance=6.4;const target=new T.Vector3(0,1.2,0);
+function moveCamera(){camera.position.set(Math.sin(angle)*Math.cos(elev)*distance,1.2+Math.sin(elev)*distance,Math.cos(angle)*Math.cos(elev)*distance);camera.lookAt(target);}
+function size(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+new ResizeObserver(size).observe(stage);size();moveCamera();
+let doorOpen=false,drawerOpen=false,doorValue=0,drawerValue=0;
+function state(){
+ document.body.dataset.doorsOpen=String(doorOpen);document.body.dataset.drawersOpen=String(drawerOpen);
+ document.getElementById('doors').setAttribute('aria-pressed',String(doorOpen));
+ document.getElementById('drawers').setAttribute('aria-pressed',String(drawerOpen));
+ document.getElementById('doors').textContent=doorOpen?'Close cabinet doors':'Open cabinet doors';
+ document.getElementById('drawers').textContent=drawerOpen?'Push drawers in':'Pull out drawers';
+ status.textContent=(doorOpen?'Cabinet doors open':'Cabinet doors closed')+' · '+(drawerOpen?'Drawers pulled out':'Drawers closed')+'.';
+}
+function setDoors(){doorOpen=!doorOpen;state()}function setDrawers(){drawerOpen=!drawerOpen;state()}
+document.getElementById('doors').onclick=setDoors;document.getElementById('drawers').onclick=setDrawers;
+document.getElementById('reset').onclick=()=>{angle=.58;elev=.31;distance=6.4;doorOpen=false;drawerOpen=false;state();moveCamera();};
+let pointer=null,clickStart=null;
+const ray=new T.Raycaster(),m=new T.Vector2();
+renderer.domElement.addEventListener('pointerdown',e=>{pointer={id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};clickStart={x:e.clientX,y:e.clientY};renderer.domElement.setPointerCapture(e.pointerId)});
+renderer.domElement.addEventListener('pointermove',e=>{if(!pointer||pointer.id!==e.pointerId)return;const dx=e.clientX-pointer.x,dy=e.clientY-pointer.y;if(Math.abs(dx)+Math.abs(dy)>3)pointer.moved=true;angle+=dx*.008;elev=Math.max(.10,Math.min(.7,elev+dy*.006));pointer.x=e.clientX;pointer.y=e.clientY;moveCamera()});
+renderer.domElement.addEventListener('pointerup',e=>{if(!pointer)return;const wasMoved=pointer.moved;pointer=null;if(wasMoved)return;
+ const r=renderer.domElement.getBoundingClientRect();m.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));ray.setFromCamera(m,camera);
+ let hit=ray.intersectObjects(drawers,true);if(hit.length){setDrawers();return}
+ hit=ray.intersectObjects(doors.map(d=>d.group),true);if(hit.length)setDoors();
+});
+renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();distance=Math.max(4.8,Math.min(9,distance+e.deltaY*.007));moveCamera()},{passive:false});
+let touchGap=0;
+renderer.domElement.addEventListener('touchmove',e=>{if(e.touches.length!==2){touchGap=0;return}const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY,gap=Math.hypot(dx,dy);if(touchGap)distance=Math.max(4.8,Math.min(9,distance*touchGap/gap));touchGap=gap;moveCamera()},{passive:false});
+function animate(){requestAnimationFrame(animate);doorValue+=(Number(doorOpen)-doorValue)*.12;drawerValue+=(Number(drawerOpen)-drawerValue)*.12;doors.forEach(({group,side})=>group.rotation.y=side*doorValue*.97);drawers.forEach(g=>g.position.z=.61+drawerValue*.54);renderer.render(scene,camera)}
+state();animate();
+window.RikiSampleCabinet={getState:()=>({doorOpen,drawerOpen,doorValue,drawerValue}),setDoors,setDrawers};
+})();
+</script></body></html>
