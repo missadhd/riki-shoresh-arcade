@@ -36,19 +36,18 @@ jobs:
           const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
           await page.goto('http://127.0.0.1:4173/', { waitUntil: 'networkidle' });
           await page.screenshot({ path: 'preview-shots/home.png', fullPage: true });
-          // Try to open dollhouse / decorate if the button exists
-          // Only click a visible house button (some matching elements are hidden on phones).
-          const house = page.locator('#houseShortcut:visible, [id*="house"]:visible').first();
+          const shot = async (name) => { await page.waitForTimeout(1500); await page.screenshot({ path: `preview-shots/${name}.png`, fullPage: true }); };
+          // Dolls & Pets (phone shortcut)
+          const dolls = page.locator('#rkDollsShortcut:visible').first();
+          if (await dolls.count()) { await dolls.click(); await shot('dolls-and-pets'); }
+          // Dollhouse: from home, the visible house tile (#hubHouse on phones, #houseShortcut on wider screens)
+          await page.goto('http://127.0.0.1:4173/', { waitUntil: 'networkidle' });
+          const house = page.locator('#hubHouse:visible, #houseShortcut:visible').first();
           if (await house.count()) {
             await house.click();
-            await page.waitForTimeout(1500);
-            await page.screenshot({ path: 'preview-shots/after-house.png', fullPage: true });
+            await shot('dollhouse');
             const decorate = page.locator('#decorateTab:visible').first();
-            if (await decorate.count()) {
-              await decorate.click();
-              await page.waitForTimeout(2000);
-              await page.screenshot({ path: 'preview-shots/decorate.png', fullPage: true });
-            }
+            if (await decorate.count()) { await decorate.click(); await shot('decorate'); }
           }
           await browser.close();
           console.log('Screenshots saved');
@@ -65,10 +64,11 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const msg = 'Preview screenshots uploaded as an artifact on this run.\n\nDownload the **preview-screenshots** artifact to see the home, house, and decorate views before merging.\n\n(Live site only updates after merge to main.)';
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: msg
-            });
+            const marker = '<!-- riki-preview-screenshots -->';
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const msg = `${marker}\nPreview screenshots (390px: home, Dolls & Pets, Dollhouse, Decorate) are attached as the **preview-screenshots** artifact on [the latest run](${run}) (commit ${context.payload.pull_request.head.sha.slice(0, 7)}).\n\n(The live site only updates after merge to main. This comment is updated on each push.)`;
+            const { owner, repo } = context.repo, issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
+            const mine = comments.find(c => c.user && c.user.type === 'Bot' && c.body && (c.body.includes(marker) || c.body.startsWith('Preview screenshots uploaded as an artifact')));
+            if (mine) await github.rest.issues.updateComment({ owner, repo, comment_id: mine.id, body: msg });
+            else await github.rest.issues.createComment({ owner, repo, issue_number, body: msg });
