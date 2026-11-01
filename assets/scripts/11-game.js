@@ -93,7 +93,7 @@ function curtainFor(room){
 const matCache={};
 function mat(c,rough=.75,metal=0,extra){
   // Soft clay dollhouse: matte, slightly defined edges, warm.
-  if(rough>=.2&&metal<.5&&!(extra&&(extra.transparent||extra.emissive))){rough=Math.max(.78,Math.min(.88,rough));}
+  if(rough>=.2&&metal<.5&&!(extra&&(extra.transparent||extra.emissive))){rough=Math.max(.85,Math.min(.92,rough));}
   const k=c+rough+metal+(extra?JSON.stringify(Object.keys(extra)):'');if(!extra&&matCache[k])return matCache[k];
   const m=new THREE.MeshStandardMaterial(Object.assign({color:new THREE.Color(c).convertSRGBToLinear(),roughness:rough,metalness:metal,envMapIntensity:.35},extra||{}));if(!extra)matCache[k]=m;return m;}
 const fabric=c=>mat(c,.82),gloss=c=>mat(c,.18),wood=(c='#e8c9a0')=>mat(c,.72),metalM=(c='#f2d9a0')=>mat(c,.45,.18);
@@ -112,22 +112,22 @@ const eye=()=>mat('#2a1622',.12);
 /* ================= furniture models ================= */
 function legs4(g,w,d,h,m,inset=.06,r=.03){[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>CY(g,r,r*.75,h,m,a*(w/2-inset),h/2,b*(d/2-inset),12));}
 const B={
- bed(g,c){c=c||'#f28db2';const wd=wood('#e8c9a0');
-  RB(g,1.3,.32,1.8,.12,wd,0,.2,0);legs4(g,1.2,1.7,.16,wd,.1,.06);
-  RB(g,1.15,.32,1.65,.14,fabric('#fff8f4'),0,.46,0);
-  RB(g,1.2,.16,1.15,.08,fabric(c),0,.62,.28);
-  SP(g,.26,fabric('#fffaf5'),-.3,.74,-.52,1.15,.6,.75);
-  SP(g,.26,fabric('#fffaf5'),.3,.74,-.52,1.15,.6,.75);
-  RB(g,1.3,1.1,.16,.1,wd,0,.7,-.86);
-  RB(g,1.08,.65,.08,.06,fabric(shadeHex(c,1.08)),0,.82,-.78);},
+ bed(g,c){c=c||'#f28db2';const wd=wood('#f0d4b0');
+  RB(g,1.35,.35,1.85,.18,wd,0,.18,0);legs4(g,1.2,1.7,.18,wd,.12,.08);
+  RB(g,1.2,.35,1.7,.2,fabric('#fff8f4'),0,.44,0);
+  RB(g,1.25,.18,1.2,.1,fabric(c),0,.6,.28);
+  SP(g,.3,fabric('#fffaf5'),-.32,.76,-.5,1.2,.65,.8);
+  SP(g,.3,fabric('#fffaf5'),.32,.76,-.5,1.2,.65,.8);
+  RB(g,1.35,1.15,.2,.14,wd,0,.72,-.84);
+  RB(g,1.1,.7,.1,.08,fabric(shadeHex(c,1.1)),0,.84,-.76);},
  canopy(g,c){c=c||'#f7b2c4';B.bed(g,c);[[-.58,-.82],[.58,-.82],[-.58,.82],[.58,.82]].forEach(([x,z])=>{CY(g,.035,.035,1.75,mat('#fff4e6',.4),x,1.0,z,14);SP(g,.05,metalM(),x,1.9,z);});
   const sheer=new THREE.MeshStandardMaterial({color:new THREE.Color(c).convertSRGBToLinear(),transparent:true,opacity:.42,side:THREE.DoubleSide,roughness:.9});
   BX(g,1.2,.04,1.7,sheer,0,1.86,0);[-.6,.6].forEach(x=>{const p=add(g,new THREE.PlaneGeometry(1.7,.9),sheer,x,1.45,0);p.rotation.y=Math.PI/2;p.castShadow=false;});},
  sofa(g,c){c=c||'#8fc6e8';const f=fabric(c),f2=fabric(shadeHex(c,1.08));
-  RB(g,1.7,.38,.82,.16,f,0,.26,0);
-  RB(g,1.7,.65,.32,.14,f,0,.64,-.26);
-  SP(g,.32,f,-.84,.52,0,0.75,1.15,0.9);
-  SP(g,.32,f,.84,.52,0,0.75,1.15,0.9);
+  RB(g,1.75,.42,.86,.2,f,0,.24,0);
+  RB(g,1.75,.7,.36,.18,f,0,.66,-.24);
+  SP(g,.36,f,-.86,.54,0,0.8,1.2,0.95);
+  SP(g,.36,f,.86,.54,0,0.8,1.2,0.95);
   [-.35,.35].forEach(x=>{
     RB(g,.62,.16,.55,.08,f2,x,.5,.06);
     SP(g,.18,f2,x,.72,-.1,1.2,.7,.6);
