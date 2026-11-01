@@ -131,7 +131,7 @@ function recipe(){
   '<div class="rk-kitchen-phase" role="status" aria-live="polite"><span>'+stageText+'</span><span>🧁 '+x.prepared+'/'+q.a+' trays</span></div>'+
   view+'<p class="rk-math-equation">'+q.a+' × '+q.b+' = '+(stage==='prep'||stage==='solve'?'?':q.answer)+'</p>'+
   '<div class="rk-kitchen-controls">'+action+
-  (x.message&&stage!=='served'?'<p class="rk-math-status" id="rkMathStatus" role="status">'+esc(x.message)+'</p>':'')+
+  (stage==='solve'?'<p class="rk-math-status" id="rkMathStatus" role="status">'+esc(x.message||'Count the trays, then enter your answer.')+'</p>':x.message&&stage!=='served'?'<p class="rk-math-status" role="status">'+esc(x.message)+'</p>':'')+
   '</div></section>';
 }
 function array(){
