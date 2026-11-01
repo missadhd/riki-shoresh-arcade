@@ -1,9 +1,9 @@
 # Working on Riki's Shoresh Sparkle Arcade
 
-Two AI assistants, ChatGPT and Claude, develop this project, often at the same time.
+Three AI assistants (ChatGPT, Claude, Grok) develop this project, often at the same time.
 Rachel owns it and decides what to build. These rules are permanent. Follow them on every task without being reminded.
 
-Both assistants have Rachel's standing permission to develop, test, and publish changes on their own.
+All three assistants have Rachel's standing permission to develop, test, and publish changes on their own.
 Rachel should never have to carry messages between you: coordinate through GitHub.
 
 ## 1. Before every task
@@ -11,12 +11,12 @@ Rachel should never have to carry messages between you: coordinate through GitHu
 1. Read this file.
 2. Fetch the latest `main`.
 3. Review all open pull requests, including drafts. Each one lists its claimed files under **Files I'm editing**.
-4. Check active branches (`claude/*`, `chatgpt/*`, and any others) and which files they change compared to `main`.
+4. Check active branches (`claude/*`, `chatgpt/*`, `grok/*`, and any others) and which files they change compared to `main`.
 5. Read `COORDINATION.md`.
 
 ## 2. Claim files before editing
 
-1. Create your own branch: `claude/<short-name>` or `chatgpt/<short-name>`.
+1. Create your own branch: `claude/<short-name>`, `chatgpt/<short-name>`, or `grok/<short-name>`.
 2. Before editing anything, open a draft pull request into `main` that lists exactly which files you will modify,
    under the heading **Files I'm editing**. Add a matching row to `COORDINATION.md`.
 3. If you need another file later, check that nobody has claimed it, then add it to your list before editing it.
@@ -31,7 +31,7 @@ Rachel should never have to carry messages between you: coordinate through GitHu
 ## 4. Publishing
 
 Publish completed changes to `main` without waiting for Rachel's approval. Test when testing tools are available; if testing cannot be performed, publishing is still permitted. Disclose exactly what was not tested and any known risks. Never publish with known file-claim conflicts, destructive saved-progress changes, or unauthorized script/style loading-order changes.
-Merging into `main` deploys to the live Netlify site.
+Merging into `main` deploys to the live site on GitHub Pages (production: https://missadhd.github.io/riki-shoresh-arcade/). Netlify only builds PR deploy previews.
 
 ## 5. Recheck before merging
 
