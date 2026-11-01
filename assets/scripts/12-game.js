@@ -284,7 +284,7 @@ M.trophy=g=>{const gd=metalM(C.gold);RB(g,.28,.08,.28,.02,toy('#4a2338'),0,.04,0
 
 /* ---------- garden ---------- */
 M.tree=g=>B.tree(g);M.butterfly=g=>B.butterfly(g);M.rainbow=g=>B.rainbow(g);M.pond=g=>B.pond(g);
-M.swing=g=>{const timber=wood('#d9b18e'),pink=clay('#f7a0bd'),rope=mat('#e6d2b5',.9),skin=clay('#e8be9d'),hair=clay('#a97658'),dress=clay('#f7a0bd');
+M.swing=g=>{const timber=wood('#d9b18e'),pink=mat('#f7a0bd',.88),rope=mat('#e6d2b5',.9),skin=mat('#e8be9d',.88),hair=mat('#a97658',.88),dress=mat('#f7a0bd',.88);
   // A-frame legs
   for(const x of [-.85,.85]){
     for(const z of [-.36,.36]){
