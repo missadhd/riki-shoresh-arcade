@@ -218,13 +218,21 @@ if(shoresh){
  shoresh.setAttribute('aria-label','Open Shoreshim — Hebrew root games');
  shoresh.setAttribute('title','Practice Hebrew roots');
 }
-for(const id of ['rikiShoreshTab','rikiShoreshimTab']){
- const duplicate=$(id);
- if(!duplicate)continue;
- duplicate.style.setProperty('display','none','important');
- duplicate.setAttribute('aria-hidden','true');
- duplicate.tabIndex=-1;
+function hideShoreshDuplicates(){
+ for(const id of ['rikiShoreshTab','rikiShoreshimTab']){
+  const duplicate=$(id);
+  if(!duplicate)continue;
+  duplicate.style.setProperty('display','none','important');
+  duplicate.setAttribute('aria-hidden','true');
+  duplicate.tabIndex=-1;
+ }
 }
+hideShoreshDuplicates();
+// An older module inserts a second duplicate at DOMContentLoaded, *after*
+// our module has initialized. Catch late additions without re-rendering the
+// page or modifying another assistant's claimed file.
+new MutationObserver(hideShoreshDuplicates).observe(nav,{childList:true});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hideShoreshDuplicates,{once:true});
 function addTile(){
  const grid=app.querySelector('.hub-grid');if(grid&&!$('hubMath')){
   const button=document.createElement('button');button.type='button';button.className='hub-tile hub-math';button.id='hubMath';
