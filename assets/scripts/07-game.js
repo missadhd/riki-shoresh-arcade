@@ -2049,9 +2049,9 @@ function rpRoom(host,key,{start=[0,2.15],dropOk,onTap}={}){
  const st=document.createElement('div');st.className='rp-stage';const [w0,h0]=SC3_SETS[key].size;st.style.aspectRatio=`${w0}/${h0}`;st.innerHTML='<div class="rp-load">Setting up the room…</div>';host.appendChild(st);
  const R={st,key,items:{},riki:null,rikiPos:start,last:Date.now()};
  const P=(x,y,z)=>sc3Proj(key,x,y,z);
- const placeFloor=(el,x,z,h,y0=0)=>{const f=P(x,y0,z),t=P(x,y0+h,z);el.style.left=f[0]+'%';el.style.top=f[1]+'%';el.style.height=Math.max(4,f[1]-t[1])+'%';el.style.zIndex=Math.round(f[1]*10);};
+ const placeFloor=(el,x,z,h,y0=0)=>{const f=P(x,y0,z),t=P(x,y0+h,z),g=P(x,0,z+(y0?.25:0));el.style.left=f[0]+'%';el.style.top=f[1]+'%';el.style.height=Math.max(4,f[1]-t[1])+'%';el.style.zIndex=Math.round(g[1]*10)+(y0?5:0);};
  R.walk=(x,z)=>new Promise(res=>{const el=R.riki;if(!el)return res();x=Math.max(-2.7,Math.min(2.7,x));z=Math.max(-.3,Math.min(2.3,z));const [x0,z0]=R.rikiPos;el.classList.add('walk');el.classList.toggle('flip',x<x0);const d=Math.hypot(x-x0,z-z0),ms=Math.min(1300,250+d*300);el.style.transitionDuration=ms+'ms';R.rikiPos=[x,z];placeFloor(el,x,z,1.3);setTimeout(()=>{el.classList.remove('walk');res();},ms);});
- R.walkTo=id=>{const s=RP_SPOTS[key][id];if(!s)return Promise.resolve();const side=s[1]>0?-1:1;return R.walk(s[1]+side*.5,s[3]+.55);};
+ R.walkTo=id=>{const s=RP_SPOTS[key][id];if(!s)return Promise.resolve();const side=s[1]>0?-1:1;const desk=['pencil','tray','crayons','star'].includes(id);return R.walk(s[1]+side*(desk?.85:.55),s[3]+(desk?.25:.5));};
  R.home=()=>R.walk(start[0],start[1]);
  R.addItem=(id,kind,x,z,h=.42,y0=0,tap=null)=>{const el=document.createElement('div');el.className='rp-item';el.dataset.id=id;el.dataset.home=JSON.stringify([x,z,h,y0]);const u=p3Render(kind);el.innerHTML=u?`<img alt="" src="${u}">`:'<b>✨</b>';st.appendChild(el);placeFloor(el,x,z,h,y0);R.items[id]=el;el._tap=tap;R.drag(el);return el;};
  R.reset=id=>{const el=R.items[id];if(!el)return;const [x,z,h,y0]=JSON.parse(el.dataset.home);el.classList.remove('gone','in');el.style.transform='';placeFloor(el,x,z,h,y0);};
@@ -2066,14 +2066,17 @@ function rpRoom(host,key,{start=[0,2.15],dropOk,onTap}={}){
    const spot=ev.type==='pointerup'?hit(ev.clientX,ev.clientY,who==='riki'?'riki':null):null;
    if(!spot){el.style.transform='';if(who==='riki'){const b=st.getBoundingClientRect();const [x,z]=rpUnproj(key,(ev.clientX-b.left)/b.width*100,(ev.clientY-b.top)/b.height*100);el.style.transition='none';R.rikiPos=[x,z];placeFloor(el,Math.max(-2.7,Math.min(2.7,x)),Math.max(-.3,Math.min(2.3,z)),1.3);requestAnimationFrame(()=>el.style.transition='');}return;}
    const res=dropOk?await dropOk(who,spot,el):'no';
-   if(res==='ok'||res==='keep'){R.last=Date.now();st.querySelector('.rp-hint')?.classList.remove('on');if(who==='riki'){el.style.transform='';await R.walkTo(spot);}else{const z=R.zones().find(q=>q.id===spot),b=el.getBoundingClientRect();el.style.transition='transform .35s cubic-bezier(0.23,1,0.32,1),opacity .35s';el.style.transform=`translate(-50%,-100%) translate(${z.x-(b.left+b.width/2)}px,${z.y-(b.top+b.height/2)}px) scale(.55)`;setTimeout(()=>{el.classList.add('gone');el.style.transition='';},380);if(spot!=='riki')R.walkTo(spot);}}
+   if(res==='ok'||res==='keep'){R.last=Date.now();st.querySelector('.rp-hint')?.classList.remove('on');if(who==='riki'){el.style.transform='';await R.walkTo(spot);}else{const z=R.zones().find(q=>q.id===spot),b=el.getBoundingClientRect();el.style.transition='transform .35s cubic-bezier(0.23,1,0.32,1),opacity .35s';el.style.transform=`translate(-50%,-100%) translate(${z.x-(b.left+b.width/2)}px,${z.y-(b.top+b.height/2)}px) scale(.55)`;setTimeout(()=>{el.classList.add('gone');el.style.transition='';},380);if(R.riki){R.riki.classList.remove('cheer');void R.riki.offsetWidth;R.riki.classList.add('cheer');}}}
    else{el.style.transition='transform .45s cubic-bezier(.3,1.5,.5,1)';el.style.transform='';setTimeout(()=>el.style.transition='',460);}};
   el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);});};
  R.say=(text,ms=2200)=>{if(!R.riki)return;let b=R.riki.querySelector('.rp-bub');if(!b){b=document.createElement('div');b.className='rp-bub';R.riki.appendChild(b);}b.textContent=text;b.classList.remove('on');void b.offsetWidth;b.classList.add('on');clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('on'),ms);};
  st.addEventListener('click',e=>{if(!R.riki||e.target.closest('.rp-item,.rp-riki,button,.rp-sheet'))return;const b=st.getBoundingClientRect(),px=(e.clientX-b.left)/b.width*100,py=(e.clientY-b.top)/b.height*100;
   const fun=(RP_FUN[key]||[]).find(([,x,y,z,r])=>{const c=P(x,y,z),q=P(x+r,y,z);return Math.hypot(px-c[0],py-c[1])<Math.max(5,q[0]-c[0]);});
   if(fun){R.say(fun[5][Math.floor(Math.random()*fun[5].length)],1600);audio('tap');return;}
-  if(onTap&&onTap(px,py))return;const [x,z]=rpUnproj(key,px,py);R.walk(x,z);});
+  if(onTap&&onTap(px,py))return;
+  const sp=Object.entries(RP_SPOTS[key]).map(([id,q])=>{const c=P(q[1],q[2],q[3]),e=P(q[1]+q[4],q[2],q[3]);return {id,d:Math.hypot(px-c[0],py-c[1])/Math.max(2.5,e[0]-c[0])};}).filter(q=>q.d<1).sort((a,b)=>a.d-b.d)[0];
+  if(sp&&dropOk&&!R.busy){R.busy=true;(async()=>{await R.walkTo(sp.id);const res=await dropOk('riki',sp.id,R.riki,true);if(res==='ok'||res==='keep'){R.last=Date.now();st.querySelector('.rp-hint')?.classList.remove('on');}R.busy=false;})();return;}
+  const [x,z]=rpUnproj(key,px,py);R.walk(x,z);});
  R.ready=new Promise(done=>sc3Get(key,url=>{if(!st.isConnected)return;st.innerHTML='';st.style.backgroundImage=`url(${url})`;
   (RP_PROPS[key]||[]).forEach(([kind,x,y0,z,h])=>{const el=document.createElement('div');el.className='rp-prop';el.innerHTML=`<img alt="" src="${p3Render(kind)||''}">`;st.appendChild(el);placeFloor(el,x,z,h,y0);});
   (RP_NAMES[key]||[]).forEach(([n,id])=>{const s=RP_SPOTS[key][id];const t=document.createElement('span');t.className='rp-name'+(n==='Riki'?' me':'');t.textContent=n;const c=P(s[1],s[2]-.08,s[3]+.05);t.style.left=c[0]+'%';t.style.top=c[1]+'%';st.appendChild(t);});
@@ -2082,8 +2085,11 @@ function rpRoom(host,key,{start=[0,2.15],dropOk,onTap}={}){
 const rpLoad=fn=>{if(window.THREE)return fn();if(window.RK3&&RK3.loadThree)RK3.loadThree(fn,fn);else fn();};
 
 /* Math worksheet at Riki's desk (drag answers into the boxes) */
-function rpWorksheet(R,onDone){if(R.st.querySelector('.rp-sheet'))return;const hard=!easy(curUnit()),mx=hard?20:10;const probs=Array.from({length:4},(_,i)=>{const add=i%2===0;let a=2+Math.floor(Math.random()*(mx-3)),b=1+Math.floor(Math.random()*(add?mx-a:a-1));if(!add&&b>=a)b=a-1;return {t:`${a} ${add?'+':'−'} ${b} =`,ans:add?a+b:a-b};});
- const tiles=zShuf([...probs.map(p=>p.ans),...Array.from({length:2},()=>Math.floor(Math.random()*mx)+1)]);
+function rpWorksheet(R,onDone){if(R.st.querySelector('.rp-sheet'))return;const hard=!easy(curUnit()),mx=hard?20:10,tm=hard?10:5;const r=(lo,hi)=>lo+Math.floor(Math.random()*(hi-lo+1));
+ const mk=op=>{if(op==='×'){const a=r(2,tm),b=r(2,hard?10:5);return {t:`${a} × ${b} =`,ans:a*b};}if(op==='+'){const a=r(2,mx-2),b=r(1,mx-a);return {t:`${a} + ${b} =`,ans:a+b};}const a=r(4,mx),b=r(1,a-1);return {t:`${a} − ${b} =`,ans:a-b};};
+ const probs=zShuf(hard?['×','×','+','−']:['×','+','+','−']).map(mk);
+ const extra=new Set();probs.forEach(p=>{const d=p.ans+(Math.random()<.5?1:-1)*r(1,2);if(d>0&&!probs.some(q=>q.ans===d))extra.add(d);});
+ const tiles=zShuf([...probs.map(p=>p.ans),...[...extra].slice(0,2)]);
  const w=document.createElement('div');w.className='rp-sheet';w.innerHTML=`<div class="rp-paper"><button type="button" class="rp-x" aria-label="Close">✕</button><b>📝 Math worksheet</b>${probs.map((p,i)=>`<div class="rp-prob"><span>${p.t}</span><i class="rp-box" data-i="${i}"></i></div>`).join('')}<div class="rp-tiles">${tiles.map((n,k)=>`<span class="rp-tile" data-n="${n}">${n}</span>`).join('')}</div><small>Drag the right number into each box</small></div>`;R.st.appendChild(w);
  const boxes=[...w.querySelectorAll('.rp-box')];boxes.forEach(hoTapTarget);let filled=0,missed=false;w.querySelector('.rp-x').onclick=()=>w.remove();
  w.querySelectorAll('.rp-tile').forEach(t=>hoDrag(t,()=>boxes.filter(b=>!b.dataset.ok),box=>{const p=probs[+box.dataset.i];if(+t.dataset.n!==p.ans){if(!missed){missed=true;zMiss();}audio('tap');hoBounce(t);box.classList.remove('no');void box.offsetWidth;box.classList.add('no');return;}
@@ -2095,8 +2101,8 @@ const HM_FUNNY={sink:'in the sink? Splash! 🙈',drawer:'in the drawer? Hmm, no!
 function drawHelper(){zCur='helper';const pool=HM_JOBS.filter(j=>HM_ROOM[j[0]]);const jobs=[];zShuf(pool).forEach(j=>{if(jobs.length<3&&!jobs.some(x=>x[2]===j[2]))jobs.push(j);});let done=0,distracted=0,tvOn=false;
  const t=zShell('🏠 Helper Mission',`${g6Top('mom','Mom')}<div class="hm-list" id="hmList">${jobs.map(j=>`<span data-j="${j[0]}">⬜ ${j[4]}</span>`).join('')}</div><div id="hmHost"></div><div class="ag-msg" id="agM"></div>`);
  rpLoad(()=>{if(!zLive(t))return;const spawnKey=j=>JSON.stringify(HM_ROOM[j[0]][2].slice(0,2));const decoys=zShuf(pool.filter(j=>!jobs.includes(j)&&!jobs.some(x=>spawnKey(x)===spawnKey(j)))).slice(0,1);
-  const R=rpRoom($id('hmHost'),'helproom',{start:[-.3,2.05],dropOk:async(who,spot)=>{
-   if(who==='riki'){if(spot==='tv'){tvTap();return 'no';}return 'ok';}
+  const R=rpRoom($id('hmHost'),'helproom',{start:[-.3,2.05],dropOk:async(who,spot,el,tapped)=>{
+   if(who==='riki'){if(spot==='tv'&&(tvOn||!tapped)){tvTap();return 'no';}return 'ok';}
    const j=pool.find(x=>x[0]===who);const name=({sock:'socks',bowl:'kitty food',bear:'teddy',book:'book',cup:'cup',shoe:'shoes',plate:'plate',pj:'pajamas',crayon:'crayons',plant:'watering can'})[who]||'that';
    if(!jobs.includes(j)){zMiss();audio('tap');R.say('That’s not on my list!');g6Msg('📋 Check Mom’s list. That one isn’t a job today.',false);return 'no';}
    if(HM_ROOM[who][1]!==spot){zMiss();audio('tap');dollReact(false);R.say(`${name[0].toUpperCase()+name.slice(1)} ${HM_FUNNY[spot]||'there? No!'}`);return 'no';}
@@ -2122,11 +2128,11 @@ const RP_START={backpack:['backpack',1.05,1.55,.5],coat:['coat',.4,1.95,.42,.38]
 const RP_SAY={hook:'hooks',cubby:'cubby',trash:'trash can',shelf:'bookshelf',rug:'rug',water:'water fountain',door:'door',star:'star table',pencil:'pencil sharpener',board:'whiteboard',plant:'plant',bin:'toy bin',riki:'Riki',crayons:'crayon box',tray:'tray'};
 function rpClassroom(roomSel,btnSel,keyOf,expect,{onRound}={}){const old=$id(roomSel);if(!old)return;const host=document.createElement('div');old.after(host);old.classList.add('rp-hidden');const byKey={};[...old.querySelectorAll(btnSel)].forEach(b=>byKey[keyOf(b)]=b);let sheetDone=false,crIn=0;
  const click=k=>{const b=byKey[k];b.classList.remove('ok','no');b.click();return b.classList.contains('ok');};
- const R=rpRoom(host,'schoolroom',{start:[-.55,2.25],dropOk:async(who,spot)=>{
+ const R=rpRoom(host,'schoolroom',{start:[-.55,2.25],dropOk:async(who,spot,el,tapped)=>{
    if(old.hidden){R.say('Wait, listen first!');return 'no';}
-   const s=RP_SPOTS.schoolroom[spot];if(/^(hook|cubby)[A-Z]$/.test(spot)){zMiss();audio('tap');R.say(`Oops! That’s ${s[0].replace(/ .*/,'')} ${s[0].includes('hook')?'hook':'cubby'}. Find yours!`);return 'no';}
+   const s=RP_SPOTS.schoolroom[spot];if(tapped&&who==='riki'&&!Object.values(RP_TASK).some(([it,sp])=>it==='riki'&&sp===spot))return 'no';if(/^(hook|cubby)[A-Z]$/.test(spot)){zMiss();audio('tap');R.say(`Oops! That’s ${s[0].replace(/ .*/,'')} ${s[0].includes('hook')?'hook':'cubby'}. Find yours!`);return 'no';}
    const task=Object.entries(RP_TASK).find(([k,[it,sp]])=>byKey[k]&&sp===spot&&(it===who||(Array.isArray(it)&&it.includes(who))));
-   if(!task){zMiss();audio('tap');R.say(who==='riki'?`Hmm, why go to the ${RP_SAY[spot]||'there'}?`:`That doesn’t go there!`);return 'no';}
+   if(!task){if(tapped)return 'no';zMiss();audio('tap');R.say(who==='riki'?`Hmm, why go to the ${RP_SAY[spot]||'there'}?`:`That doesn’t go there!`);return 'no';}
    const [k,[it]]=task,exp=expect();
    if(k==='tray'||k==='worksheet'){if(!sheetDone){R.say('I have to finish it first! Tap my worksheet.');return 'no';}}
    if(Array.isArray(it)){if(exp!==k){click(k);R.say('Oops, that wasn’t the job!');return 'no';}crIn++;audio('good');if(crIn<CR.length){R.say(`${CR.length-crIn} more!`,1000);return 'keep';}click(k);R.say('All picked up! ✨',1300);return 'ok';}
@@ -2151,7 +2157,7 @@ if(!document.getElementById('rpCss')){const st=document.createElement('style');s
 .rp-prop{pointer-events:none}
 .rp-name{position:absolute;transform:translate(-50%,-50%);background:#fffbe6;border:1px solid #d9c48a;border-radius:3px;padding:0 3px;font-size:7.5px;font-weight:900;color:#6b4a1f;pointer-events:none;z-index:1900;font-family:'Comic Sans MS',cursive,sans-serif}.rp-name.me{background:#ffe6f1;border-color:#ff7eb6;color:#c2185b}
 .rp-riki{aspect-ratio:.62;transition-property:left,top,height;transition-timing-function:cubic-bezier(0.45,0,0.55,1);cursor:grab;touch-action:none}.rp-riki .rp-img{width:100%;height:100%;filter:drop-shadow(0 6px 4px rgba(80,40,40,.25))}.rp-riki .rp-img svg,.rp-riki .rp-img img{width:100%;height:100%;object-fit:contain;object-position:bottom}.rp-riki.flip .rp-img{transform:scaleX(-1)}.rp-riki.drag{transition:none;z-index:9999!important}
-.rp-riki.walk .rp-img{animation:cpBob .32s ease-in-out infinite}
+.rp-riki.walk .rp-img{animation:cpBob .32s ease-in-out infinite}.rp-riki.cheer .rp-img{animation:rigHop .55s cubic-bezier(.3,1.4,.5,1) 2}
 .rp-hint{position:absolute;transform:translate(-50%,-50%) scale(.8);background:#fff;border-radius:999px;padding:3px 9px;font-size:11px;font-weight:900;color:#c2185b;white-space:nowrap;pointer-events:none;z-index:2000;box-shadow:0 0 0 3px #ffd34d,0 0 18px 6px rgba(255,211,77,.7);opacity:0;transition:opacity .25s,transform .25s cubic-bezier(0.23,1,0.32,1)}.rp-hint.on{opacity:1;transform:translate(-50%,-50%) scale(1);animation:rpPulse 1s ease-in-out infinite}@keyframes rpPulse{50%{box-shadow:0 0 0 3px #ffd34d,0 0 26px 10px rgba(255,211,77,.9)}}
 .rp-bub{position:absolute;left:50%;bottom:96%;transform:translateX(-50%) scale(.9);width:max-content;max-width:180px;background:#fff;border-radius:14px;padding:5px 9px;font-size:12px;font-weight:800;color:#4a2338;box-shadow:0 0 0 2px #4a2338;opacity:0;transition:opacity .2s,transform .2s cubic-bezier(0.23,1,0.32,1);pointer-events:none;z-index:9999}.rp-bub.on{opacity:1;transform:translateX(-50%) scale(1)}
 .rp-tv{position:absolute;transform:translate(-50%,-50%);width:15%;height:7%;border:0;border-radius:6px;background:transparent;font-size:10px;font-weight:900;color:#fff;cursor:pointer;z-index:1500;padding:0}.rp-tv.on{background:linear-gradient(135deg,#8fd3ff,#c9a2ff);box-shadow:0 0 14px 4px rgba(150,200,255,.8);animation:rpTv .5s ease-in-out infinite alternate}@keyframes rpTv{to{box-shadow:0 0 22px 8px rgba(255,170,220,.85)}}
