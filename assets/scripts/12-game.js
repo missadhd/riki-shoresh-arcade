@@ -284,16 +284,19 @@ M.trophy=g=>{const gd=metalM(C.gold);RB(g,.28,.08,.28,.02,toy('#4a2338'),0,.04,0
 
 /* ---------- garden ---------- */
 M.tree=g=>B.tree(g);M.butterfly=g=>B.butterfly(g);M.rainbow=g=>B.rainbow(g);M.pond=g=>B.pond(g);
-M.swing=g=>{const wood=clay('#e8d4c0'),pink=clay('#f7a0bd');
-  // Frame
-  CY(g,.04,.04,1.2,wood,-.3,.6,0,10);
-  CY(g,.04,.04,1.2,wood,.3,.6,0,10);
-  CY(g,.04,.04,.7,wood,0,1.15,0,10).rotation.z=Math.PI/2;
-  // Seat
-  RB(g,.4,.04,.2,.02,pink,0,.4,0);
-  // Ropes
-  CY(g,.01,.01,.7,clay('#d4c0a8'),-.15,.75,0,6);
-  CY(g,.01,.01,.7,clay('#d4c0a8'),.15,.75,0,6);
+M.swing=g=>{const timber=wood('#d9b18e'),pink=clay('#f7a0bd'),rope=mat('#e6d2b5',.9);
+  // A-frame legs on both sides and a spanning top beam; two independent hanging seats.
+  for(const x of [-.82,.82]){
+    for(const z of [-.33,.33]){const leg=CY(g,.055,.055,1.45,timber,x,.72,z,10);leg.rotation.x=z>0?-.14:.14;}
+  }
+  const beam=CY(g,.07,.07,1.9,timber,0,1.42,0,10);beam.rotation.z=Math.PI/2;
+  for(const x of [-.43,.43]){
+    RB(g,.48,.07,.32,.04,pink,x,.5,0);
+    for(const dx of [-.18,.18]){
+      CY(g,.012,.012,.9,rope,x+dx,.97,0,8);
+      SP(g,.036,metalM('#e4b7ca'),x+dx,1.41,0);
+    }
+  }
 };
 M.pool=g=>{CY(g,.6,.6,.15,clay('#7cc4f2'),0,.1,0,32);CY(g,.55,.55,.12,clay('#5ab4e6'),0,.16,0,32);CY(g,.5,.5,.08,clay('#ffffff'),0,.2,0,32);
   const duck=new THREE.Group();duck.position.set(.25,.38,.1);g.add(duck);SP(duck,.09,gloss(C.sun),0,0,0,1.2,.8,1);SP(duck,.06,gloss(C.sun),.07,.08,0);CO(duck,.025,.06,gloss('#ff9a4d'),.13,.08,0).rotation.z=-Math.PI/2;};
