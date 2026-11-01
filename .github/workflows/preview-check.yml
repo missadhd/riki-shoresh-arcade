@@ -37,13 +37,14 @@ jobs:
           await page.goto('http://127.0.0.1:4173/', { waitUntil: 'networkidle' });
           await page.screenshot({ path: 'preview-shots/home.png', fullPage: true });
           // Try to open dollhouse / decorate if the button exists
-          const house = await page.$('#houseShortcut, [id*="house"]');
-          if (house) {
+          // Only click a visible house button (some matching elements are hidden on phones).
+          const house = page.locator('#houseShortcut:visible, [id*="house"]:visible').first();
+          if (await house.count()) {
             await house.click();
             await page.waitForTimeout(1500);
             await page.screenshot({ path: 'preview-shots/after-house.png', fullPage: true });
-            const decorate = await page.$('#decorateTab');
-            if (decorate) {
+            const decorate = page.locator('#decorateTab:visible').first();
+            if (await decorate.count()) {
               await decorate.click();
               await page.waitForTimeout(2000);
               await page.screenshot({ path: 'preview-shots/decorate.png', fullPage: true });
