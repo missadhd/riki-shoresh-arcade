@@ -92,11 +92,11 @@ function curtainFor(room){
 /* ================= materials & shapes ================= */
 const matCache={};
 function mat(c,rough=.75,metal=0,extra){
-  // Matte clay on opaque toy surfaces; keep eyes, glass, water and lights crisp.
-  if(rough>=.2&&metal<.5&&!(extra&&(extra.transparent||extra.emissive))){rough=Math.max(.92,rough);}
+  // Soft clay dollhouse: matte, slightly defined edges, warm.
+  if(rough>=.2&&metal<.5&&!(extra&&(extra.transparent||extra.emissive))){rough=Math.max(.78,Math.min(.88,rough));}
   const k=c+rough+metal+(extra?JSON.stringify(Object.keys(extra)):'');if(!extra&&matCache[k])return matCache[k];
-  const m=new THREE.MeshStandardMaterial(Object.assign({color:new THREE.Color(c).convertSRGBToLinear(),roughness:rough,metalness:metal},extra||{}));if(!extra)matCache[k]=m;return m;}
-const fabric=c=>mat(c,.95),gloss=c=>mat(c,.22),wood=(c='#b9824f')=>mat(c,.88),metalM=(c='#d8b46a')=>mat(c,.65,.28);
+  const m=new THREE.MeshStandardMaterial(Object.assign({color:new THREE.Color(c).convertSRGBToLinear(),roughness:rough,metalness:metal,envMapIntensity:.35},extra||{}));if(!extra)matCache[k]=m;return m;}
+const fabric=c=>mat(c,.82),gloss=c=>mat(c,.18),wood=(c='#e8c9a0')=>mat(c,.72),metalM=(c='#f2d9a0')=>mat(c,.45,.18);
 const geoCache={};
 function rbox(w,h,d,r){const k=[w,h,d,r].join();if(geoCache[k])return geoCache[k];r=Math.min(r,w/2-.001,h/2-.001,d/2-.001);
   const s=new THREE.Shape(),x=-w/2+r,y=-h/2+r,W=w-2*r,H=h-2*r;s.moveTo(x,y);s.lineTo(x+W,y);s.lineTo(x+W,y+H);s.lineTo(x,y+H);s.lineTo(x,y);
@@ -560,8 +560,8 @@ function fillItems(group,room,W,D,S){
   return out;
 }
 function lights(scene,size,shadowMap){
-  scene.add(new THREE.HemisphereLight(0xfff8f2,0xe0c4a8,.8));scene.add(new THREE.AmbientLight(0xfffaf6,.28));
-  const sun=new THREE.DirectionalLight(0xfff4e6,.85);sun.position.set(-size*.5,size*1.4,size*.9);sun.castShadow=true;sun.shadow.mapSize.set(shadowMap,shadowMap);
+  scene.add(new THREE.HemisphereLight(0xfff5ee,0xf0d8c0,.9));scene.add(new THREE.AmbientLight(0xfff8f4,.38));
+  const sun=new THREE.DirectionalLight(0xfff0e0,.72);sun.position.set(-size*.5,size*1.4,size*.9);sun.castShadow=true;sun.shadow.mapSize.set(shadowMap,shadowMap);
   const c=sun.shadow.camera;c.left=-size;c.right=size;c.top=size;c.bottom=-size;c.near=.5;c.far=size*5;sun.shadow.bias=-.0008;sun.shadow.normalBias=.03;sun.shadow.radius=6;scene.add(sun);
   const fill=new THREE.DirectionalLight(0xf0e6ff,.32);fill.position.set(size*.8,size*.5,-size*.4);scene.add(fill);
 }
