@@ -1,0 +1,39 @@
+name: Six-room dollhouse touch and storage QA
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'assets/scripts/11-game.js'
+      - 'tests/dollhouse-touch-qa-ci.mjs'
+      - '.github/workflows/dollhouse-touch-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dollhouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start arcade server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/dollhouse-touch.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0; sleep 1; done
+          exit 1
+      - name: Test all six rooms and mobile pinch interactions
+        run: node tests/dollhouse-touch-qa-ci.mjs
+      - name: Upload visual room QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: six-room-visual-QA
+          path: room-*.png
+          if-no-files-found: warn
+          retention-days: 7

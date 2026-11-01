@@ -931,15 +931,57 @@ function edSelect(id,quiet){
 }
 function place(id,X,Z){const room=G('currentRoom')||ED.room||'bedroom',already=Object.values((G('decor')||{})[room]||{}).includes(id);if(!already&&availableCopies(id,room)<1){msg('That copy is already in another room. Buy another one in the shop to place it here.');try{const a=G('audio');a&&a('bad');}catch(_){}return false;}const p=localToPct(X,Z,ED.W,ED.D),scale=rkScale(room,id);ED.internal=true;try{ORIG_PLACE(id,p.x,p.y);rkScaleSet(room,id,scale);}finally{ED.internal=false;}return true;}
 function edPointers(cv){
-  cv.addEventListener('pointerdown',e=>{if(ED.storage){storageDown(e);return;}const pt={x:e.clientX,y:e.clientY};let it=hitItem(pt);if(ED.preview){it=null;ED.ray.setFromCamera(ndc(pt),ED.cam);if(ED.ray.intersectObject(ED.preview.group,true).length)it=ED.preview.group;}ED.drag={sx:e.clientX,sy:e.clientY,lx:e.clientX,ly:e.clientY,item:it,moved:false,id:e.pointerId};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
-  cv.addEventListener('pointermove',e=>{if(ED.storage){storageMove(e);return;}const d=ED.drag;if(!d||d.id!==e.pointerId)return;if(!d.moved&&Math.hypot(e.clientX-d.sx,e.clientY-d.sy)>14){d.moved=true;if(d.item){edSelect(d.item.userData.id,true);}}
+  // Track touches *before* moving a piece. The original independent pinch
+  // listeners also allowed the last finger to start dragging furniture or
+  // orbiting the camera, sometimes saving an accidental placement.
+  const touches=new Map();let pinching=false,pinchDist=0;
+  cv.style.touchAction='none';
+  const beginTouch=e=>{
+    if(e.pointerType!=='touch')return false;
+    touches.set(e.pointerId,[e.clientX,e.clientY]);
+    if(touches.size>=2){
+      pinching=true;
+      // If the first finger moved furniture a little before the second
+      // arrived, abandon that uncommitted drag and restore the original view.
+      if(ED.drag?.moved&&ED.drag.item&&ED.drag.startPosition){
+        ED.drag.item.position.copy(ED.drag.startPosition);
+      }
+      ED.drag=null;
+      if(ED.storage){ED.storage.drag=null;storageDisposeGhost();}
+      const pts=[...touches.values()];
+      pinchDist=Math.hypot(pts[0][0]-pts[1][0],pts[0][1]-pts[1][1]);
+      try{cv.setPointerCapture(e.pointerId);}catch(_){}
+      if(e.cancelable)e.preventDefault();
+    }
+    return pinching;
+  };
+  const moveTouch=e=>{
+    if(e.pointerType!=='touch'||!touches.has(e.pointerId))return false;
+    touches.set(e.pointerId,[e.clientX,e.clientY]);
+    if(!pinching)return false;
+    if(touches.size===2&&!ED.storage){
+      const pts=[...touches.values()],d=Math.hypot(pts[0][0]-pts[1][0],pts[0][1]-pts[1][1]);
+      if(pinchDist>0&&d>0)ED.zoom=cl(ED.zoom*(pinchDist/d),.4,1.8);
+      pinchDist=d;
+    }
+    if(e.cancelable)e.preventDefault();
+    return true;
+  };
+  const endTouch=e=>{
+    if(e.pointerType!=='touch')return false;
+    const swallow=pinching;touches.delete(e.pointerId);
+    if(!touches.size){pinching=false;pinchDist=0;}
+    return swallow;
+  };
+  cv.addEventListener('pointerdown',e=>{if(beginTouch(e))return;if(ED.storage){storageDown(e);return;}const pt={x:e.clientX,y:e.clientY};let it=hitItem(pt);if(ED.preview){it=null;ED.ray.setFromCamera(ndc(pt),ED.cam);if(ED.ray.intersectObject(ED.preview.group,true).length)it=ED.preview.group;}ED.drag={sx:e.clientX,sy:e.clientY,lx:e.clientX,ly:e.clientY,item:it,startPosition:it?it.position.clone():null,moved:false,id:e.pointerId};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
+  cv.addEventListener('pointermove',e=>{if(moveTouch(e))return;if(ED.storage){storageMove(e);return;}const d=ED.drag;if(!d||d.id!==e.pointerId)return;if(!d.moved&&Math.hypot(e.clientX-d.sx,e.clientY-d.sy)>14){d.moved=true;if(d.item){edSelect(d.item.userData.id,true);}}
     if(!d.moved)return;
     if(d.item&&!d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v){d.item.position.x=v.x;d.item.position.z=v.z;}}
     else if(d.item&&d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v)d.item.position.x=v.x;}
     else{ED.azT=cl(ED.azT-(e.clientX-d.lx)*.0028,DIO.on?-1.1:-.5,DIO.on?1.1:.5);ED.elT=cl(ED.elT+(e.clientY-d.ly)*.0022,DIO.on?.25:.2,DIO.on?1.05:.85);}
     d.lx=e.clientX;d.ly=e.clientY;});
   let lastTap = 0, lastTapX = 0, lastTapY = 0;
-  const up=e=>{if(ED.storage){storageUp(e);return;}const d=ED.drag;if(!d||d.id!==e.pointerId)return;ED.drag=null;
+  const up=e=>{if(endTouch(e))return;if(ED.storage){storageUp(e);return;}const d=ED.drag;if(!d||d.id!==e.pointerId)return;ED.drag=null;
     // Double-tap to zoom into the tapped area
     if (!d.moved && !d.item) {
       const now = performance.now();
@@ -958,31 +1000,15 @@ function edPointers(cv){
       if(sel&&owned.includes(sel)){const v=hitFloor({x:e.clientX,y:e.clientY});if(v){place(sel,v.x,v.z);return;}}
       ED.sel=null;ED.ring.visible=false;return;}
     try{localStorage.setItem('rikiReal3dAz',ED.azT);}catch(_){}};
-  cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',e=>{ED.drag=null;});
-  cv.addEventListener('wheel',e=>{e.preventDefault();if(ED.storage)return;ED.zoom=cl(ED.zoom+e.deltaY*.001,.4,1.8);},{passive:false});
-  // Pinch zoom
-  let pinchDist = 0;
-  cv.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') cv.setPointerCapture?.(e.pointerId); });
-  cv.addEventListener('pointermove', e => {
-    if (ED.storage) return;
-    const touches = [];
-    // simple two-pointer pinch via stored positions
+  cv.addEventListener('pointerup',up);
+  cv.addEventListener('pointercancel',e=>{
+    endTouch(e);ED.drag=null;
+    if(ED.storage){ED.storage.drag=null;storageDisposeGhost();}
   });
-  const pts = new Map();
-  cv.addEventListener('pointerdown', e => { pts.set(e.pointerId, [e.clientX, e.clientY]); });
-  cv.addEventListener('pointermove', e => {
-    if (!pts.has(e.pointerId)) return;
-    pts.set(e.pointerId, [e.clientX, e.clientY]);
-    if (pts.size === 2) {
-      const [a, b] = [...pts.values()];
-      const d = Math.hypot(a[0]-b[0], a[1]-b[1]);
-      if (pinchDist) ED.zoom = cl(ED.zoom * (pinchDist / d), 0.4, 1.8);
-      pinchDist = d;
-    }
-  });
-  const clearPinch = e => { pts.delete(e.pointerId); if (pts.size < 2) pinchDist = 0; };
-  cv.addEventListener('pointerup', clearPinch);
-  cv.addEventListener('pointercancel', clearPinch);
+  cv.addEventListener('wheel',e=>{
+    e.preventDefault();if(ED.storage)return;
+    ED.zoom=cl(ED.zoom+e.deltaY*.001,.4,1.8);
+  },{passive:false});
 }
 function edMount(){
   const box=document.getElementById('dreamRoom');if(!box||!box.classList.contains('rk3-room'))return;
@@ -1173,7 +1199,14 @@ function roomSnapshot(room,w=960,h=720){if(!window.THREE||!ROOM_SIZE[room])retur
  const spots=items.map(it=>{const b=new THREE.Box3().setFromObject(it),c=b.getCenter(new THREE.Vector3());const f=new THREE.Vector3(c.x,b.min.y,c.z).project(cam),t=new THREE.Vector3(c.x,b.max.y,c.z).project(cam);return {id:it.userData.id,x:(f.x+1)*50,y:(1-f.y)*50,top:(1-t.y)*50,wall:!!it.userData.onWall};});
  const floorY=new THREE.Vector3(0,0,D*.25).project(cam);
  const out={url:R.domElement.toDataURL('image/jpeg',.88),spots,floor:(1-floorY.y)*50};s.traverse(o=>{if(o.geometry&&o.geometry.dispose)o.geometry.dispose();});snapCache[key]=out;return out;}
-window.RK3=Object.assign(window.RK3||{},{roomSnapshot,openStorage:storageOpen,closeStorage:storageClose,setFridgeOpen(id,on){const g=ED.items.find(x=>x.userData.id===id);if(g&&g.userData.setFridgeOpen)g.userData.setFridgeOpen(on);},B,mat,fabric,gloss,wood,metalM,RB,BX,CY,SP,CO,add,rbox,eye,legs4,loadThree,shadeHex,canvasTex,rugTex,lights,makeItem,MODEL:(window.RK3&&window.RK3.MODEL)||{}});
+window.RK3=Object.assign(window.RK3||{},{
+  // Read-only view state for real-browser gesture regression tests.
+  roomViewState:()=>({
+    room:ED.room,zoom:ED.zoom,az:ED.azT,el:ED.elT,
+    dragging:!!ED.drag,
+    items:ED.items.map(g=>({id:g.userData.id,x:g.position.x,z:g.position.z}))
+  }),
+  roomSnapshot,openStorage:storageOpen,closeStorage:storageClose,setFridgeOpen(id,on){const g=ED.items.find(x=>x.userData.id===id);if(g&&g.userData.setFridgeOpen)g.userData.setFridgeOpen(on);},B,mat,fabric,gloss,wood,metalM,RB,BX,CY,SP,CO,add,rbox,eye,legs4,loadThree,shadeHex,canvasTex,rugTex,lights,makeItem,MODEL:(window.RK3&&window.RK3.MODEL)||{}});
 })();
 
 /* Fit game screens to the phone (Claude, Oct 29): when a new question appears, scroll so the prompt
