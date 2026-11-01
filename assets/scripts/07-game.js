@@ -104,7 +104,7 @@ const SL_CSS=`
 .sl-meter{display:flex;align-items:center;gap:8px;font-weight:900;color:#4a2338;font-size:13px;margin:8px 2px}
 .sl-meter .bar{flex:1;height:12px;border-radius:999px;background:#ffe3ea;overflow:hidden}
 .sl-meter .bar i{display:block;height:100%;background:linear-gradient(90deg,#ff8fb2,#e2457a);border-radius:999px;transition:width .6s}
-.sl-choices{display:grid;gap:10px;margin-top:10px;position:relative;z-index:20;pointer-events:auto}
+.sl-choices{display:grid;gap:10px;margin-top:12px;position:static;z-index:auto;pointer-events:auto;clear:both}
 .sl-choice{text-align:left;border:0;border-radius:18px;padding:13px 14px;font-weight:900;font-size:15px;color:#2a1d2a;cursor:pointer;box-shadow:0 5px 0 #0002}
 .sl-choice.c0{background:#bfe4ff}.sl-choice.c1{background:#ffe1a8}.sl-choice.c2{background:#c9f0e2}.sl-choice.c3{background:#e6d8ff}
 .sl-choice:disabled{opacity:.45}
@@ -265,7 +265,7 @@ function slActionPlay(it,text,good){const p=$id('slProp');if(!p)return;const kin
 function drawSet(key){
   const set=SL_SETS[key];const it=set.items[slSetStep[key]%set.items.length];const who=it.who||set.who;slWho={A:'riki',B:who};const step=slSetStep[key];let opts=[...it.opts].sort(()=>Math.random()-.5);opts=trimOpts(opts,o=>o[1]);
   const roomKey=key==='no'||key==='cookiejar'?'kitchen':key==='calmq'?'calmroom':'helproom';
-  slShell(set.title,`${slMeterHTML()}<div id="setHost"></div><div class="sl-choices" id="slCh" hidden>${opts.map((o,i)=>`<button class="sl-choice c${i}" data-i="${i}">${o[0]}</button>`).join('')}</div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Next →</button>`);
+  slShell(set.title,`${slMeterHTML()}<div id="setHost" style="margin-bottom:8px"></div><div class="sl-choices" id="slCh" hidden>${opts.map((o,i)=>`<button class="sl-choice c${i}" data-i="${i}">${o[0]}</button>`).join('')}</div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Next →</button>`);
   rpLoad(()=>{const R=rpWithChars('setHost',roomKey,[['riki',.4,1.6],[who,-.4,1.2]]);});
   const scene=$id('slScene'),live=()=>!!scene&&scene.isConnected&&$id('slScene')===scene;slActionSetup(it);
   (async()=>{await slWait(250);await slSay('B',it.say,it.mood);if(!live()||slSetStep[key]!==step)return;const ch=$id('slCh');if(ch){ch.hidden=false;if(easy(curUnit()))hintBtn(ch,()=>[...ch.querySelectorAll('.sl-choice')].find(b=>opts[+b.dataset.i]&&opts[+b.dataset.i][1]));if(window.RikiFit)RikiFit();}})();
@@ -659,7 +659,7 @@ const CPS=[{who:'mom',ask:'Time to turn off the game and set the table.',calm:[[
  {who:'mom',ask:'Bedtime! Lights out now.',calm:[['“Can I read one more page first?”',1],['Scream and run around.',0],['Hide under the blanket with a flashlight.',0]],worry:[['I need sleep to feel good tomorrow.',1],['She wants to stop my fun.',0],['She doesn’t like books.',0]],fix:[['One page, then lights out.',1,1],['Read until midnight.',1,0],['No book ever again.',0,1]]}];
 let cpsI=0;
 function drawCps(){zCur='cps';const c=CPS[cpsI%CPS.length];slWho={A:'riki',B:c.who};const nm=SL_PEOPLE[c.who].name;
- const t=zShell('🤝 Let’s Work It Out',`<div id="cpsHost"></div><div class="cps-meters"><span>💗 Riki</span><span class="bar"><i id="cmA" style="width:20%"></i></span><span>💗 ${nm}</span><span class="bar"><i id="cmB" style="width:20%"></i></span></div><div class="cps-steps"><span class="on" id="cs1">1 Say it calmly</span><span id="cs2">2 Their worry</span><span id="cs3">3 Make a deal</span></div><div class="sl-choices" id="slCh" hidden></div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Next problem →</button>`);
+ const t=zShell('🤝 Let’s Work It Out',`<div id="cpsHost" style="margin-bottom:8px"></div><div class="cps-meters"><span>💗 Riki</span><span class="bar"><i id="cmA" style="width:20%"></i></span><span>💗 ${nm}</span><span class="bar"><i id="cmB" style="width:20%"></i></span></div><div class="cps-steps"><span class="on" id="cs1">1 Say it calmly</span><span id="cs2">2 Their worry</span><span id="cs3">3 Make a deal</span></div><div class="sl-choices" id="slCh" hidden></div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Next problem →</button>`);
  const step=n=>{[1,2,3].forEach(i=>$id('cs'+i).classList.toggle('on',i===n));};
  rpLoad(()=>{rpWithChars('cpsHost','helproom',[['riki',.3,1.5],[c.who,-.3,1.2]]);});
  const meter=(a,b)=>{$id('cmA').style.width=a+'%';$id('cmB').style.width=b+'%';};
@@ -1176,7 +1176,7 @@ function rpWithChars(hostId, roomKey, chars, start=[0,1.8]){
   return R;
 }
 function drawCookieJar(){zCur='cookiejar';let marbles=0;const GOAL=10;const asks=zShuf(CJ_ASK);let i=0;
- const t=zShell('🍪 Cookie Jar Trust',`<div id="cjHost"></div><div class="cj-marbles"><div class="cj-glass" id="cjGlass"></div><small><b id="cjN">0</b>/${GOAL} trust marbles</small></div><div class="sl-choices" id="cjCh" hidden></div><div class="ag-msg" id="agM"></div>`);
+ const t=zShell('🍪 Cookie Jar Trust',`<div id="cjHost" style="margin-bottom:8px"></div><div class="cj-marbles"><div class="cj-glass" id="cjGlass"></div><small><b id="cjN">0</b>/${GOAL} trust marbles</small></div><div class="sl-choices" id="cjCh" hidden></div><div class="ag-msg" id="agM"></div>`);
  const paint=()=>{$id('cjN').textContent=marbles;$id('cjGlass').innerHTML=Array.from({length:marbles},(_,k)=>`<i style="background:${['#ff8fbd','#8fd3ff','#b79bff','#ffd34d','#a6e3a1'][k%5]}"></i>`).join('');};
  rpLoad(()=>{if(!zLive(t))return;const R=rpRoom($id('cjHost'),'kitchen',{start:[.6,1.6]});
   R.ready.then(()=>{if(!zLive(t))return;
@@ -2241,7 +2241,7 @@ const escPrior=drawEscape;drawEscape=function(){escPrior();rpLoad(()=>{if(!$id('
 Object.assign(ZRUN,{helper:drawHelper,listen:drawListen,escape:drawEscape});
 
 if(!document.getElementById('rpCss')){const st=document.createElement('style');st.id='rpCss';st.textContent=`.rp-hidden{display:none!important}
-.rp-stage{position:relative;width:100%;max-height:58vh;border-radius:24px;overflow:hidden;background:#fdeef5 center/100% 100% no-repeat;box-shadow:inset 0 0 0 3px #fff,0 12px 26px -14px #4a233866;margin:6px 0;user-select:none;-webkit-user-select:none}.rp-load{position:absolute;inset:0;display:grid;place-items:center;font-weight:900;color:#6b4a5c}
+.rp-stage{position:relative;width:100%;max-height:52vh;border-radius:24px;overflow:hidden;background:#fdeef5 center/100% 100% no-repeat;box-shadow:inset 0 0 0 3px #fff,0 12px 26px -14px #4a233866;margin:6px 0 10px;user-select:none;-webkit-user-select:none;z-index:1}.rp-load{position:absolute;inset:0;display:grid;place-items:center;font-weight:900;color:#6b4a5c}
 .rp-item,.rp-riki,.rp-prop{position:absolute;transform:translate(-50%,-100%);aspect-ratio:1}.rp-item img,.rp-prop img{width:100%;height:100%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 5px 4px rgba(80,40,40,.28));pointer-events:none}
 .rp-item{cursor:grab;touch-action:none}.rp-item.drag{z-index:9999!important;cursor:grabbing}.rp-item.drag img{filter:drop-shadow(0 14px 10px rgba(80,40,40,.35))}.rp-item.gone{opacity:0;pointer-events:none}
 .rp-item.wig{animation:bpWig .45s ease-in-out}.rp-item.hinted img,.rp-prop.hinted img{filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 16px #ffd34d)}.rp-item.hinted{animation:rpHop .6s ease-in-out 3}@keyframes rpHop{50%{margin-top:-8px}}
