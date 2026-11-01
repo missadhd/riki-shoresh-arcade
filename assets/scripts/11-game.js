@@ -629,10 +629,15 @@ function edCamera(){
   const c=ED.R.domElement,w=c.clientWidth||1,h=c.clientHeight||1;ED.cam.aspect=w/h;ED.cam.fov=42;
   const vf=ED.cam.fov*Math.PI/180,hf=2*Math.atan(Math.tan(vf/2)*ED.cam.aspect);
   const need=Math.max((ED.W/2+.15)/Math.tan(hf/2),(ED.H*.62)/Math.tan(vf/2));const dist=need*ED.zoom+ED.D*.35;
-  // When looking up, aim higher so the full ceiling can come into view
-  const lookY = ED.H * (0.3 + Math.max(0, ED.el - 0.4) * 0.55);
+  // Aim a bit higher when looking up, but stay inside the room
+  const lookY = ED.H * (0.28 + Math.max(0, ED.el - 0.35) * 0.4);
   const tgt=new THREE.Vector3(0, lookY, -.3);
-  ED.cam.position.set(tgt.x+Math.sin(ED.az)*Math.cos(ED.el)*dist,tgt.y+Math.sin(ED.el)*dist,tgt.z+Math.cos(ED.az)*Math.cos(ED.el)*dist);ED.cam.lookAt(tgt);ED.cam.updateProjectionMatrix();
+  let camY = tgt.y + Math.sin(ED.el) * dist;
+  // Never go above the ceiling or below the floor
+  camY = cl(camY, 0.35, ED.H - 0.25);
+  ED.cam.position.set(tgt.x+Math.sin(ED.az)*Math.cos(ED.el)*dist, camY, tgt.z+Math.cos(ED.az)*Math.cos(ED.el)*dist);
+  ED.cam.lookAt(tgt);
+  ED.cam.updateProjectionMatrix();
 }
 function edResize(){if(!ED.R)return;const c=ED.R.domElement.parentElement;if(!c)return;const w=c.clientWidth,h=c.clientHeight;if(!w||!h)return;ED.R.setSize(w,h,false);}
 function edLoop(){
@@ -663,9 +668,20 @@ function edPointers(cv){
     if(!d.moved)return;
     if(d.item&&!d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v){d.item.position.x=v.x;d.item.position.z=v.z;}}
     else if(d.item&&d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v)d.item.position.x=v.x;}
-    else{ED.azT=cl(ED.azT-(e.clientX-d.lx)*.006,-.9,.9);ED.elT=cl(ED.elT+(e.clientY-d.ly)*.004,.12,1.25);ED.az=ED.azT;ED.el=ED.elT;}
+    else{ED.azT=cl(ED.azT-(e.clientX-d.lx)*.006,-.9,.9);ED.elT=cl(ED.elT+(e.clientY-d.ly)*.004,.15,.78);ED.az=ED.azT;ED.el=ED.elT;}
     d.lx=e.clientX;d.ly=e.clientY;});
+  let lastTap = 0, lastTapX = 0, lastTapY = 0;
   const up=e=>{if(ED.storage){storageUp(e);return;}const d=ED.drag;if(!d||d.id!==e.pointerId)return;ED.drag=null;
+    // Double-tap to zoom into the tapped area
+    if (!d.moved && !d.item) {
+      const now = performance.now();
+      if (now - lastTap < 320 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 40) {
+        ED.zoom = cl(ED.zoom - 0.28, 0.35, 1.6);
+        lastTap = 0;
+      } else {
+        lastTap = now; lastTapX = e.clientX; lastTapY = e.clientY;
+      }
+    }
     if(ED.preview){if(!d.moved&&!d.item){const v=hitFloor({x:e.clientX,y:e.clientY});if(v&&!ED.preview.group.userData.onWall){ED.preview.group.position.x=v.x;ED.preview.group.position.z=v.z;}else if(v)ED.preview.group.position.x=v.x;}return;}
     if(d.item&&d.moved){const g=d.item;place(g.userData.id,g.position.x,g.userData.onWall?ED.D/2:g.position.z);return;}
     if(d.item&&!d.moved){edSelect(d.item.userData.id);if(d.item.userData.storage)storageOpen(d.item.userData.id);try{const a=G('audio');a&&a('tap');}catch(_){}return;}
