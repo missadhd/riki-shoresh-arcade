@@ -284,19 +284,37 @@ M.trophy=g=>{const gd=metalM(C.gold);RB(g,.28,.08,.28,.02,toy('#4a2338'),0,.04,0
 
 /* ---------- garden ---------- */
 M.tree=g=>B.tree(g);M.butterfly=g=>B.butterfly(g);M.rainbow=g=>B.rainbow(g);M.pond=g=>B.pond(g);
-M.swing=g=>{const timber=wood('#d9b18e'),pink=clay('#f7a0bd'),rope=mat('#e6d2b5',.9);
-  // A-frame legs on both sides and a spanning top beam; two independent hanging seats.
-  for(const x of [-.82,.82]){
-    for(const z of [-.33,.33]){const leg=CY(g,.055,.055,1.45,timber,x,.72,z,10);leg.rotation.x=z>0?-.14:.14;}
-  }
-  const beam=CY(g,.07,.07,1.9,timber,0,1.42,0,10);beam.rotation.z=Math.PI/2;
-  for(const x of [-.43,.43]){
-    RB(g,.48,.07,.32,.04,pink,x,.5,0);
-    for(const dx of [-.18,.18]){
-      CY(g,.012,.012,.9,rope,x+dx,.97,0,8);
-      SP(g,.036,metalM('#e4b7ca'),x+dx,1.41,0);
+M.swing=g=>{const timber=wood('#d9b18e'),pink=clay('#f7a0bd'),rope=mat('#e6d2b5',.9),skin=clay('#e8be9d'),hair=clay('#a97658'),dress=clay('#f7a0bd');
+  // A-frame legs
+  for(const x of [-.85,.85]){
+    for(const z of [-.36,.36]){
+      const leg=CY(g,.06,.06,1.5,timber,x,.75,z,12);
+      leg.rotation.x=z>0?-.16:.16;
     }
   }
+  // Top beam
+  const beam=CY(g,.075,.075,2.0,timber,0,1.48,0,14);beam.rotation.z=Math.PI/2;
+  // Seat pivots so they can swing
+  const seats=[];
+  for(const x of [-.42,.42]){
+    const pivot=new THREE.Group();pivot.position.set(x,1.45,0);g.add(pivot);
+    for(const dx of [-.16,.16]){
+      CY(pivot,.014,.014,.88,rope,dx,-.44,0,10);
+      SP(pivot,.04,metalM('#e4b7ca'),dx,.02,0);
+    }
+    RB(pivot,.46,.07,.3,.04,pink,0,-.88,0);
+    seats.push(pivot);
+  }
+  // Seated clay doll on the left seat (rides with the pivot)
+  const doll=new THREE.Group();doll.position.set(0,-.72,0);seats[0].add(doll);
+  SP(doll,.16,dress,0,.18,0,1,.85,1);
+  SP(doll,.13,skin,0,.42,0);
+  SP(doll,.135,hair,0,.48,-.02,1,.6,1);
+  [-1,1].forEach(k=>CY(doll,.025,.025,.2,skin,k*.14,.22,0,8).rotation.z=k*.4);
+  [-1,1].forEach(k=>{const leg=CY(doll,.03,.03,.18,skin,k*.08,.02,.06,8);leg.rotation.x=.6;});
+  SP(doll,.012,eye(),-.04,.44,.1);SP(doll,.012,eye(),.04,.44,.1);
+  g.userData.swingSeats=seats;
+  g.userData.swingPhase=Math.random()*6;
 };
 M.pool=g=>{CY(g,.6,.6,.15,clay('#7cc4f2'),0,.1,0,32);CY(g,.55,.55,.12,clay('#5ab4e6'),0,.16,0,32);CY(g,.5,.5,.08,clay('#ffffff'),0,.2,0,32);
   const duck=new THREE.Group();duck.position.set(.25,.38,.1);g.add(duck);SP(duck,.09,gloss(C.sun),0,0,0,1.2,.8,1);SP(duck,.06,gloss(C.sun),.07,.08,0);CO(duck,.025,.06,gloss('#ff9a4d'),.13,.08,0).rotation.z=-Math.PI/2;};
