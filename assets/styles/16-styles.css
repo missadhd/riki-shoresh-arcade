@@ -613,3 +613,28 @@ body{background:#f7f4f8!important;color:#443247}
 
 /* In an empty room, avoid repeating the shop prompt above the inventory placeholder. */
 .rk3-tray:has(.dream-inventory > p) .rk3-tray-title{display:none}
+
+/* Grok #145: keep acted Social Skills scenes out from under the sticky header.
+   .top is position:sticky (163px tall on tablet/desktop, ~208-230px on phones). The Social Detective
+   choice handler calls .sd-theater.scrollIntoView({block:'nearest'}), and browsers align to the very top
+   of the viewport unless scroll-padding is set, so the top of the scene (and the characters' heads)
+   slid under the header. Scroll padding = header height + a little air. Scroll behaviour only; no layout change. */
+html{scroll-padding-top:240px}
+@media (min-width:430px){html{scroll-padding-top:220px}}
+@media (min-width:600px){html{scroll-padding-top:180px}}
+@media (min-width:700px){html{scroll-padding-top:175px}}
+.sd-theater,.riki-story-scene,.sel-feedback{scroll-margin-top:8px;scroll-margin-bottom:12px}
+/* Grok #145: on laptop/desktop screens the acted scene (345px) + choices + feedback (~720px total) is taller
+   than the space under the sticky header (605px at 1366x768), so revealing the feedback pushed the acting
+   characters out of view. From 1000px wide, put the scene beside the choices and feedback so the acting,
+   the answer and Next/Watch again are visible together. Social Detective (.riki-story-game) only. */
+@media (min-width:1000px){
+ #app .riki-story-game{display:grid;grid-template-columns:minmax(0,540px) minmax(320px,1fr);column-gap:24px;align-items:start}
+ #app .riki-story-game>*{grid-column:1/-1}
+ #app .riki-story-game>.sd-theater{grid-column:1;grid-row:5/span 3;margin:12px 0 0;width:100%}
+ #app .riki-story-game>.sd-theater~h3{grid-column:2;grid-row:5;margin:12px 0 0}
+ #app .riki-story-game>.riki-story-options{grid-column:2;grid-row:6;grid-template-columns:1fr;gap:8px;margin:8px 0 0}
+ #app .riki-story-game>.riki-story-options .sel-choice{padding:12px 14px;min-height:48px}
+ #app .riki-story-game>.sel-feedback{grid-column:2;grid-row:7;margin:10px 0 0;padding:12px 14px}
+ #app .riki-story-game>.sel-feedback p{margin:8px 0}
+}
