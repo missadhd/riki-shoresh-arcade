@@ -750,7 +750,7 @@ function hub(){
   SET("game='';session=null;");const app=document.getElementById('app');if(!app)return;
   const coins=G('coins')||0;const pick=MAKE[new Date().getDate()%MAKE.length];
   const tile=(id,icon,title,sub,cls='')=>`<button type="button" class="hub-tile ${cls}" id="${id}"><span class="hub-ic">${icon}</span><b>${title}</b><span>${sub}</span></button>`;
-  app.innerHTML=`<section class="hub"><div class="hub-hi"><h1>Hi Riki! 👋</h1><p>What do you want to do?</p></div>
+  app.innerHTML=`<section class="hub"><div class="hub-hi"><h1>Hi there! 👋</h1><p>What do you want to do?</p></div>
    <button type="button" class="hub-today" id="hubToday"><span class="hub-today-tag">⭐ Today's pick</span><b>${NAMES[pick]}</b><span>Tap to play</span></button>
    <div class="hub-grid">${tile('hubGames','<span class="hub-alef" lang="he">אב</span>','Shoresh Games','Learn Hebrew roots')}${tile('hubSocial','💖','Social Skills','Feelings & friends')}${tile('hubHouse','🏠','My Dollhouse','Decorate your rooms')}${tile('hubShop','🛍️','Shop',`🪙 ${coins} coins to spend`)}${tile('hubPlay','🎀','Play with Dolls',`🎟️ ${window.RikiPlay?window.RikiPlay.state().tokens:0} plays · dolls & pets`,'hub-play')}</div>
    <button type="button" class="hub-progress" id="hubProgress">📊 Progress for grown-ups</button></section>`;
