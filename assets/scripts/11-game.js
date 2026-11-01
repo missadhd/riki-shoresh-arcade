@@ -522,7 +522,7 @@ function animateItems(list,t){list.forEach(g=>{
 
 /* ================= ROOM EDITOR ================= */
 const ROOM_SIZE={bedroom:[6.4,4.6,3.2],living:[6.4,4.6,3.2],kitchen:[6.4,4.6,3.2],garden:[7.4,5.2,3],bathroom:[6.4,4.6,3.2],playroom:[6.4,4.6,3.2]};
-const ED={R:null,scene:null,cam:null,items:[],group:null,room:null,W:6,D:4.5,az:0,el:.42,azT:0,elT:.42,zoom:1.25,sel:null,ring:null,ro:null,looping:false,ray:null,drag:null};
+const ED={R:null,scene:null,cam:null,items:[],group:null,room:null,W:6,D:4.5,az:0,el:.42,azT:0,elT:.42,zoom:1.55,sel:null,ring:null,ro:null,looping:false,ray:null,drag:null};
 /* Play directly inside furniture; this controller shares the room's camera and canvas. */
 function storageApi(){return window.RikiFurnitureInteractions;}
 function storageDisposeGhost(){const f=ED.storage;if(!f)return;if(f.sourceSlot!==null&&f.sourceSlot!==undefined){const slot=f.item.userData.storage.slots[f.sourceSlot];if(slot&&slot.content)slot.content.visible=true;}if(!f.ghost)return;ED.scene.remove(f.ghost);if(window.RK3.releaseStorageModel)window.RK3.releaseStorageModel(f.ghost);f.ghost=null;}
@@ -668,7 +668,7 @@ function edBuild(room){
   // Centered welcome view of the room
   ED.az = ED.azT = 0;
   ED.el = ED.elT = 0.42;
-  ED.zoom = 1.25;
+  ED.zoom = 1.55;
   const s=new THREE.Scene();ED.scene=s;ED.room=room;const [W,D,H]=ROOM_SIZE[room]||ROOM_SIZE.bedroom;ED.W=W;ED.D=D;ED.H=H;
   if(room==='garden'){s.background=new THREE.Color('#bfe3f5');}
   lights(s,Math.max(W,D),1024);
@@ -687,7 +687,7 @@ function edBuild(room){
   if (zIn) zIn.onclick = () => { ED.zoom = cl(ED.zoom - 0.12, 0.4, 1.6); };
   if (zOut) zOut.onclick = () => { ED.zoom = cl(ED.zoom + 0.12, 0.4, 1.6); };
   const center = document.getElementById('rk3Center');
-  if (center) center.onclick = () => { ED.azT = 0; ED.elT = 0.42; ED.zoom = 1.25; };
+  if (center) center.onclick = () => { ED.azT = 0; ED.elT = 0.42; ED.zoom = 1.55; };
 
   const ring=new THREE.Mesh(new THREE.RingGeometry(.62,.72,48),new THREE.MeshBasicMaterial({color:0xe2457a,transparent:true,opacity:.85,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=.02;ring.visible=false;s.add(ring);ED.ring=ring;
   ED.floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
