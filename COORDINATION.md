@@ -5,7 +5,6 @@ Add a row when you open your draft PR and remove it in the same PR when you fini
 
 | Who | Branch | Files | Status |
 |---|---|---|---|
-| Claude | claude/room-clarity | assets/scripts/07-game.js, index.html (07 version only) | in progress |
 
 ## Map of the code
 
