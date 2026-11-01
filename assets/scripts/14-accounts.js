@@ -64,7 +64,7 @@ async function save(){
 function login(){
  modal('<h2>Guardian sign in</h2><p>Adults can use an email link to manage separate child profiles. No child email needed.</p><form id="rkSignIn"><label>Your email <input name="email" type="email" autocomplete="email" required></label><button type="submit">Send sign-in link</button></form><p id="rkAccountMsg" role="status"></p><button type="button" id="rkAccountClose">Keep playing as guest</button>');
  $('rkAccountClose').onclick=close;
- $('rkSignIn').onsubmit=async e=>{e.preventDefault();try{const email=e.target.email.value.trim();await api('/auth/v1/otp','POST',{email,create_user:true,options:{email_redirect_to:location.origin+location.pathname}} ,null);$('rkAccountMsg').textContent='Check your email for a sign-in link.'}catch(err){$('rkAccountMsg').textContent=err.message}};
+ $('rkSignIn').onsubmit=async e=>{e.preventDefault();try{const email=e.target.email.value.trim();await api('/auth/v1/otp','POST',{email,create_user:true,email_redirect_to:location.origin+location.pathname} ,null);$('rkAccountMsg').textContent='Check your email for a sign-in link.'}catch(err){$('rkAccountMsg').textContent=err.message}};
 }
 async function initialize(){
  const token=new URLSearchParams(location.hash.slice(1));
@@ -75,7 +75,7 @@ async function initialize(){
  if(session && await refresh()){
   if(!session.user){try{session.user=await api('/auth/v1/user');sessionStorage.setItem(AUTH,JSON.stringify(session))}catch{logout()}}
   const active=sessionStorage.getItem('rikiCurrentPlayerV1');
-  if(active){try{const owned=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=id');if(owned.length){player=active;const rows=await api('/rest/v1/arcade_progress?select=snapshot&player_id=eq.'+encodeURIComponent(active));if(rows[0]?.snapshot){const snapshot=rows[0].snapshot;KEYS.forEach(k=>{if(Object.hasOwn(snapshot,k))localStorage.setItem(k,String(snapshot[k]));else localStorage.removeItem(k)});lastSaved=JSON.stringify(read())}}}catch{player=null}}
+  if(active){try{const owned=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=id');if(owned.length){player=active;const rows=await api('/rest/v1/arcade_progress?select=snapshot&player_id=eq.'+encodeURIComponent(active));if(rows[0]?.snapshot){const snapshot=rows[0].snapshot;const incoming=JSON.stringify(snapshot);const current=JSON.stringify(read());if(incoming!==current){KEYS.forEach(k=>{if(Object.hasOwn(snapshot,k))localStorage.setItem(k,String(snapshot[k]));else localStorage.removeItem(k)});location.reload();return;}lastSaved=current}}}catch{player=null}}
   status(player?'Cloud profile active':'Guardian signed in');if(player)interval=setInterval(()=>save().catch(err=>status('Cloud save error: '+err.message)),15000);
   else if(token.has('access_token'))list();
  }
