@@ -63,6 +63,10 @@ function starPath(x,cx,cy,r){x.beginPath();for(let i=0;i<10;i++){const a=-Math.P
 function heartPath(x,cx,cy,s){x.beginPath();x.moveTo(cx,cy+s*.35);x.bezierCurveTo(cx-s,cy-s*.3,cx-s*.4,cy-s,cx,cy-s*.45);x.bezierCurveTo(cx+s*.4,cy-s,cx+s,cy-s*.3,cx,cy+s*.35);x.closePath();}
 function patternKey(t){const s=(t[0]+' '+t[2]).toLowerCase();return s.includes('rose')?'roses':/heart|sweet|love/.test(s)?'hearts':/star|twinkle|galaxy/.test(s)?'stars':s.includes('cloud')?'clouds':/daisy|flower|meadow|floral/.test(s)?'daisies':/stripe|candy|pleat/.test(s)?'stripes':/dot|polka|lemon|confetti/.test(s)?'dots':'plain';}
 function wallTex(key,base){return canvasTex('wall'+key+base,256,256,(x)=>{
+  // Soft clay wall: gentle gradient, soft edges
+  const g=x.createRadialGradient(128,128,0,128,128,180);
+  g.addColorStop(0,base);g.addColorStop(1,shadeHex(base,.92));
+  x.fillStyle=g;x.fillRect(0,0,256,256);
   x.fillStyle=base;x.fillRect(0,0,256,256);
   for(let i=0;i<3000;i++){x.fillStyle=`rgba(255,255,255,${rnd()*.05})`;x.fillRect(rnd()*256,rnd()*256,1,1);}
   const grid=(step,fn)=>{for(let r=0;r<=256/step;r++)for(let q=0;q<=256/step;q++)fn(q*step+(r%2?step/2:0),r*step,r);};
@@ -145,14 +149,14 @@ const B={
   CY(g,.56,.54,.06,wood('#c89870'),0,.58,0,48);
   CY(g,.08,.1,.55,wood('#c89870'),0,.3,0,20);
   CY(g,.36,.38,.08,wood('#c89870'),0,.05,0,36);},
- dining(g,c){const w=wood('#b47c4c');RB(g,1.5,.07,.85,.025,c?mat(c,.35):w,0,.7,0);legs4(g,1.5,.85,.67,w,.08,.035);RB(g,1.3,.08,.65,.02,w,0,.62,0);},
+ dining(g,c){const w=wood('#e0b88a');RB(g,1.55,.1,.9,.06,c?mat(c,.5):w,0,.68,0);legs4(g,1.5,.85,.64,w,.1,.05);RB(g,1.35,.1,.7,.05,w,0,.58,0);},
  tea(g){B.table(g);const p=gloss('#ffffff');SP(g,.12,p,0,.82,0,1,.85,1);CY(g,.02,.03,.14,p,.14,.82,0,10).rotation.z=-.9;CY(g,.05,.06,.03,p,0,.93,0);SP(g,.02,metalM(),0,.96,0);[[.3,.15],[-.28,.2],[.05,-.32]].forEach(([x,z])=>{CY(g,.05,.04,.06,p,x,.72,z,16);CY(g,.07,.07,.008,p,x,.69,z,20);});},
  lamp(g){const m=metalM();CY(g,.22,.26,.05,m,0,.03,0,36);CY(g,.02,.02,1.2,m,0,.64,0,12);
   const shade=new THREE.Mesh(new THREE.CylinderGeometry(.18,.32,.38,36,1,true),new THREE.MeshStandardMaterial({color:new THREE.Color('#fff8e8').convertSRGBToLinear(),emissive:new THREE.Color('#ffe8b0'),emissiveIntensity:.4,side:THREE.DoubleSide,roughness:.95}));shade.position.y=1.35;g.add(shade);
   SP(g,.07,mat('#fff8e1',.3,0,{emissive:new THREE.Color('#ffe2a0'),emissiveIntensity:.8}),0,1.28,0);const L=new THREE.PointLight(0xffe8c0,.4,3,2);L.position.y=1.28;g.add(L);},
  plant(g){const pot=mat('#d47850',.9);CY(g,.26,.2,.38,pot,0,.19,0,32);CY(g,.28,.28,.06,pot,0,.38,0,32);CY(g,.24,.24,.025,mat('#6a4530',1),0,.39,0,28);
   const L=[mat('#4f9e5b',.7),mat('#62b56b',.7),mat('#3f8a4e',.7)];for(let i=0;i<14;i++){const a=i*2.4,r=.05+(i%3)*.06,h=.55+(i%5)*.09;const leaf=SP(g,.11,L[i%3],Math.cos(a)*r,h,Math.sin(a)*r,.45,1.1,.12);leaf.rotation.set(Math.sin(a)*.6,a,Math.cos(a)*.6);CY(g,.008,.01,h-.38,L[2],Math.cos(a)*r*.5,(h+.38)/2,Math.sin(a)*r*.5,6);}},
- shelf(g,c){const w=wood(c?c:'#a97448');RB(g,1.15,1.55,.4,.02,w,0,.78,0);BX(g,1.03,1.43,.02,mat('#7d5233',.8),0,.78,-.18);[.08,.56,1.02,1.5].forEach(y=>BX(g,1.05,.04,.36,w,0,y,0));
+ shelf(g,c){const w=wood(c?c:'#e0b88a');RB(g,1.2,1.6,.45,.06,w,0,.8,0);BX(g,1.08,1.48,.03,mat('#c89870',.85),0,.8,-.2);[.1,.58,1.04,1.52].forEach(y=>BX(g,1.1,.06,.4,w,0,y,0));
   const cols=['#e2457a','#7cc4f2','#ffc943','#5cc6a8','#c8a2ff','#f28db2','#8a6577'];[.1,.58,1.04].forEach((y,row)=>{let x=-.46;let i=row*3;while(x<.4){const bw=.06+rnd()*.05,bh=.28+rnd()*.12;const b=BX(g,bw,bh,.25,mat(cols[i++%cols.length],.7),x+bw/2,y+.02+bh/2,.02);if(rnd()<.15)b.rotation.z=.18;x+=bw+.008;}});},
  rug(g,id){const r=add(g,new THREE.CylinderGeometry(.9,.9,.02,48),mat('#ffffff',1,0,{map:rugTex((id||'').length)}),0,.012,0);r.castShadow=false;},
  teddy(g,c){c=c||'#b9814f';const f=fabric(c),light=fabric('#f1d9b8');SP(g,.25,f,0,.27,0,1,1.05,.9);SP(g,.12,light,0,.27,.16,1,1.1,.5);SP(g,.19,f,0,.64,.02);SP(g,.075,f,-.15,.8,0);SP(g,.075,f,.15,.8,0);SP(g,.04,light,-.15,.8,.03);SP(g,.04,light,.15,.8,.03);
@@ -161,7 +165,7 @@ const B={
  unicorn(g){B.teddy(g,'#fbf6ff');const h=CO(g,.045,.26,metalM('#f2c94c'),0,.93,.1);h.rotation.x=.45;['#f7a0bd','#c8a2ff','#7fd1c0'].forEach((c,i)=>SP(g,.06,fabric(c),0,.84-i*.08,-.14+i*.02));},
  piano(g){const p=gloss('#e2457a');RB(g,1.3,.6,.52,.03,p,0,.62,0);RB(g,1.3,.12,.3,.02,p,0,.98,-.11);BX(g,1.16,.05,.22,gloss('#fffdf7'),0,.94,.17);for(let i=0;i<8;i++)BX(g,.05,.04,.12,gloss('#1e1418'),-.5+i*.14,.975,.13);
   [[-.58],[.58]].forEach(([x])=>RB(g,.08,.34,.42,.02,p,x,.17,0));RB(g,.7,.06,.32,.03,fabric('#fff1dc'),0,.46,.55);legs4(g,.66,.28,.42,wood('#8a5a35'),.04,.02);g.children.slice(-4).forEach(o=>o.position.z+=.55);},
- fridge(g,c='#f4f8fb'){
+ fridge(g,c='#f8f4f0'){
   const shell=mat(c,.85),inside=mat('#fff9ef',.9),trim=metalM('#d7dde2');
   RB(g,.78,1.75,.08,.035,shell,0,.88,-.29);
   [-.35,.35].forEach(x=>RB(g,.08,1.75,.66,.035,shell,x,.88,0));
@@ -175,7 +179,7 @@ const B={
   SP(door,.04,gloss('#ffc943'),-.24,1.5,.055);SP(door,.04,gloss('#e2457a'),-.19,.75,.055);
   g.userData.fridgeDoor=door;g.userData.setFridgeOpen=on=>{door.rotation.y=on?Math.PI*.57:0;};
  },
- stove(g){const w=mat('#fbfaf7',.35);RB(g,.85,.86,.64,.03,w,0,.43,0);BX(g,.83,.02,.6,gloss('#1d1a1d'),0,.87,0);[[-.2,-.13],[.2,-.13],[-.2,.15],[.2,.15]].forEach(([x,z])=>{const r=add(g,new THREE.TorusGeometry(.08,.012,8,24),metalM('#8f8f8f'),x,.885,z);r.rotation.x=Math.PI/2;});
+ stove(g){const w=mat('#f8f0e8',.6);RB(g,.9,.9,.68,.08,w,0,.45,0);BX(g,.86,.04,.62,gloss('#3a3530'),0,.89,0);[[-.2,-.13],[.2,-.13],[-.2,.15],[.2,.15]].forEach(([x,z])=>{const r=add(g,new THREE.TorusGeometry(.08,.012,8,24),metalM('#8f8f8f'),x,.885,z);r.rotation.x=Math.PI/2;});
   BX(g,.6,.36,.02,mat('#2a2328',.1,0,{transparent:true,opacity:.85}),0,.42,.32);RB(g,.5,.03,.04,.015,metalM('#d7dde2'),0,.66,.34);[-.3,-.15,0,.15,.3].forEach(x=>CY(g,.025,.025,.03,gloss('#4a2338'),x,.77,.33,12).rotation.x=Math.PI/2);},
  cake(g){B.table(g);const pl=gloss('#ffffff');CY(g,.3,.28,.02,pl,0,.7,0,32);CY(g,.24,.24,.18,mat('#f7a0bd',.6),0,.8,0,32);CY(g,.16,.16,.14,mat('#fff1dc',.6),0,.96,0,32);
   for(let i=0;i<14;i++){const a=i/14*Math.PI*2;SP(g,.025,mat('#ffffff',.5),Math.cos(a)*.24,.88,Math.sin(a)*.24,1,1.5,1);}CY(g,.012,.012,.12,mat('#7cc4f2',.5),0,1.09,0,8);SP(g,.025,mat('#ffd25e',.5,0,{emissive:new THREE.Color('#ffb020'),emissiveIntensity:1.4}),0,1.17,0,1,1.6,1);},
