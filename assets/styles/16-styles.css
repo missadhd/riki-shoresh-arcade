@@ -638,3 +638,26 @@ html{scroll-padding-top:240px}
  #app .riki-story-game>.sel-feedback{grid-column:2;grid-row:7;margin:10px 0 0;padding:12px 14px}
  #app .riki-story-game>.sel-feedback p{margin:8px 0}
 }
+
+
+/* Compact the informational test notice instead of letting it consume the phone viewport.
+   The warning stays visible and readable; no header buttons are hidden. */
+@media(max-width:600px){
+  body .app > [role="status"][aria-label="Testing version"]{
+    margin:4px auto 3px!important;
+    padding:5px 9px!important;
+    border-width:1px!important;
+    border-radius:10px!important;
+    font-size:11px!important;
+    font-weight:750!important;
+    line-height:1.25!important;
+    max-width:calc(100% - 20px)!important;
+    box-sizing:border-box;
+  }
+}
+/* Isolate Hebrew glyph runs from surrounding English punctuation without changing
+   the visual order of buttons, card layouts, or left-to-right English instructions. */
+#app .hebrew,#app .he,#app .rk-prog-he,
+#app [lang="he"],#app [dir="rtl"]{
+  unicode-bidi:isolate;
+}
