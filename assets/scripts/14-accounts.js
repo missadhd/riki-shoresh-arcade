@@ -8,6 +8,28 @@ const REMEMBER='rikiRememberGuardianV1',PENDING='rikiRememberPendingV1',PLAYER='
 const durable=()=>localStorage.getItem(REMEMBER)==='yes';
 function storeSession(){if(!session)return;sessionStorage.setItem(AUTH,JSON.stringify(session));if(durable())localStorage.setItem(AUTH,JSON.stringify(session));}
 function storePlayer(id){sessionStorage.setItem(PLAYER,id);if(durable())localStorage.setItem(PLAYER,id);}
+const DEMO_COINS='rikiGuestDemo500GrantedV1';
+function grantGuestDemo(){
+ if(session||localStorage.getItem(DEMO_COINS)==='yes')return;
+ const current=Math.max(0,Number(localStorage.getItem('rickyCoins'))||0);
+ if(current<500)localStorage.setItem('rickyCoins','500');
+ localStorage.setItem(DEMO_COINS,'yes');
+ if(current<500)location.reload();
+}
+async function awardCoins(id,amount){
+ if(!session||!await refresh())throw Error('Adult sign-in required');
+ if(!Number.isSafeInteger(amount)||amount<1||amount>500)throw Error('Choose 1 to 500 coins');
+ if(player===id)await save();
+ const rows=await api('/rest/v1/arcade_progress?select=version,snapshot&player_id=eq.'+encodeURIComponent(id));
+ if(!rows.length)throw Error('Start this player first, then award coins');
+ const old=rows[0];const version=Number(old.version);const snapshot={...old.snapshot};
+ const before=Math.max(0,Number(snapshot.rickyCoins)||0);
+ snapshot.rickyCoins=String(Math.min(100000, before+amount));
+ const updated=await api('/rest/v1/arcade_progress?player_id=eq.'+encodeURIComponent(id)+'&version=eq.'+version,'PATCH',{version:version+1,snapshot,updated_at:new Date().toISOString()});
+ if(updated.length!==1)throw Error('Another save happened. No coins awarded; please retry.');
+ if(player===id){lastVersion=version+1;localStorage.setItem('rickyCoins',snapshot.rickyCoins);lastSaved=JSON.stringify(read());location.reload()}
+ return Number(snapshot.rickyCoins)-before;
+}
 const BACKUP='rikiGuestProgressBackupV1';
 const DISPLAY='rikiCurrentPlayerNameV1';
 const KEYS=['rickyCoins','rickyHouseInventoryV1','rickyHouseDecorV1','rickyHouseWallsV1','rickyDreamStorageV2','rickyDreamPetsV2','rickyDreamPositionsV2','rickyRoomInteriorsV3','rickyTinyOwnedV1','rickyTinyPlacedV1','rickyAdventureXPV1','rickySpatialMusicV1','riki3dOrbit','rikiReal3dAz','rikiRootProgressV1','rikiDreamRotationV1','rikiClawPlushV1','rikiPlayTokensV1'];
@@ -42,8 +64,9 @@ async function list(){
  if(!guardians?.length)await api('/rest/v1/arcade_guardians','POST',{user_id:session.user.id});
  const players=await api('/rest/v1/arcade_players?select=id,nickname&order=created_at.asc');
  const choices=players.map(p=>'<button class="rk-profile-card" type="button" data-player="'+esc(p.id)+'"><span class="rk-profile-avatar" aria-hidden="true">'+esc(p.nickname.slice(0,1).toUpperCase())+'</span><span>'+esc(p.nickname)+'</span></button>').join('');
- modal('<h2>Who is playing?</h2><p>Signed in as '+esc(identity())+'</p><p>Select a player to continue with their own coins, learning progress, and dollhouse.</p><div class="rk-account-players">'+choices+'</div><form id="rkAddPlayer"><label>New player nickname <input name="nickname" maxlength="40" required autocomplete="off"></label><button type="submit">Create player</button></form><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="rkRememberNow" style="width:auto" '+(durable()?'checked':'')+'> Remember my adult sign-in on this trusted computer</label><button type="button" id="rkAccountLogout">Sign out</button><button type="button" id="rkAccountClose">Keep playing here</button><p class="rk-account-message" id="rkAccountMsg" role="status"></p>');
+ modal('<h2>Who is playing?</h2><p>Signed in as '+esc(identity())+'</p><p>Select a player to continue with their own coins, learning progress, and dollhouse.</p><div class="rk-account-players">'+choices+'</div><details class="rk-parent-coins"><summary>🪙 Adult tools: Give coins</summary><p>Choose a player and award bonus coins. This changes only that player's cloud balance.</p><form id="rkAwardCoins"><label>Player <select name="recipient" required>'+players.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nickname)+'</option>').join('')+'</select></label><label>Bonus coins <input type="number" name="amount" min="1" max="500" step="1" value="100" required></label><button type="submit">Give coins</button></form></details><form id="rkAddPlayer"><label>New player nickname <input name="nickname" maxlength="40" required autocomplete="off"></label><button type="submit">Create player</button></form><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="rkRememberNow" style="width:auto" '+(durable()?'checked':'')+'> Remember my adult sign-in on this trusted computer</label><button type="button" id="rkAccountLogout">Sign out</button><button type="button" id="rkAccountClose">Keep playing here</button><p class="rk-account-message" id="rkAccountMsg" role="status"></p>');
  document.querySelectorAll('[data-player]').forEach(b=>b.onclick=()=>switchTo(b.dataset.player,b.textContent));
+ $('rkAwardCoins').onsubmit=async e=>{e.preventDefault();const form=e.target;const button=form.querySelector('button[type="submit"]');button.disabled=true;try{const amount=Number(form.elements.amount.value);const awarded=await awardCoins(form.elements.recipient.value,amount);$('rkAccountMsg').textContent='Added '+awarded+' coins to the selected player.'}catch(err){$('rkAccountMsg').textContent=err.message}finally{button.disabled=false}};
  $('rkRememberNow').onchange=e=>{if(e.target.checked){localStorage.setItem(REMEMBER,'yes');storeSession();if(player)storePlayer(player)}else{localStorage.removeItem(REMEMBER);localStorage.removeItem(AUTH);localStorage.removeItem(PLAYER)};};
  $('rkAccountLogout').onclick=()=>{logout();close()};$('rkAccountClose').onclick=close;
  $('rkAddPlayer').onsubmit=async e=>{e.preventDefault();const name=e.target.nickname.value.trim();if(!name)return;try{const created=await api('/rest/v1/arcade_players','POST',{guardian_id:session.user.id,nickname:name});await switchTo(created[0].id,name)}catch(err){$('rkAccountMsg').textContent=err.message}};
@@ -127,7 +150,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  $('rkAccountOpen').onclick=()=>session?list():login();
 
  greetingObserver.observe(host,{subtree:true,childList:true});greet();neutralHeadings();
- initialize().catch(err=>status('Account unavailable: '+err.message));
+ initialize().then(()=>grantGuestDemo()).catch(err=>status('Account unavailable: '+err.message));
  window.addEventListener('pagehide',()=>{if(player)save().catch(()=>{})});
 });
 })();
