@@ -5,6 +5,7 @@ const URL='https://hmkcfmogpgljfasvefvs.supabase.co';
 const KEY='sb_publishable_o4hKwwXPGA77H66X0RjSjw_4FLEaqfA';
 const AUTH='rikiGuardianSessionV1';
 const BACKUP='rikiGuestProgressBackupV1';
+const DISPLAY='rikiCurrentPlayerNameV1';
 const KEYS=['rickyCoins','rickyHouseInventoryV1','rickyHouseDecorV1','rickyHouseWallsV1','rickyDreamStorageV2','rickyDreamPetsV2','rickyDreamPositionsV2','rickyRoomInteriorsV3','rickyTinyOwnedV1','rickyTinyPlacedV1','rickyAdventureXPV1','rickySpatialMusicV1','riki3dOrbit','rikiReal3dAz','rikiRootProgressV1','rikiDreamRotationV1','rikiClawPlushV1','rikiPlayTokensV1'];
 let session=null,player=null,lastSaved='',interval=null;
 const $=id=>document.getElementById(id);
@@ -19,10 +20,12 @@ async function api(path,method='GET',body,token=session?.access_token){
 async function refresh(){if(!session)return false;if(session.expires_at && Date.now()/1000<session.expires_at-90)return true;
  try{const x=await api('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:session.refresh_token},null);session={...x,expires_at:Math.floor(Date.now()/1000)+x.expires_in};sessionStorage.setItem(AUTH,JSON.stringify(session));return true}catch{logout();return false}}
 function status(s){const n=$('rkAccountStatus');if(n)n.textContent=s}
+function greet(){const name=sessionStorage.getItem(DISPLAY);const el=document.querySelector('.hub-hi h1');if(el)el.textContent='Hi '+(name||'Riki')+'! 👋';}
+const greetingObserver=new MutationObserver(greet);
 function modal(html){$('rkAccountPanel').innerHTML=html;$('rkAccountDialog').hidden=false}
 function close(){$('rkAccountDialog').hidden=true}
 function identity(){return session?.user?.email||'Guardian'}
-function logout(){clearInterval(interval);interval=null;session=null;player=null;sessionStorage.removeItem(AUTH);sessionStorage.removeItem('rikiCurrentPlayerV1');const backup=localStorage.getItem(BACKUP);if(backup){try{const original=JSON.parse(backup);KEYS.forEach(k=>{if(Object.hasOwn(original,k))localStorage.setItem(k,original[k]);else localStorage.removeItem(k)})}catch{}}status('Guest • this browser');location.reload();}
+function logout(){clearInterval(interval);interval=null;session=null;player=null;sessionStorage.removeItem(AUTH);sessionStorage.removeItem('rikiCurrentPlayerV1');sessionStorage.removeItem(DISPLAY);const backup=localStorage.getItem(BACKUP);if(backup){try{const original=JSON.parse(backup);KEYS.forEach(k=>{if(Object.hasOwn(original,k))localStorage.setItem(k,original[k]);else localStorage.removeItem(k)})}catch{}}status('Guest • this browser');location.reload();}
 async function list(){
  if(!await refresh())return login();
  const guardians=await api('/rest/v1/arcade_guardians?select=user_id&limit=1');
@@ -30,17 +33,17 @@ async function list(){
  const players=await api('/rest/v1/arcade_players?select=id,nickname&order=created_at.asc');
  const choices=players.map(p=>'<button type="button" data-player="'+esc(p.id)+'">'+esc(p.nickname)+'</button>').join('');
  modal('<h2>Family profiles</h2><p>Signed in as '+esc(identity())+'</p><p>Choose who is playing. Each child has separate cloud progress.</p><div class="rk-account-players">'+choices+'</div><form id="rkAddPlayer"><label>New player nickname <input name="nickname" maxlength="40" required autocomplete="off"></label><button type="submit">Create player</button></form><button type="button" id="rkAccountLogout">Sign out</button><button type="button" id="rkAccountClose">Keep playing here</button><p class="rk-account-message" id="rkAccountMsg" role="status"></p>');
- document.querySelectorAll('[data-player]').forEach(b=>b.onclick=()=>switchTo(b.dataset.player));
+ document.querySelectorAll('[data-player]').forEach(b=>b.onclick=()=>switchTo(b.dataset.player,b.textContent));
  $('rkAccountLogout').onclick=()=>{logout();close()};$('rkAccountClose').onclick=close;
- $('rkAddPlayer').onsubmit=async e=>{e.preventDefault();const name=e.target.nickname.value.trim();if(!name)return;try{const created=await api('/rest/v1/arcade_players','POST',{guardian_id:session.user.id,nickname:name});await switchTo(created[0].id)}catch(err){$('rkAccountMsg').textContent=err.message}};
+ $('rkAddPlayer').onsubmit=async e=>{e.preventDefault();const name=e.target.nickname.value.trim();if(!name)return;try{const created=await api('/rest/v1/arcade_players','POST',{guardian_id:session.user.id,nickname:name});await switchTo(created[0].id,name)}catch(err){$('rkAccountMsg').textContent=err.message}};
 }
-async function switchTo(id){
+async function switchTo(id,nickname){
  try{
   if(player && player!==id)await save();
   const rows=await api('/rest/v1/arcade_progress?select=version,snapshot&player_id=eq.'+encodeURIComponent(id));
   const stored=rows[0]?.snapshot;
   if(!localStorage.getItem(BACKUP)){try{localStorage.setItem(BACKUP,JSON.stringify(read()))}catch{}}
-  player=id;sessionStorage.setItem('rikiCurrentPlayerV1',id);
+  player=id;sessionStorage.setItem('rikiCurrentPlayerV1',id);if(nickname)sessionStorage.setItem(DISPLAY,nickname);greet();
   if(stored && Object.keys(stored).length){
    KEYS.forEach(k=>{if(Object.hasOwn(stored,k))localStorage.setItem(k,String(stored[k]));else localStorage.removeItem(k)});
    status('Cloud profile active');close();location.reload();return;
@@ -49,7 +52,7 @@ async function switchTo(id){
   modal('<h2>New player</h2><p>This profile has no saved progress yet.</p><button type="button" id="rkBlank">Start with new progress</button>'+(hasGuestData?'<button type="button" id="rkImport">Import progress from this browser</button>':'')+'<button type="button" id="rkCancel">Cancel</button><p id="rkAccountMsg" role="status"></p>');
   $('rkBlank').onclick=async()=>{try{KEYS.forEach(k=>localStorage.removeItem(k));await save();location.reload()}catch(e){$('rkAccountMsg').textContent=e.message}};
   if($('rkImport'))$('rkImport').onclick=async()=>{try{await save();location.reload()}catch(e){$('rkAccountMsg').textContent=e.message}};
-  $('rkCancel').onclick=()=>{player=null;sessionStorage.removeItem('rikiCurrentPlayerV1');list()};
+  $('rkCancel').onclick=()=>{player=null;sessionStorage.removeItem('rikiCurrentPlayerV1');sessionStorage.removeItem(DISPLAY);list()};
  }catch(err){status('Account error: '+err.message)}
 }
 async function save(){
@@ -66,7 +69,7 @@ async function openRiki(){
  try{
   const players=await api('/rest/v1/arcade_players?select=id,nickname&order=created_at.asc');
   const matching=players.filter(p=>p.nickname.trim().toLowerCase()==='riki');
-  if(matching.length===1){await switchTo(matching[0].id);return;}
+  if(matching.length===1){await switchTo(matching[0].id,matching[0].nickname);return;}
   await list();
   const note=$('rkAccountMsg');if(note)note.textContent=matching.length>1?'Choose the correct Riki profile.':'Create a player named Riki under your adult account, then select her. Existing browser progress will not import without your choice.';
  }catch(e){status('Account unavailable: '+e.message)}
@@ -85,17 +88,18 @@ async function initialize(){
  if(session && await refresh()){
   if(!session.user){try{session.user=await api('/auth/v1/user');sessionStorage.setItem(AUTH,JSON.stringify(session))}catch{logout()}}
   const active=sessionStorage.getItem('rikiCurrentPlayerV1');
-  if(active){try{const owned=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=id');if(owned.length){player=active;const rows=await api('/rest/v1/arcade_progress?select=snapshot&player_id=eq.'+encodeURIComponent(active));if(rows[0]?.snapshot){const snapshot=rows[0].snapshot;const incoming=JSON.stringify(snapshot);const current=JSON.stringify(read());if(incoming!==current){KEYS.forEach(k=>{if(Object.hasOwn(snapshot,k))localStorage.setItem(k,String(snapshot[k]));else localStorage.removeItem(k)});location.reload();return;}lastSaved=current}}}catch{player=null}}
+  if(active){try{const owned=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=id');if(owned.length){player=active;const names=await api('/rest/v1/arcade_players?id=eq.'+encodeURIComponent(active)+'&select=nickname');if(names[0]?.nickname)sessionStorage.setItem(DISPLAY,names[0].nickname);greet();const rows=await api('/rest/v1/arcade_progress?select=snapshot&player_id=eq.'+encodeURIComponent(active));if(rows[0]?.snapshot){const snapshot=rows[0].snapshot;const incoming=JSON.stringify(snapshot);const current=JSON.stringify(read());if(incoming!==current){KEYS.forEach(k=>{if(Object.hasOwn(snapshot,k))localStorage.setItem(k,String(snapshot[k]));else localStorage.removeItem(k)});location.reload();return;}lastSaved=current}}}catch{player=null}}
   status(player?'Cloud profile active':'Guardian signed in');if(player)interval=setInterval(()=>save().catch(err=>status('Cloud save error: '+err.message)),15000);
   else if(token.has('access_token'))list();
  }
 }
 document.addEventListener('DOMContentLoaded',()=>{
- const bar=document.createElement('div');bar.id='rkAccountBar';bar.innerHTML='<button type="button" id="rkAccountOpen">👨‍👩‍👧 Family accounts</button> <button type="button" id="rkRikiOpen" aria-label="Play as Riki using guardian account">🎮 Riki</button> <span id="rkAccountStatus" role="status">Guest • this browser</span>';
+ const bar=document.createElement('div');bar.id='rkAccountBar';bar.innerHTML='<button type="button" id="rkAccountOpen">👨‍👩‍👧 Family accounts</button> <button type="button" id="rkSwitchPlayer" aria-label="Switch player profile">🔄 Switch player</button> <span id="rkAccountStatus" role="status">Guest • this browser</span>';
  const host=document.querySelector('main#app');host.parentElement.insertBefore(bar,host);
  const dialog=document.createElement('section');dialog.id='rkAccountDialog';dialog.hidden=true;dialog.innerHTML='<div id="rkAccountPanel"></div>';host.parentElement.insertBefore(dialog,host);
  $('rkAccountOpen').onclick=()=>session?list():login();
- $('rkRikiOpen').onclick=openRiki;
+ $('rkSwitchPlayer').onclick=()=>session?list():login();
+ greetingObserver.observe(host,{subtree:true,childList:true});greet();
  initialize().catch(err=>status('Account unavailable: '+err.message));
  window.addEventListener('pagehide',()=>{if(player)save().catch(()=>{})});
 });
