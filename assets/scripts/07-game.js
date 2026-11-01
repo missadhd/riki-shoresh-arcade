@@ -2062,7 +2062,7 @@ Object.assign(P3_MAKE,{
 delete P3_MAKE.coffeecup;
 
 /* rooms (3D backdrops) */
-const RPCAM={size:[720,720],cam:{fov:38,pos:[0,3.2,5.6],at:[0,.4,0]}};
+const RPCAM={size:[960,960],cam:{fov:34,pos:[0,3.4,5.2],at:[0,.45,0]}};
 Object.assign(SC3_SETS,{
  schoolroom:{wall:'#cfe6f7',low:'#8fb9d9',pat:'stripe',floor:'tile',board:1,win:1,bunt:1,...RPCAM,items:[
   ['rainbowcubbies',-2.1,-1.35,0,.9],
@@ -2241,7 +2241,7 @@ const escPrior=drawEscape;drawEscape=function(){escPrior();rpLoad(()=>{if(!$id('
 Object.assign(ZRUN,{helper:drawHelper,listen:drawListen,escape:drawEscape});
 
 if(!document.getElementById('rpCss')){const st=document.createElement('style');st.id='rpCss';st.textContent=`.rp-hidden{display:none!important}
-.rp-stage{position:relative;width:100%;max-height:52vh;border-radius:24px;overflow:hidden;background:#fdeef5 center/100% 100% no-repeat;box-shadow:inset 0 0 0 3px #fff,0 12px 26px -14px #4a233866;margin:6px 0 10px;user-select:none;-webkit-user-select:none;z-index:1}.rp-load{position:absolute;inset:0;display:grid;place-items:center;font-weight:900;color:#6b4a5c}
+.rp-stage{position:relative;width:100%;border-radius:24px;overflow:hidden;background:#fdeef5 center/100% 100% no-repeat;box-shadow:inset 0 0 0 3px #fff,0 12px 26px -14px #4a233866;margin:6px 0 10px;user-select:none;-webkit-user-select:none;z-index:1}.rp-load{position:absolute;inset:0;display:grid;place-items:center;font-weight:900;color:#6b4a5c}
 .rp-item,.rp-riki,.rp-prop{position:absolute;transform:translate(-50%,-100%);aspect-ratio:1}.rp-item img,.rp-prop img{width:100%;height:100%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 5px 4px rgba(80,40,40,.28));pointer-events:none}
 .rp-item{cursor:grab;touch-action:none}.rp-item.drag{z-index:9999!important;cursor:grabbing}.rp-item.drag img{filter:drop-shadow(0 14px 10px rgba(80,40,40,.35))}.rp-item.gone{opacity:0;pointer-events:none}
 .rp-item.wig{animation:bpWig .45s ease-in-out}.rp-item.hinted img,.rp-prop.hinted img{filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 16px #ffd34d)}.rp-item.hinted{animation:rpHop .6s ease-in-out 3}@keyframes rpHop{50%{margin-top:-8px}}
