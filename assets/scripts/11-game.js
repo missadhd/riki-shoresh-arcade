@@ -285,7 +285,7 @@ function floorTex(id){
   window.houseRender = function(){
     const r = orig.apply(this, arguments);
     try {
-      if ((0,eval)("housePage") !== 'shop') return r;
+      if ((0,eval)("housePage") !== 'shop') { const old = document.getElementById('rkFloorShop'); if (old) old.remove(); return r; }
       const panel = document.querySelector('.panel');
       if (!panel || document.getElementById('rkFloorShop')) return r;
       const room = (0,eval)("currentRoom") || 'bedroom';
@@ -482,7 +482,7 @@ function animateItems(list,t){list.forEach(g=>{
 
 /* ================= ROOM EDITOR ================= */
 const ROOM_SIZE={bedroom:[6.4,4.6,3.2],living:[6.4,4.6,3.2],kitchen:[6.4,4.6,3.2],garden:[7.4,5.2,3],bathroom:[6.4,4.6,3.2],playroom:[6.4,4.6,3.2]};
-const ED={R:null,scene:null,cam:null,items:[],group:null,room:null,W:6,D:4.5,az:0,el:.42,azT:0,elT:.42,zoom:.85,sel:null,ring:null,ro:null,looping:false,ray:null,drag:null};
+const ED={R:null,scene:null,cam:null,items:[],group:null,room:null,W:6,D:4.5,az:0,el:.42,azT:0,elT:.42,zoom:1.25,sel:null,ring:null,ro:null,looping:false,ray:null,drag:null};
 /* Play directly inside furniture; this controller shares the room's camera and canvas. */
 function storageApi(){return window.RikiFurnitureInteractions;}
 function storageDisposeGhost(){const f=ED.storage;if(!f)return;if(f.sourceSlot!==null&&f.sourceSlot!==undefined){const slot=f.item.userData.storage.slots[f.sourceSlot];if(slot&&slot.content)slot.content.visible=true;}if(!f.ghost)return;ED.scene.remove(f.ghost);if(window.RK3.releaseStorageModel)window.RK3.releaseStorageModel(f.ghost);f.ghost=null;}
@@ -628,7 +628,7 @@ function edBuild(room){
   // Centered welcome view of the room
   ED.az = ED.azT = 0;
   ED.el = ED.elT = 0.42;
-  ED.zoom = 0.85;
+  ED.zoom = 1.25;
   const s=new THREE.Scene();ED.scene=s;ED.room=room;const [W,D,H]=ROOM_SIZE[room]||ROOM_SIZE.bedroom;ED.W=W;ED.D=D;ED.H=H;
   if(room==='garden'){s.background=new THREE.Color('#bfe3f5');}
   lights(s,Math.max(W,D),1024);
@@ -647,7 +647,7 @@ function edBuild(room){
   if (zIn) zIn.onclick = () => { ED.zoom = cl(ED.zoom - 0.12, 0.4, 1.6); };
   if (zOut) zOut.onclick = () => { ED.zoom = cl(ED.zoom + 0.12, 0.4, 1.6); };
   const center = document.getElementById('rk3Center');
-  if (center) center.onclick = () => { ED.azT = 0; ED.elT = 0.42; ED.zoom = 0.85; };
+  if (center) center.onclick = () => { ED.azT = 0; ED.elT = 0.42; ED.zoom = 1.25; };
 
   const ring=new THREE.Mesh(new THREE.RingGeometry(.62,.72,48),new THREE.MeshBasicMaterial({color:0xe2457a,transparent:true,opacity:.85,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=.02;ring.visible=false;s.add(ring);ED.ring=ring;
   ED.floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
@@ -783,6 +783,9 @@ if(typeof prevHtml==='function'&&typeof prevBind==='function'){
     h=h.replace(/<div class="riki3d-hud">[\s\S]*?<\/div>/,`<div class="riki3d-hud"><span>🏡 ${NICE[room]||'Dream room'}</span><span>Drag to look around</span><button type="button" class="smallbtn" id="rk3ZoomOut" style="pointer-events:auto" aria-label="Zoom out">−</button><button type="button" class="smallbtn" id="rk3ZoomIn" style="pointer-events:auto" aria-label="Zoom in">+</button><button type="button" class="smallbtn" id="rk3Center" style="pointer-events:auto" aria-label="Center view">◎</button><button type="button" class="smallbtn" id="rk3CeilingToggle" style="pointer-events:auto;margin-left:auto">🏠 Hide ceiling</button></div>`);
     h=h.replace(/<p class="riki3d-legend">[\s\S]*?<\/p>/,'<p class="riki3d-legend">Tap something you bought below, then tap the floor to place it. Drag furniture to move it. Drag the empty room to look around.</p>');
     h=h.replace(/<p class="riki3d-legend">[\s\S]*?<\/p>/,`<p class="riki3d-legend">Tap an owned item below, then tap the floor to place it. Tap furniture to select it and drag to move. Drag empty space to look around.</p><div class="rk3-selection-tools" style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0"><strong id="rk3SelectedStatus" role="status" aria-live="polite">✨ Tap furniture to select it, or choose an owned item below</strong><button type="button" class="smallbtn" id="rk3ClearSelection" hidden>✕ Deselect</button></div>`);
+    // Remove any floor-buy buttons that may have been left in the room view
+    h = h.replace(/<div class="riki3d-hud"[^>]*>[\s\S]*?Floors:[\s\S]*?<\/div>/g, '');
+    h = h.replace(/data-floor="[^"]*"/g, '');
     return h;};
   /* Easier decorating (Claude, Oct 29): tray of owned items right under the room, tap to add,
      a floating bar for the selected piece, and the extra sections folded away. */
