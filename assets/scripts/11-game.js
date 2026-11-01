@@ -117,8 +117,8 @@ const eye=()=>mat('#2a1622',.12);
 function legs4(g,w,d,h,m,inset=.06,r=.03){[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>CY(g,r,r*.75,h,m,a*(w/2-inset),h/2,b*(d/2-inset),12));}
 const B={
  bed(g,c){c=c||'#f28db2';const wd=wood('#f0d4b0');
-  RB(g,1.35,.35,1.85,.18,wd,0,.18,0);legs4(g,1.2,1.7,.18,wd,.12,.08);
-  RB(g,1.2,.35,1.7,.2,fabric('#fff8f4'),0,.44,0);
+  RB(g,1.35,.35,1.85,.22,wd,0,.18,0);legs4(g,1.2,1.7,.18,wd,.12,.08);
+  RB(g,1.2,.35,1.7,.24,fabric('#fff8f4'),0,.44,0);
   RB(g,1.25,.18,1.2,.1,fabric(c),0,.6,.28);
   SP(g,.3,fabric('#fffaf5'),-.32,.76,-.5,1.2,.65,.8);
   SP(g,.3,fabric('#fffaf5'),.32,.76,-.5,1.2,.65,.8);
@@ -128,8 +128,8 @@ const B={
   const sheer=new THREE.MeshStandardMaterial({color:new THREE.Color(c).convertSRGBToLinear(),transparent:true,opacity:.42,side:THREE.DoubleSide,roughness:.9});
   BX(g,1.2,.04,1.7,sheer,0,1.86,0);[-.6,.6].forEach(x=>{const p=add(g,new THREE.PlaneGeometry(1.7,.9),sheer,x,1.45,0);p.rotation.y=Math.PI/2;p.castShadow=false;});},
  sofa(g,c){c=c||'#8fc6e8';const f=fabric(c),f2=fabric(shadeHex(c,1.08));
-  RB(g,1.75,.42,.86,.2,f,0,.24,0);
-  RB(g,1.75,.7,.36,.18,f,0,.66,-.24);
+  RB(g,1.75,.42,.86,.26,f,0,.24,0);
+  RB(g,1.75,.7,.36,.22,f,0,.66,-.24);
   SP(g,.36,f,-.86,.54,0,0.8,1.2,0.95);
   SP(g,.36,f,.86,.54,0,0.8,1.2,0.95);
   [-.35,.35].forEach(x=>{
@@ -139,9 +139,9 @@ const B={
   SP(g,.12,fabric('#ffd96b'),-.45,.68,0.05,1,.6,.5);
   legs4(g,1.5,.6,.14,wood('#8a5a35'),.05,.03);},
  chair(g,c){c=c||'#f28db2';const wd=wood('#e0b88a');
-  RB(g,.58,.12,.55,.08,wd,0,.42,0);
+  RB(g,.58,.12,.55,.12,wd,0,.42,0);
   RB(g,.52,.14,.5,.08,fabric(c),0,.52,0);
-  RB(g,.55,.65,.12,.08,wd,0,.88,-.22);
+  RB(g,.55,.65,.12,.12,wd,0,.88,-.22);
   SP(g,.24,fabric(c),0,.92,-.14,1.2,.85,.55);
   legs4(g,.52,.5,.4,wd,.06,.05);},
  table(g,c){const top=c?mat(c,.5):wood('#e0b88a');
