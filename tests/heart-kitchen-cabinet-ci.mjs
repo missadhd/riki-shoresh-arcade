@@ -8,6 +8,8 @@ try{
   const page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>{
+   if(sessionStorage.getItem('__heartKitchenTestSeeded'))return;
+   sessionStorage.setItem('__heartKitchenTestSeeded','yes');
    localStorage.setItem('rikiGuestDemo500GrantedV1','yes');
    localStorage.setItem('rickyCoins','200');
    localStorage.setItem('rickyHouseInventoryV1',JSON.stringify(['utensilcrock','heartteapot','milkcarton','teddy']));
