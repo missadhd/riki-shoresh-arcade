@@ -495,46 +495,57 @@ function roomShell(g,id,W,D,H,opts={}){
 function roomIdentity(g,id,W,D,H){
   const soft = c => mat(c, .9);
   const round = c => mat(c, .88);
-  if(id==='bathroom'){
-    const tile=soft('#d4eef2'), white=round('#f7fbfc'), porc=round('#f4f8f9'), blush=soft('#f7c0cf');
-    // Soft tile band
-    RB(g, W-0.3, 0.9, 0.06, 0.04, tile, 0, 0.55, -D/2+0.05);
-    // Rounded vanity
-    RB(g, 1.2, 0.65, 0.5, 0.12, white, -W/2+1.05, 0.36, -D/2+0.38);
-    SP(g, 0.16, porc, -W/2+1.05, 0.72, -D/2+0.3, 1, 0.35, 0.8);
-    // Mirror
-    SP(g, 0.32, soft('#c5e4ec'), -W/2+1.05, 1.35, -D/2+0.08, 1.1, 1.3, 0.15);
-    // Cute tub
-    RB(g, 1.4, 0.38, 0.7, 0.16, porc, W/2-1.15, 0.24, -D/2+0.42);
-    SP(g, 0.12, blush, W/2-1.15, 0.42, -D/2+0.2, 1.4, 0.3, 0.6);
-    // Toilet
-    RB(g, 0.36, 0.36, 0.46, 0.1, porc, 0.1, 0.2, D/2-0.48);
-    SP(g, 0.14, porc, 0.1, 0.42, D/2-0.44, 1, 0.4, 0.9);
-  }else if(id==='kitchen'){
-    const mint=soft('#b9d9cf'), cream=round('#fff3df'), woodM=wood('#d4a574');
-    // Soft counter
-    RB(g, W-1.2, 0.7, 0.55, 0.1, mint, 0, 0.38, -D/2+0.38);
-    RB(g, W-1.2, 0.08, 0.62, 0.04, cream, 0, 0.76, -D/2+0.4);
-    // Cute stove
-    RB(g, 0.7, 0.55, 0.5, 0.08, round('#f7f4ef'), -0.4, 0.3, -D/2+0.55);
-    SP(g, 0.08, soft('#2a2328'), -0.55, 0.62, -D/2+0.5, 1, 0.2, 1);
-    SP(g, 0.08, soft('#2a2328'), -0.25, 0.62, -D/2+0.5, 1, 0.2, 1);
-    // Fridge
-    RB(g, 0.55, 1.4, 0.45, 0.1, round('#f7fbfc'), W/2-0.7, 0.72, -D/2+0.35);
-    SP(g, 0.04, soft('#e2457a'), W/2-0.48, 0.9, -D/2+0.55, 1, 1.2, 0.5);
-  }else if(id==='living'){
-    const blush=soft('#f7c0cf'), cream=round('#fff8ed'), woodM=wood('#d4a574');
-    // Soft sofa
-    RB(g, 1.6, 0.45, 0.7, 0.16, blush, 0, 0.28, 0.3);
-    SP(g, 0.28, blush, -0.55, 0.55, 0.15, 1, 1.1, 0.7);
-    SP(g, 0.28, blush, 0.55, 0.55, 0.15, 1, 1.1, 0.7);
-    SP(g, 0.22, cream, 0, 0.48, 0.35, 1.2, 0.6, 0.8);
-    // Round plants
-    [-1.4, 1.4].forEach(x => {
-      CY(g, 0.16, 0.18, 0.28, woodM, x, 0.16, -D/2+0.4, 20);
-      SP(g, 0.22, soft('#5fb06a'), x, 0.5, -D/2+0.4, 1, 1.1, 1);
-    });
-  }else if(id==='bedroom'){
+  // Distinct architectural details for each room. No unearned furnishings.
+  if(id!=='bedroom' && id!=='garden'){
+    const theme={
+      living:['#f4ded3','#fff6ed','#e7bda7'],
+      kitchen:['#d9e9dd','#fff8e9','#a5caba'],
+      bathroom:['#d5eaf0','#fffdf7','#a6cdd9'],
+      playroom:['#eee0f5','#fffaf3','#d5b7e7']
+    }[id]||['#f4e6df','#fff8ef','#ddc2b9'];
+    const base=mat(theme[0],.9),trim=mat(theme[1],.8),detail=mat(theme[2],.89);
+    const z=-D/2+.105, rail=.89;
+    RB(g,W-.18,.74,.038,.012,base,0,.53,z);
+    RB(g,W-.14,.065,.065,.017,trim,0,rail,z+.04);
+    RB(g,W-.14,.075,.065,.018,trim,0,.17,z+.04);
+    // Shallow wall paneling runs across all three interior walls.
+    const count=id==='bathroom'?7:5,usable=W-.55,step=usable/count;
+    for(let n=0;n<count;n++){
+      const x=-usable/2+(n+.5)*step;
+      RB(g,step-.13,.46,.035,.014,detail,x,.54,z+.055);
+      RB(g,step-.18,.36,.038,.014,base,x,.54,z+.082);
+    }
+    for(const side of [-1,1]){
+      const x=side*(W/2-.105);
+      RB(g,.04,.74,D-.20,.012,base,x,.53,0);
+      RB(g,.07,.065,D-.18,.017,trim,x,rail,0);
+      RB(g,.07,.075,D-.18,.018,trim,x,.17,0);
+      const segments=4,span=(D-.42)/segments;
+      for(let n=0;n<segments;n++){
+        const zz=-D/2+.21+(n+.5)*span;
+        RB(g,.04,.45,span-.15,.012,detail,x-side*.035,.54,zz);
+        RB(g,.044,.35,span-.20,.012,base,x-side*.05,.54,zz);
+      }
+    }
+    // Rooms have unique permanent architecture, separate from purchasable furniture.
+    if(id==='kitchen'){
+      const splash=mat('#f8f1de',.8);
+      RB(g,W-1.2,.28,.035,.012,splash,0,1.08,z+.04);
+      for(let x=-W/2+.48;x<W/2-.2;x+=.49) RB(g,.014,.28,.043,.004,trim,x,1.08,z+.08);
+    }else if(id==='bathroom'){
+      for(let x=-W/2+.30;x<W/2-.15;x+=.45){
+        RB(g,.018,.72,.04,.008,trim,x,.53,z+.08);
+      }
+    }else if(id==='living'){
+      RB(g,W-.24,.08,.065,.018,detail,0,H-.38,z+.04);
+      RB(g,.58,.68,.045,.07,trim,1.1,1.78,z+.025);
+      RB(g,.43,.52,.04,.05,detail,1.1,1.78,z+.07);
+    }else if(id==='playroom'){
+      const colors=['#e7bfcd','#b8dbd1','#e6d49f','#d0bbe1'];
+      for(let i=0;i<4;i++)RB(g,.42,.08,.035,.012,mat(colors[i],.9),-1.05+i*.7,1.18,z+.03);
+    }
+  }
+if(id==='bedroom'){
     // Bedroom architectural pilot: built-ins only. Earned furniture stays in fillItems().
     const ivory=mat('#fff8ef',.82), blush=mat('#dfadc3',.91), inset=mat('#f8e4ec',.94);
     const brass=mat('#c3a270',.55), sage=mat('#b8c6a9',.92);
@@ -788,11 +799,11 @@ function edBuild(room){
   reconcileCopies();
   ED.preview=null;ED.moveMode=false;
   // Bedroom opens as a room-filling interior, not a tiny exterior diorama.
-  if(room==='bedroom')DIO.on=false;
+  if(room!=='garden')DIO.on=false;
   // Centered welcome view of the room
   ED.az = ED.azT = 0;
   ED.el = ED.elT = 0.42;
-  ED.zoom = room==='bedroom' ? 1.85 : 1.55; // wider initial bedroom view
+  ED.zoom = room==='garden' ? 1.55 : 1.85; // wider initial indoor view
   const s=new THREE.Scene();ED.scene=s;ED.room=room;const [W,D,H]=ROOM_SIZE[room]||ROOM_SIZE.bedroom;ED.W=W;ED.D=D;ED.H=H;
   if(room==='garden'){s.background=new THREE.Color('#bfe3f5');}
   lights(s,Math.max(W,D),1024);
