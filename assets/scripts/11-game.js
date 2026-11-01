@@ -10,7 +10,7 @@ let threeWaiters=null;
 function loadThree(cb,fail){if(window.THREE)return cb();if(threeWaiters){threeWaiters.push([cb,fail]);return;}threeWaiters=[[cb,fail]];const s=document.createElement('script');s.src=THREE_URL;s.onload=()=>{const w=threeWaiters;threeWaiters=null;w.forEach(x=>x[0]());};s.onerror=()=>{const w=threeWaiters;threeWaiters=null;w.forEach(x=>x[1]&&x[1]());};document.head.appendChild(s);}
 
 /* ================= styles ================= */
-const css=`.rk3-room{position:relative;height:clamp(320px,min(64vh,118vw),580px);border-radius:26px;overflow:hidden;touch-action:none;background:linear-gradient(#f7ebe4,#efe0d6);border:3px solid #fff;box-shadow:0 18px 34px -16px #4a233866;margin:10px 0}
+const css=`.rk3-room{position:relative;height:clamp(340px,min(70vh,124vw),600px);width:100%;max-width:840px;border-radius:26px;overflow:hidden;touch-action:none;background:linear-gradient(#f7ebe4,#efe0d6);border:3px solid #fff;box-shadow:0 18px 34px -16px #4a233866;margin:10px auto}
 .rk3-room canvas{display:block;width:100%;height:100%;outline:none}
 .rk3-room .riki3d-hud{position:absolute;left:10px;right:10px;top:10px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;pointer-events:none;z-index:2}
 .rk3-room .riki3d-hud span{background:#ffffffde;border-radius:999px;padding:5px 12px;font-weight:800;font-size:13px;color:#4a2338;box-shadow:0 2px 8px #0001}
@@ -845,7 +845,7 @@ function edBuild(room){
   const selId=ED.sel;ED.sel=null;if(selId)edSelect(selId,true);
 }
 /* ===== Diorama view (Claude, Nov 1): look into the room from outside, like a cutaway dollhouse box ===== */
-const DIO={on:true,az:-.62,el:.5,zoom:1.16,glow:null};
+const DIO={on:true,az:-.62,el:.5,zoom:1.09,glow:null};
 function dioMix(a,b,t){const A=parseInt(a.slice(1),16),Bq=parseInt(b.slice(1),16);const f=(s)=>Math.round(((A>>s)&255)*(1-t)+((Bq>>s)&255)*t);return '#'+((1<<24)|(f(16)<<16)|(f(8)<<8)|f(0)).toString(16).slice(1);}
 function dioWall(room){const owned=G('owned')||[],ri=(G('roomInteriors')||{})[room]||{},INTER=G('INTERIORS')||[];const w=INTER.find(t=>t[0]===ri.wall&&owned.includes(t[0]));if(w&&/^#[0-9a-f]{6}$/i.test(w[3]))return w[3];return roomWallBase(room);}
 function dioGlow(){if(DIO.glow)return DIO.glow;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');const g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,240,200,1)');g.addColorStop(.22,'rgba(255,214,150,.6)');g.addColorStop(1,'rgba(255,200,120,0)');x.fillStyle=g;x.fillRect(0,0,64,64);DIO.glow=new THREE.CanvasTexture(c);return DIO.glow;}
