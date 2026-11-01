@@ -42,6 +42,26 @@ try{
   });
   assert.equal(results.length,16);
   console.log('PASS '+width+'px 16 storage models open, close and expose slots, including new fridges');
+  // Real dollhouse entry (not only model-level math): buy/placement is seeded
+  // in an isolated browser so no real child's saved progress can be changed.
+  await page.evaluate(()=>{
+   localStorage.setItem('rikiGuestDemo500GrantedV1','yes');
+   localStorage.setItem('rickyHouseInventoryV1',JSON.stringify(['clayfridge','milkcarton']));
+   localStorage.setItem('rickyHouseDecorV1',JSON.stringify({kitchen:{0:'clayfridge'}}));
+  });
+  await page.reload({waitUntil:'domcontentloaded'});
+  await page.evaluate(()=>{window.eval("currentRoom='kitchen';housePage='decorate';selectedItem=''");window.houseRender();});
+  await page.locator('#dreamRoom canvas').waitFor({timeout:30000});
+  await page.waitForTimeout(750);
+  const opened=await page.evaluate(()=>window.RK3.openStorage('clayfridge'));
+  assert.equal(opened,true,'clay fridge opens within a real owned dollhouse room');
+  await page.locator('.rk-storage-toolbar').waitFor({timeout:10000});
+  const stored=await page.evaluate(()=>window.RikiFurnitureInteractions.storeItem('clayfridge','kitchen','milkcarton',0));
+  assert.equal(stored,true,'milk should store inside the placed clay fridge');
+  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('rickyDreamStorageV2')||'{}'));
+  assert.equal(saved['kitchen:clayfridge']?.[0],'milkcarton','storage should persist without changing the saved key');
+  await page.evaluate(()=>window.RK3.closeStorage(true));
+  console.log('PASS '+width+'px real 3D room: placed fridge opens, food stores, and saved data updates');
   await page.close();
   const demo=await browser.newPage({viewport:{width,height:width===390?844:800}});
   demo.on('pageerror',e=>errors.push('demo: '+e.message));
