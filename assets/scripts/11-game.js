@@ -798,12 +798,12 @@ function edBuild(room){
   storageClose(true);
   reconcileCopies();
   ED.preview=null;ED.moveMode=false;
-  // Bedroom opens as a room-filling interior, not a tiny exterior diorama.
-  if(room!=='garden')DIO.on=false;
-  // Centered welcome view of the room
+  // Show the whole room on first entry, not a close-up trapped inside its walls.
+  // Rebuilding the same room retains an explicit "Look inside" choice.
+  if(ED.room!==room)DIO.on=true;
   ED.az = ED.azT = 0;
   ED.el = ED.elT = 0.42;
-  ED.zoom = room==='garden' ? 1.55 : 1.85; // wider initial indoor view
+  ED.zoom = DIO.on ? DIO.zoom : 1.35;
   const s=new THREE.Scene();ED.scene=s;ED.room=room;const [W,D,H]=ROOM_SIZE[room]||ROOM_SIZE.bedroom;ED.W=W;ED.D=D;ED.H=H;
   if(room==='garden'){s.background=new THREE.Color('#bfe3f5');}
   lights(s,Math.max(W,D),1024);
@@ -820,17 +820,17 @@ function edBuild(room){
     };
   }
   const zIn = document.getElementById('rk3ZoomIn'), zOut = document.getElementById('rk3ZoomOut');
-  if (zIn) zIn.onclick = () => { ED.zoom = cl(ED.zoom - 0.12, 0.4, 1.6); };
-  if (zOut) zOut.onclick = () => { ED.zoom = cl(ED.zoom + 0.12, 0.4, 1.6); };
+  if (zIn) zIn.onclick = () => { ED.zoom = cl(ED.zoom - 0.12, 0.4, 1.8); };
+  if (zOut) zOut.onclick = () => { ED.zoom = cl(ED.zoom + 0.12, 0.4, 1.8); };
   const center = document.getElementById('rk3Center');
-  if (center) center.onclick = () => { if(DIO.on){ED.azT=DIO.az;ED.elT=DIO.el;ED.zoom=DIO.zoom;return;} ED.azT = 0; ED.elT = 0.42; ED.zoom = 1.55; };
+  if (center) center.onclick = () => { if(DIO.on){ED.azT=DIO.az;ED.elT=DIO.el;ED.zoom=DIO.zoom;return;} ED.azT = 0; ED.elT = 0.42; ED.zoom = 1.35; };
 
   const ring=new THREE.Mesh(new THREE.RingGeometry(.62,.72,48),new THREE.MeshBasicMaterial({color:0xe2457a,transparent:true,opacity:.85,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=.02;ring.visible=false;s.add(ring);ED.ring=ring;
   ED.floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
   const selId=ED.sel;ED.sel=null;if(selId)edSelect(selId,true);
 }
 /* ===== Diorama view (Claude, Nov 1): look into the room from outside, like a cutaway dollhouse box ===== */
-const DIO={on:true,az:-.62,el:.5,zoom:1,glow:null};
+const DIO={on:true,az:-.62,el:.5,zoom:1.16,glow:null};
 function dioMix(a,b,t){const A=parseInt(a.slice(1),16),Bq=parseInt(b.slice(1),16);const f=(s)=>Math.round(((A>>s)&255)*(1-t)+((Bq>>s)&255)*t);return '#'+((1<<24)|(f(16)<<16)|(f(8)<<8)|f(0)).toString(16).slice(1);}
 function dioWall(room){const owned=G('owned')||[],ri=(G('roomInteriors')||{})[room]||{},INTER=G('INTERIORS')||[];const w=INTER.find(t=>t[0]===ri.wall&&owned.includes(t[0]));if(w&&/^#[0-9a-f]{6}$/i.test(w[3]))return w[3];return roomWallBase(room);}
 function dioGlow(){if(DIO.glow)return DIO.glow;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');const g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,240,200,1)');g.addColorStop(.22,'rgba(255,214,150,.6)');g.addColorStop(1,'rgba(255,200,120,0)');x.fillStyle=g;x.fillRect(0,0,64,64);DIO.glow=new THREE.CanvasTexture(c);return DIO.glow;}
@@ -929,7 +929,7 @@ function edPointers(cv){
     if (!d.moved && !d.item) {
       const now = performance.now();
       if (now - lastTap < 320 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 40) {
-        ED.zoom = cl(ED.zoom - 0.28, 0.35, 1.6);
+        ED.zoom = cl(ED.zoom - 0.28, 0.35, 1.8);
         lastTap = 0;
       } else {
         lastTap = now; lastTapX = e.clientX; lastTapY = e.clientY;
@@ -944,7 +944,7 @@ function edPointers(cv){
       ED.sel=null;ED.ring.visible=false;return;}
     try{localStorage.setItem('rikiReal3dAz',ED.azT);}catch(_){}};
   cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',e=>{ED.drag=null;});
-  cv.addEventListener('wheel',e=>{e.preventDefault();if(ED.storage)return;ED.zoom=cl(ED.zoom+e.deltaY*.001,.4,1.6);},{passive:false});
+  cv.addEventListener('wheel',e=>{e.preventDefault();if(ED.storage)return;ED.zoom=cl(ED.zoom+e.deltaY*.001,.4,1.8);},{passive:false});
   // Pinch zoom
   let pinchDist = 0;
   cv.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') cv.setPointerCapture?.(e.pointerId); });
@@ -961,7 +961,7 @@ function edPointers(cv){
     if (pts.size === 2) {
       const [a, b] = [...pts.values()];
       const d = Math.hypot(a[0]-b[0], a[1]-b[1]);
-      if (pinchDist) ED.zoom = cl(ED.zoom * (pinchDist / d), 0.4, 1.6);
+      if (pinchDist) ED.zoom = cl(ED.zoom * (pinchDist / d), 0.4, 1.8);
       pinchDist = d;
     }
   });
@@ -975,6 +975,8 @@ function edMount(){
   loadThree(()=>{
     try{
       if(!ED.R){ED.R=makeRenderer();ED.cam=new THREE.PerspectiveCamera(42,1,.1,100);ED.ray=new THREE.Raycaster();edPointers(ED.R.domElement);}
+      // A newly mounted room starts in whole-room view even when the last session looked inside.
+      if(ED.R.domElement.parentElement!==box)DIO.on=true;
       const ld=box.querySelector('.rk3-load');if(ld)ld.remove();
       box.prepend(ED.R.domElement);
       edBuild(room);dioToggleBtn(box);
@@ -1026,7 +1028,7 @@ if(typeof prevHtml==='function'&&typeof prevBind==='function'){
     const panel=box.closest('.dream-panel');if(!panel)return;const room=G('currentRoom')||'bedroom';
     box.insertAdjacentHTML('beforeend',`<button type="button" class="rk3-front" id="rk3Front" aria-label="Front view">⟲</button>`);box.insertAdjacentHTML('afterend',`<div class="rk3-bar" id="rk3Bar" hidden><span id="rk3BarName"></span><button type="button" id="rk3BarSmaller" aria-label="Make selected item smaller">− Smaller</button><button type="button" id="rk3BarBigger" aria-label="Make selected item bigger">＋ Bigger</button><button type="button" id="rk3BarRotate">↻ Turn</button><button type="button" id="rk3BarMove">✥ Move</button><button type="button" id="rk3BarOpen" hidden>🗄️ Open</button><button type="button" id="rk3BarAway">🧺 Put away</button><button type="button" id="rk3BarDone">✓ Done</button><button type="button" id="rk3BarCancel" hidden>✕ Cancel</button><button type="button" id="rk3BarPlace" hidden>✓ Place here</button></div>`);
     const $=id=>document.getElementById(id);
-    $('rk3Front').onclick=()=>{ED.azT=0;ED.elT=.5;ED.zoom=1;};
+    $('rk3Front').onclick=()=>{ED.azT=DIO.on?DIO.az:0;ED.elT=DIO.on?DIO.el:.42;ED.zoom=DIO.on?DIO.zoom:1.35;};
     $('rk3BarDone').onclick=()=>{ED.moveMode=false;edSelect(null,true);};
     $('rk3BarMove').onclick=()=>{ED.moveMode=true;rkUpdateBar();};
     $('rk3BarCancel').onclick=()=>rkCancelPreview();
@@ -1063,7 +1065,7 @@ if(typeof prevHtml==='function'&&typeof prevBind==='function'){
     if($('rk3ClearSelection'))$('rk3ClearSelection').onclick=()=>{edSelect(null,true);msg('Selection cleared. Choose an item below to decorate.');};
     if($('orbitLeft'))$('orbitLeft').onclick=()=>{ED.azT=cl(ED.azT-.3,DIO.on?-1.1:-.55,DIO.on?1.1:.55);};
     if($('orbitRight'))$('orbitRight').onclick=()=>{ED.azT=cl(ED.azT+.3,DIO.on?-1.1:-.55,DIO.on?1.1:.55);};
-    if($('orbitReset'))$('orbitReset').onclick=()=>{if(DIO.on){ED.azT=DIO.az;ED.elT=DIO.el;ED.zoom=DIO.zoom;return;}ED.azT=0;ED.elT=.5;ED.zoom=1;};
+    if($('orbitReset'))$('orbitReset').onclick=()=>{if(DIO.on){ED.azT=DIO.az;ED.elT=DIO.el;ED.zoom=DIO.zoom;return;}ED.azT=0;ED.elT=.42;ED.zoom=1.35;};
     if($('openSelected'))$('openSelected').onclick=()=>{const id=ED.sel||G('selectedItem');const isSt=G('isStorage'),sm=G('storageModal');if(id&&typeof isSt==='function'&&isSt(id)&&typeof sm==='function')sm(id);else msg('Tap a shelf, vanity or dresser in the room first, then tap Open.');};
     edMount();try{rkLayout(box);}catch(err){console.warn('decor layout',err);}};
   window.__rk3Html=newHtml;window.__rk3Bind=newBind;
