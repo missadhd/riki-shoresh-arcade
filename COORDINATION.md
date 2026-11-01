@@ -5,7 +5,6 @@ Add a row when you open your draft PR and remove it in the same PR when you fini
 
 | Who | Branch | Files | Status |
 |---|---|---|---|
-| Claude | claude/clay-furniture | assets/scripts/12-game.js (furniture models), index.html (12 version only) | in progress — Rachel assigned furniture to Claude |
 
 ## Map of the code
 
