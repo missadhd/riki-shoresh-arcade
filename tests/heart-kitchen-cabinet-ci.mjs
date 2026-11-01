@@ -61,9 +61,10 @@ try{
   assert.ok(await page.evaluate(id=>JSON.parse(localStorage.getItem('rickyHouseInventoryV1')||'[]').includes(id),ITEM),'purchase must be persisted');
   const purchaseCta=page.locator('#catalogPlacePurchase');
   await purchaseCta.click();
-  await page.locator('[data-select="'+ITEM+'"]').waitFor();
-  await page.locator('[data-select="'+ITEM+'"]').click();
-  await page.locator('[data-slot="4"]').click();
+  await page.locator('[data-dream-inventory="'+ITEM+'"]').waitFor({timeout:15000});
+  await page.locator('[data-dream-inventory="'+ITEM+'"]').click();
+  await page.locator('#rk3BarPlace').waitFor({timeout:15000});
+  await page.locator('#rk3BarPlace').click();
   assert.ok(await page.evaluate(id=>Object.values(JSON.parse(localStorage.getItem('rickyHouseDecorV1')||'{}').kitchen||{}).includes(id),ITEM),'must be placed in the kitchen');
   await page.locator('#dreamRoom canvas').waitFor({timeout:30000});
   await page.waitForTimeout(650);
