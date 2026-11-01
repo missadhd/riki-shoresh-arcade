@@ -22,6 +22,19 @@ try {
   });
   assert.ok(nav.every(x=>x.visible),JSON.stringify(nav));
   assert.ok(nav.every(x=>x.left>=-1&&x.right<=width+1),'Top tabs must fit viewport: '+JSON.stringify(nav));
+  const roots=await page.evaluate(()=>{
+   const primary=document.getElementById('gamesShortcut');
+   const duplicates=['rikiShoreshTab','rikiShoreshimTab'].map(id=>document.getElementById(id));
+   return {name:primary?.textContent,duplicateVisible:duplicates.map(x=>!!x&&getComputedStyle(x).display!=='none'),duplicateAccessible:duplicates.map(x=>x?.getAttribute('aria-hidden'))};
+  });
+  assert.match(roots.name,/Shoreshim/,'main top destination should say Shoreshim');
+  assert.deepEqual(roots.duplicateVisible,[false,false],'old duplicate Hebrew tabs must be hidden');
+  assert.deepEqual(roots.duplicateAccessible,['true','true'],'hidden duplicate controls must leave accessibility tree');
+  await page.locator('#rkMathShortcut').click();
+  await page.locator('#gamesShortcut').click();
+  await page.locator('#app .games').waitFor({timeout:10000});
+  assert.equal(await page.locator('#app .rk-math').count(),0,'Shoreshim tab should actually open Hebrew games');
+  await page.locator('#rkMathShortcut').click();
   const preserved={bed:await page.evaluate(()=>localStorage.getItem('rickyHouseInventoryV1')),roots:await page.evaluate(()=>localStorage.getItem('rikiRootProgressV1'))};
   await page.locator('#rkMathShortcut').click();
   await page.locator('#rkMathRecipe').waitFor();
@@ -74,6 +87,9 @@ try {
   await page.locator('#houseShortcut').click();
   await page.locator('#dreamRoom').waitFor({timeout:25000});
   assert.ok(await page.locator('.rk-math').count()===0,'Dollhouse is a separate section');
+  await page.locator('#gamesShortcut').click();
+  await page.locator('#app .games').waitFor({timeout:10000});
+  assert.equal(await page.locator('#app #dreamRoom').count(),0,'Shoreshim should also open from Dollhouse');
   await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>!!window.RikiMath,{timeout:20000});
   assert.equal(await page.evaluate(()=>localStorage.getItem('rickyCoins')),'136','coins persist reload');
