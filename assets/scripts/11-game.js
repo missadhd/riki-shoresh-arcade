@@ -509,11 +509,11 @@ function roomShell(g,id,W,D,H,opts={}){
     slab.userData.dioramaRoofSlab = true;
     // A shallow rear canopy reads as a finished ceiling without covering the room.
     const canopy = add(ceil, new THREE.BoxGeometry(W - 0.12, 0.055, D - 0.12), mat(st.color, 0.82, 0, {side: THREE.DoubleSide, transparent:true, opacity:.16, depthWrite:false}), 0, H - 0.115, 0);
-    canopy.castShadow = false; canopy.receiveShadow = true; canopy.raycast = () => {};
+    canopy.castShadow = false; canopy.receiveShadow = true; canopy.raycast = () => {}; canopy.userData.dioramaSeeThroughRoof = true;
     // A second inset soffit and continuous inner trim create a finished
     // ceiling plane while keeping the front open for the cutaway camera.
     const soffit = add(ceil, new THREE.BoxGeometry(W - 0.28, 0.035, D - 0.28), mat('#fffaf4', 0.55, 0, {side: THREE.DoubleSide, transparent:true, opacity:.18, depthWrite:false}), 0, H - 0.18, 0);
-    soffit.castShadow = false; soffit.raycast = () => {};
+    soffit.castShadow = false; soffit.raycast = () => {}; soffit.userData.dioramaSeeThroughRoof = true;
     const lip = mat('#fffaf4', 0.48);
     BX(ceil, W - 0.12, 0.075, 0.085, lip, 0, H - 0.20, -D * 0.215);
     BX(ceil, 0.075, 0.075, D * 0.28, lip, -W/2 + 0.09, H - 0.20, -D * 0.355);
@@ -874,7 +874,7 @@ function edBuild(room){
   lights(s,Math.max(W,D),1024);
   const shell=new THREE.Group();s.add(shell);roomShell(shell,room,W,D,H);roomIdentity(shell,room,W,D,H);
   if(room!=='garden'){const L=new THREE.PointLight(0xffe2b8,.35,9,2);L.position.set(0,H-.4,.6);s.add(L);}
-  dioDress(shell,s,room,W,D,H);if(DIO.on){const bx=document.getElementById('dreamRoom');const asp=bx&&bx.clientHeight?bx.clientWidth/bx.clientHeight:1.2;DIO.el=asp<.95?.72:.60;DIO.az=asp<.95?-.30:-.40;ED.az=ED.azT=DIO.az;ED.el=ED.elT=DIO.el;ED.zoom=DIO.zoom;ED.dioKey=null;}
+  dioDress(shell,s,room,W,D,H);if(DIO.on){const bx=document.getElementById('dreamRoom');const asp=bx&&bx.clientHeight?bx.clientWidth/bx.clientHeight:1.2;DIO.el=asp<.95?.55:.48;DIO.az=asp<.95?-.30:-.40;ED.az=ED.azT=DIO.az;ED.el=ED.elT=DIO.el;ED.zoom=DIO.zoom;ED.dioKey=null;}
   ED.group=new THREE.Group();s.add(ED.group);ED.items=fillItems(ED.group,room,W,D,1.5);if(window.RK3.hydrateStorage)ED.items.forEach(g=>window.RK3.hydrateStorage(g,room));
   ED.ceiling = shell.userData.ceiling || null;
   ED.ceilingHiddenByUser = false;
@@ -922,7 +922,7 @@ function dioDress(shell,scene,room,W,D,H){ED.dioMeshes=null;ED.dioExtra=null;if(
   shell.traverse(o=>{if(!(o.isMesh||o.isSprite))return;let p=o,inCeil=false;while(p){if(p===shell.userData.ceiling){inCeil=true;break;}p=p.parent;}if(inCeil)return;box.setFromObject(o);box.getCenter(v);o.userData.dc=[v.x,v.y,v.z];let q=o,inX=false;while(q){if(q===extra){inX=true;break;}q=q.parent;}if(inX&&Math.abs(v.x)>W/2-.8&&v.z>-D/2+.85-.02)o.userData.dside=Math.sign(v.x);list.push(o);});
   ED.dioMeshes=list;}
 function dioCut(){if(!ED.dioMeshes)return;const cx=ED.cam.position.x,W=ED.W;const hideR=cx>W/2,hideL=cx<-W/2;
-  ED.dioMeshes.forEach(o=>{const x=o.userData.dc[0];o.visible=!((hideR&&x>W/2-.26)||(hideL&&x<-W/2+.26)||(o.userData.dside&&((hideR&&o.userData.dside>0)||(hideL&&o.userData.dside<0))));});if(ED.ceiling){ED.ceiling.visible=!ED.ceilingHiddenByUser;ED.ceiling.traverse(o=>{if(o.userData.dioramaRoofSlab)o.visible=false;});}}
+  ED.dioMeshes.forEach(o=>{const x=o.userData.dc[0];o.visible=!((hideR&&x>W/2-.26)||(hideL&&x<-W/2+.26)||(o.userData.dside&&((hideR&&o.userData.dside>0)||(hideL&&o.userData.dside<0))));});if(ED.ceiling){ED.ceiling.visible=!ED.ceilingHiddenByUser;ED.ceiling.traverse(o=>{if(o.userData.dioramaRoofSlab || o.userData.dioramaSeeThroughRoof)o.visible=false;});}}
 function dioCamera(){if(ED.R.toneMappingExposure!==.84)ED.R.toneMappingExposure=.84;const c=ED.R.domElement,w=c.clientWidth||1,h=c.clientHeight||1;ED.cam.aspect=w/h;ED.cam.fov=30;
   const key=[ED.az.toFixed(3),ED.el.toFixed(3),ED.zoom.toFixed(3),w,h,ED.W,ED.D,ED.H].join();if(ED.dioKey===key)return;ED.dioKey=key;
   const W=ED.W,D=ED.D,H=ED.H,gd=ED.room==='garden';const xs=gd?[-W/2-.65,W/2+.65]:[-W/2-.11,W/2+.11],zs=gd?[-D/2-.3,D/2+.5]:[-D/2-.11,D/2+.11],ys=[-.09,gd?1:H+.18];
