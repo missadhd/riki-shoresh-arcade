@@ -507,11 +507,11 @@ function roomShell(g,id,W,D,H,opts={}){
     slab.castShadow = false;
     slab.userData.dioramaRoofSlab = true;
     // A shallow rear canopy reads as a finished ceiling without covering the room.
-    const canopy = add(ceil, new THREE.BoxGeometry(W - 0.12, 0.055, D * 0.52), mat(st.color, 0.82, 0, {side: THREE.DoubleSide}), 0, H - 0.115, -D * 0.24);
+    const canopy = add(ceil, new THREE.BoxGeometry(W - 0.12, 0.055, D * 0.52), mat(st.color, 0.82, 0, {side: THREE.DoubleSide, transparent:true, opacity:.16, depthWrite:false}), 0, H - 0.115, -D * 0.24);
     canopy.castShadow = false; canopy.receiveShadow = true; canopy.raycast = () => {};
     // A second inset soffit and continuous inner trim create a finished
     // ceiling plane while keeping the front open for the cutaway camera.
-    const soffit = add(ceil, new THREE.BoxGeometry(W - 0.28, 0.035, D * 0.42), mat('#fffaf4', 0.55, 0, {side: THREE.DoubleSide}), 0, H - 0.18, -D * 0.385);
+    const soffit = add(ceil, new THREE.BoxGeometry(W - 0.28, 0.035, D * 0.42), mat('#fffaf4', 0.55, 0, {side: THREE.DoubleSide, transparent:true, opacity:.18, depthWrite:false}), 0, H - 0.18, -D * 0.385);
     soffit.castShadow = false; soffit.raycast = () => {};
     const lip = mat('#fffaf4', 0.48);
     BX(ceil, W - 0.12, 0.075, 0.085, lip, 0, H - 0.20, -D * 0.215);
