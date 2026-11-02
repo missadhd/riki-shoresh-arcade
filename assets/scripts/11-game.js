@@ -10,7 +10,7 @@ let threeWaiters=null;
 function loadThree(cb,fail){if(window.THREE)return cb();if(threeWaiters){threeWaiters.push([cb,fail]);return;}threeWaiters=[[cb,fail]];const add=(url,next)=>{const s=document.createElement('script');s.src=url;s.onload=()=>{const w=threeWaiters;threeWaiters=null;w.forEach(x=>x[0]());};s.onerror=()=>{s.remove();if(next)return add(next,null);const w=threeWaiters;threeWaiters=null;w.forEach(x=>x[1]&&x[1]());};document.head.appendChild(s);};add(THREE_URL,THREE_CDN);}
 
 /* ================= styles ================= */
-const css=`.rk3-room{position:relative;height:clamp(300px,94vw,460px);width:100%;max-width:840px;border-radius:26px;overflow:hidden;touch-action:none;background:linear-gradient(#f7ebe4,#efe0d6);border:3px solid #fff;box-shadow:0 18px 34px -16px #4a233866;margin:10px auto}
+const css=`.rk3-room{position:relative;height:clamp(440px,105vw,680px);width:100%;max-width:1100px;border-radius:26px;overflow:hidden;touch-action:none;background:linear-gradient(#f7ebe4,#efe0d6);border:3px solid #fff;box-shadow:0 18px 34px -16px #4a233866;margin:10px auto}
 .rk3-room canvas{display:block;width:100%;height:100%;outline:none}
 .rk3-room .riki3d-hud{position:absolute;left:10px;right:10px;top:10px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;pointer-events:none;z-index:2}
 @media(max-width:600px){.rk3-room .riki3d-hud{top:6px;left:6px;right:6px;gap:4px;justify-content:center;align-content:start}.rk3-room .riki3d-hud span{font-size:11px;padding:3px 7px}.rk3-room .riki3d-hud span:nth-child(2){display:none}.rk3-room .riki3d-hud button{font-size:12px!important;padding:4px 8px!important;min-height:29px!important;margin-left:0!important}}\n.rk3-room .riki3d-hud span{background:#ffffffde;border-radius:999px;padding:5px 12px;font-weight:800;font-size:13px;color:#4a2338;box-shadow:0 2px 8px #0001}
@@ -925,12 +925,12 @@ function dioCamera(){if(ED.R.toneMappingExposure!==.84)ED.R.toneMappingExposure=
   const W=ED.W,D=ED.D,H=ED.H,gd=ED.room==='garden';const xs=gd?[-W/2-.65,W/2+.65]:[-W/2-.11,W/2+.11],zs=gd?[-D/2-.3,D/2+.5]:[-D/2-.11,D/2+.11],ys=[-.09,gd?1:H+.18];
   const P=[];xs.forEach(x=>zs.forEach(z=>ys.forEach(y=>P.push(new THREE.Vector3(x,y,z)))));
   const dir=new THREE.Vector3(Math.sin(ED.az)*Math.cos(ED.el),Math.sin(ED.el),Math.cos(ED.az)*Math.cos(ED.el));
-  const topPad=.022,botPad=.022,side=.012;const yMax=1-topPad,yMin=-1+botPad;
+  const topPad=.065,botPad=.065,side=.045;const yMax=1-topPad,yMin=-1+botPad;
   const tgt=new THREE.Vector3(0,gd?.2:H*.35,gd?.3:0),v=new THREE.Vector3();
   const box=dist=>{ED.cam.position.copy(tgt).addScaledVector(dir,dist);ED.cam.lookAt(tgt);ED.cam.near=.1;ED.cam.far=dist*4+20;ED.cam.updateProjectionMatrix();ED.cam.updateMatrixWorld();let a=9,b=-9,c2=9,d=-9;P.forEach(p=>{v.copy(p).project(ED.cam);a=Math.min(a,v.x);b=Math.max(b,v.x);c2=Math.min(c2,v.y);d=Math.max(d,v.y);});return [a,b,c2,d];};
   const fit=()=>{let lo=1,hi=80;for(let k=0;k<26;k++){const m=(lo+hi)/2,[a,b,c2,d]=box(m);if(b-a<=2-2*side&&d-c2<=yMax-yMin)hi=m;else lo=m;}return hi;};
   for(let pass=0;pass<3;pass++){const dist=fit(),[a,b,c2,d]=box(dist);const cx=(a+b)/2,cy=(c2+d)/2,wantY=(yMax+yMin)/2;const hh=dist*Math.tan(ED.cam.fov*Math.PI/360),hw=hh*ED.cam.aspect;const right=new THREE.Vector3().setFromMatrixColumn(ED.cam.matrixWorld,0),up=new THREE.Vector3().setFromMatrixColumn(ED.cam.matrixWorld,1);tgt.addScaledVector(right,cx*hw).addScaledVector(up,(cy-wantY)*hh);}
-  const dist=fit()*cl(ED.zoom/DIO.zoom,.94,1.7);box(dist);}
+  const dist=fit()*cl(ED.zoom/DIO.zoom,1,1.7);box(dist);}
 function dioToggleBtn(box){let b=box.querySelector('.rk3-dio');if(!b){b=document.createElement('button');b.type='button';b.className='rk3-dio';box.appendChild(b);b.onclick=e=>{e.stopPropagation();DIO.on=!DIO.on;edBuild(ED.room);dioToggleBtn(box);};}
   b.textContent=DIO.on?'👀 Look inside':'🏠 Dollhouse view';const cb=document.getElementById('rk3CeilingToggle');if(cb)cb.style.display=DIO.on?'none':'';
   if(!document.getElementById('dioCss')){const st=document.createElement('style');st.id='dioCss';st.textContent='.rk3-dio{position:absolute;left:10px;bottom:10px;z-index:6;border:0;border-radius:999px;padding:8px 13px;background:#fff;color:#4a2338;font-weight:900;font-size:13px;box-shadow:0 3px 10px #0002;cursor:pointer}';document.head.appendChild(st);}}
@@ -956,7 +956,7 @@ function edCamera(){
   ED.cam.lookAt(tgt);
   ED.cam.updateProjectionMatrix();
 }
-function edResize(){if(!ED.R)return;const c=ED.R.domElement.parentElement;if(!c)return;const w=c.clientWidth,h=c.clientHeight;if(!w||!h)return;ED.R.setSize(w,h,false);}
+function edResize(){if(!ED.R)return;const c=ED.R.domElement.parentElement;if(!c)return;const w=c.clientWidth,h=c.clientHeight;if(!w||!h)return;ED.R.setSize(w,h,false);ED.dioKey=null;}
 function edLoop(){
   if(!ED.R||!ED.R.domElement.isConnected){ED.looping=false;return;}
   requestAnimationFrame(edLoop);
