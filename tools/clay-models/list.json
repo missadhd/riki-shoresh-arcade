@@ -1,0 +1,175 @@
+[
+ {
+  "src": "Kitchen Fridge.glb",
+  "out": "fridge",
+  "map": {
+   "White": "pink",
+   "Black": "cocoa"
+  }
+ },
+ {
+  "src": "Oven.glb",
+  "out": "oven",
+  "map": {
+   "White": "cream",
+   "Black": "cocoa",
+   "DarkMetal": "pink",
+   "LightMetal": "cream",
+   "Glass": "cocoa"
+  }
+ },
+ {
+  "src": "Kitchen Sink.glb",
+  "out": "kitchen-sink",
+  "map": {
+   "Kitchen": "sage",
+   "KitchenTop": "cream",
+   "White": "cream",
+   "LightMetal": "grey"
+  }
+ },
+ {
+  "src": "Shelf Small.glb",
+  "out": "shelf-small",
+  "map": {
+   "White": "wood"
+  }
+ },
+ {
+  "src": "Stool.glb",
+  "out": "stool",
+  "map": {
+   "Wood": "wood",
+   "Cushin": "pink"
+  }
+ },
+ {
+  "src": "Table Round Small.glb",
+  "out": "table-round"
+ },
+ {
+  "src": "Square Plate.glb",
+  "out": "plate"
+ },
+ {
+  "src": "Window Round.glb",
+  "out": "window-round",
+  "map": {
+   "Glass": "sky"
+  }
+ },
+ {
+  "src": "Window Large.glb",
+  "out": "window-large",
+  "map": {
+   "Glass": "sky"
+  }
+ },
+ {
+  "src": "Bathtub.glb",
+  "out": "bathtub",
+  "map": {
+   "White": "cream",
+   "Grey": "sky"
+  }
+ },
+ {
+  "src": "Towel Rack.glb",
+  "out": "towel-rack"
+ },
+ {
+  "src": "Bathroom Sink.glb",
+  "out": "bath-sink"
+ },
+ {
+  "src": "Round Rug.glb",
+  "out": "rug-round"
+ },
+ {
+  "src": "Rug.glb",
+  "out": "rug"
+ },
+ {
+  "src": "Couch Small.glb",
+  "out": "couch-small",
+  "map": {
+   "Couch_Blue": "pink",
+   "Black": "wood"
+  }
+ },
+ {
+  "src": "Couch Medium.glb",
+  "out": "couch-medium",
+  "map": {
+   "Couch_Mustard": "lavender",
+   "Wood": "wood"
+  }
+ },
+ {
+  "src": "Lamp.glb",
+  "out": "lamp",
+  "map": {
+   "White": "butter",
+   "LightMetal": "peach"
+  }
+ },
+ {
+  "src": "Table Lamp.glb",
+  "out": "table-lamp",
+  "map": {
+   "White": "butter",
+   "LightMetal": "lavender"
+  }
+ },
+ {
+  "src": "Light Floor.glb",
+  "out": "floor-lamp",
+  "map": {
+   "White": "butter",
+   "LightMetal": "wood"
+  }
+ },
+ {
+  "src": "Night Stand.glb",
+  "out": "nightstand",
+  "map": {
+   "Wood": "wood",
+   "Metal": "cocoa"
+  }
+ },
+ {
+  "src": "Bed Single.glb",
+  "out": "bed-single"
+ },
+ {
+  "src": "Curtains Double.glb",
+  "out": "curtains",
+  "map": {
+   "Couch_Blue": "rose",
+   "LightMetal": "wood"
+  }
+ },
+ {
+  "src": "Shelf Large.glb",
+  "out": "shelf-large",
+  "map": {
+   "White": "wood"
+  }
+ },
+ {
+  "src": "Fireplace.glb",
+  "out": "fireplace"
+ },
+ {
+  "src": "Houseplant-bfLOqIV5uP.glb",
+  "out": "plant-leafy"
+ },
+ {
+  "src": "Houseplant-VtJh4Irl4w.glb",
+  "out": "plant-snake"
+ },
+ {
+  "src": "Cactus.glb",
+  "out": "cactus"
+ }
+]
