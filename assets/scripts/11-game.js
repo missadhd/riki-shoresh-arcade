@@ -874,7 +874,7 @@ function edBuild(room){
   lights(s,Math.max(W,D),1024);
   const shell=new THREE.Group();s.add(shell);roomShell(shell,room,W,D,H);roomIdentity(shell,room,W,D,H);
   if(room!=='garden'){const L=new THREE.PointLight(0xffe2b8,.35,9,2);L.position.set(0,H-.4,.6);s.add(L);}
-  dioDress(shell,s,room,W,D,H);if(DIO.on){const bx=document.getElementById('dreamRoom');const asp=bx&&bx.clientHeight?bx.clientWidth/bx.clientHeight:1.2;DIO.el=asp<.95?.55:.48;DIO.az=asp<.95?-.30:-.40;ED.az=ED.azT=DIO.az;ED.el=ED.elT=DIO.el;ED.zoom=DIO.zoom;ED.dioKey=null;}
+  dioDress(shell,s,room,W,D,H);if(DIO.on){const bx=document.getElementById('dreamRoom');const asp=bx&&bx.clientHeight?bx.clientWidth/bx.clientHeight:1.2;DIO.el=asp<.95?.34:.28;DIO.az=asp<.95?-.30:-.40;ED.az=ED.azT=DIO.az;ED.el=ED.elT=DIO.el;ED.zoom=DIO.zoom;ED.dioKey=null;}
   ED.group=new THREE.Group();s.add(ED.group);ED.items=fillItems(ED.group,room,W,D,1.5);if(window.RK3.hydrateStorage)ED.items.forEach(g=>window.RK3.hydrateStorage(g,room));
   ED.ceiling = shell.userData.ceiling || null;
   ED.ceilingHiddenByUser = false;
@@ -897,7 +897,7 @@ function edBuild(room){
   const selId=ED.sel;ED.sel=null;if(selId)edSelect(selId,true);
 }
 /* ===== Diorama view (Claude, Nov 1): look into the room from outside, like a cutaway dollhouse box ===== */
-const DIO={on:true,az:-.30,el:.72,zoom:1.09,glow:null};
+const DIO={on:true,az:-.30,el:.32,zoom:1.09,glow:null};
 function dioMix(a,b,t){const A=parseInt(a.slice(1),16),Bq=parseInt(b.slice(1),16);const f=(s)=>Math.round(((A>>s)&255)*(1-t)+((Bq>>s)&255)*t);return '#'+((1<<24)|(f(16)<<16)|(f(8)<<8)|f(0)).toString(16).slice(1);}
 function dioWall(room){const owned=G('owned')||[],ri=(G('roomInteriors')||{})[room]||{},INTER=G('INTERIORS')||[];const w=INTER.find(t=>t[0]===ri.wall&&owned.includes(t[0]));if(w&&/^#[0-9a-f]{6}$/i.test(w[3]))return w[3];return roomWallBase(room);}
 function dioGlow(){if(DIO.glow)return DIO.glow;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');const g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,240,200,1)');g.addColorStop(.22,'rgba(255,214,150,.6)');g.addColorStop(1,'rgba(255,200,120,0)');x.fillStyle=g;x.fillRect(0,0,64,64);DIO.glow=new THREE.CanvasTexture(c);return DIO.glow;}
@@ -922,7 +922,7 @@ function dioDress(shell,scene,room,W,D,H){ED.dioMeshes=null;ED.dioExtra=null;if(
   shell.traverse(o=>{if(!(o.isMesh||o.isSprite))return;let p=o,inCeil=false;while(p){if(p===shell.userData.ceiling){inCeil=true;break;}p=p.parent;}if(inCeil)return;box.setFromObject(o);box.getCenter(v);o.userData.dc=[v.x,v.y,v.z];let q=o,inX=false;while(q){if(q===extra){inX=true;break;}q=q.parent;}if(inX&&Math.abs(v.x)>W/2-.8&&v.z>-D/2+.85-.02)o.userData.dside=Math.sign(v.x);list.push(o);});
   ED.dioMeshes=list;}
 function dioCut(){if(!ED.dioMeshes)return;const cx=ED.cam.position.x,W=ED.W;const hideR=cx>W/2,hideL=cx<-W/2;
-  ED.dioMeshes.forEach(o=>{const x=o.userData.dc[0];o.visible=!((hideR&&x>W/2-.26)||(hideL&&x<-W/2+.26)||(o.userData.dside&&((hideR&&o.userData.dside>0)||(hideL&&o.userData.dside<0))));});if(ED.ceiling){ED.ceiling.visible=!ED.ceilingHiddenByUser;ED.ceiling.traverse(o=>{if(o.userData.dioramaRoofSlab || o.userData.dioramaSeeThroughRoof)o.visible=false;});}}
+  ED.dioMeshes.forEach(o=>{const x=o.userData.dc[0];o.visible=!((hideR&&x>W/2-.26)||(hideL&&x<-W/2+.26)||(o.userData.dside&&((hideR&&o.userData.dside>0)||(hideL&&o.userData.dside<0))));});if(ED.ceiling){ED.ceiling.visible=!ED.ceilingHiddenByUser;ED.ceiling.traverse(o=>{if(o.userData.dioramaRoofSlab)o.visible=ED.el<.10;else if(o.userData.dioramaSeeThroughRoof)o.visible=false;});}}
 function dioCamera(){if(ED.R.toneMappingExposure!==.84)ED.R.toneMappingExposure=.84;const c=ED.R.domElement,w=c.clientWidth||1,h=c.clientHeight||1;ED.cam.aspect=w/h;ED.cam.fov=30;
   const key=[ED.az.toFixed(3),ED.el.toFixed(3),ED.zoom.toFixed(3),w,h,ED.W,ED.D,ED.H].join();if(ED.dioKey===key)return;ED.dioKey=key;
   const W=ED.W,D=ED.D,H=ED.H,gd=ED.room==='garden';const xs=gd?[-W/2-.65,W/2+.65]:[-W/2-.11,W/2+.11],zs=gd?[-D/2-.3,D/2+.5]:[-D/2-.11,D/2+.11],ys=[-.09,gd?1:H+.18];
@@ -1030,7 +1030,7 @@ function edPointers(cv){
     if(!d.moved)return;
     if(d.item&&!d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v){d.item.position.x=v.x;d.item.position.z=v.z;}}
     else if(d.item&&d.item.userData.onWall){const v=hitFloor({x:e.clientX,y:e.clientY});if(v)d.item.position.x=v.x;}
-    else{ED.azT=cl(ED.azT-(e.clientX-d.lx)*.0028,DIO.on?-1.1:-.5,DIO.on?1.1:.5);ED.elT=cl(ED.elT+(e.clientY-d.ly)*.0022,DIO.on?.25:.2,DIO.on?1.05:.85);}
+    else{ED.azT=cl(ED.azT-(e.clientX-d.lx)*.0028,DIO.on?-1.1:-.5,DIO.on?1.1:.5);ED.elT=cl(ED.elT+(e.clientY-d.ly)*.0022,DIO.on?-.12:.2,DIO.on?.95:.85);}
     d.lx=e.clientX;d.ly=e.clientY;});
   let lastTap = 0, lastTapX = 0, lastTapY = 0;
   const up=e=>{if(endTouch(e))return;if(ED.storage){storageUp(e);return;}const d=ED.drag;if(!d||d.id!==e.pointerId)return;ED.drag=null;
