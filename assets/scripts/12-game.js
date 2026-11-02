@@ -1257,7 +1257,19 @@ function bed(g,o){o=Object.assign({W:1.4,L:1.9,head:'wave',headC:'#e8949e',frame
 }
 /* ===== SOFA / ARMCHAIR ===== */
 function sofa(g,o){o=Object.assign({W:1.8,D:.9,c:'#9fcbe6',c2:null,arm:'roll',back:'puff',tufted:true,pillows:['#f6c9d6','#fff2d6'],legC:'#e9c46a',bow:false},o);const W=o.W,D=o.D,C=M(o.c),C2=M(o.c2||o.c),Lg=o.legC==='gold'?GOLD():M(o.legC);
-  feet(g,W-.2,D-.15,.06,.14,Lg,.06);
+  if(o.dollFinish){
+    // The four gold feet used to touch the cushion only at their tips.
+    // Give this sample a continuous upholstered under-frame and inset sockets
+    // so the legs visibly join the couch instead of floating underneath it.
+    const rail=M('#d98da8'),socket=Lg;
+    add(g,puff(W-.22,.13,D-.08,.065,.045),rail,0,.205,0);
+    [-1,1].forEach(sx=>[-1,1].forEach(sz=>{
+      const x=sx*(W/2-.22),z=sz*(D/2-.19);
+      cyl(g,.09,.095,.10,socket,x,.155,z,18); // gold mounting collar inside frame
+      cyl(g,.062,.075,.17,Lg,x,.095,z,18);     // leg overlaps collar and floor
+      ball(g,.073,Lg,x,.022,z,1,.45,1);       // rounded foot
+    }));
+  }else feet(g,W-.2,D-.15,.06,.14,Lg,.06);
   add(g,puff(W-.3,.26,D,.12,.1),C,0,.27,0);
   const n=W>1.2?2:1;for(let i=0;i<n;i++){const cw=(W-.36)/n;add(g,puff(cw-.02,.16,D-.22,.08,.07),C2,-W/2+.18+cw*(i+.5),.47,.08);}
   if(o.back==='cloud'){for(let i=0;i<4;i++)ball(g,.26,C,-W*.36+i*W*.24,.72,-D/2+.18,1,1,.7);}
