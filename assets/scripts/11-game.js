@@ -1314,10 +1314,19 @@ const CHOICES='.option,.bubble,.letter,.memory .tile,.match-btn,.show-cell,.st-c
 const PROMPTS='.st-order,.wheel-question,.show-spotlight,.prompt,.sel-scene,.sel-3d';
 const seen=new WeakSet();let timer=0;
 function headerH(){const t=document.querySelector('.top');if(!t)return 0;const cs=getComputedStyle(t);return /sticky|fixed/.test(cs.position)?t.getBoundingClientRect().height:0;}
+// Desktop studio layout (Grok, Nov 1): size the 3D stage from the real space under the header and bring the game into view once per screen.
+const deskSeen=new WeakSet();
+function deskStudio(){const app=document.getElementById('app');const dst=app&&app.querySelector('.st:not(.st-end)>.st-stage');
+  if(!dst||innerWidth<900||!matchMedia('(min-aspect-ratio:5/4)').matches)return false;
+  const hh0=headerH()+6;const head=app.querySelector('.gamehead')||dst;const lead=dst.getBoundingClientRect().top-head.getBoundingClientRect().top;
+  const nh=Math.round(Math.max(300,Math.min(760,innerHeight-hh0-lead-10)));if(Math.abs(dst.getBoundingClientRect().height-nh)>2){dst.style.setProperty('--rk-desk-stage-h',nh+'px');window.dispatchEvent(new Event('resize'));}
+  if(!deskSeen.has(dst)){deskSeen.add(dst);const y=scrollY+head.getBoundingClientRect().top-hh0;if(Math.abs(y-scrollY)>2)window.scrollTo({top:Math.max(0,y),behavior:'auto'});}
+  return true;}
 function fit(){
   const app=document.getElementById('app');if(!app)return;
   const cq=app.querySelector('.st-claw-question');if(cq&&!seen.has(cq)){seen.add(cq);const r=cq.getBoundingClientRect();if(r.bottom>innerHeight-20||r.top<0)window.scrollBy({top:r.bottom-innerHeight+24,behavior:'smooth'});return;}const ch=[...app.querySelectorAll(CHOICES)].filter(e=>e.offsetParent&&!e.closest('.comic-theater'));if(!ch.length)return;
   const pr=[...app.querySelectorAll(PROMPTS)].find(e=>e.offsetParent)||ch[0];if(seen.has(pr))return;seen.add(pr);
+  if(deskStudio())return;
   const hh=headerH()+6,avail=innerHeight-hh-6;
   const span=()=>{const top=pr.getBoundingClientRect().top;const bot=Math.max(...ch.map(e=>e.getBoundingClientRect().bottom));return {top,bot,need:bot-top};};
   let m=span();
@@ -1326,7 +1335,7 @@ function fit(){
   if(m.top<hh||m.bot>innerHeight-4)window.scrollTo({top:Math.max(0,target),behavior:'auto'});
 }
 const app=document.getElementById('app');
-if(app)new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(fit,120);}).observe(app,{childList:true,subtree:true});
+if(app)new MutationObserver(()=>{deskStudio();clearTimeout(timer);timer=setTimeout(fit,120);}).observe(app,{childList:true,subtree:true});window.addEventListener('resize',()=>{if(!window.__rkDeskR){window.__rkDeskR=1;requestAnimationFrame(()=>{window.__rkDeskR=0;const d=document.querySelector('#app .st:not(.st-end)>.st-stage');if(d)deskSeen.delete(d);deskStudio();});}});
 /* after an answer, keep the "Next" button reachable without scrolling */
 document.addEventListener('click',()=>{setTimeout(()=>{const n=document.querySelector('#app .st-claw-question,#app #next,#app #spinAgain,#app #comicNext:not([hidden])');if(n&&n.offsetParent){const r=n.getBoundingClientRect();if(r.bottom>innerHeight||r.top<0)n.scrollIntoView({block:'end',behavior:'smooth'});}},900);},true);
 window.RikiFit=fit;

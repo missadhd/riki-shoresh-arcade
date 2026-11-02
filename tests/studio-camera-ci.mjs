@@ -18,7 +18,9 @@ try{
    const cv=page.locator('#app canvas').first();await cv.scrollIntoViewIfNeeded();
    await page.waitForTimeout(1500);
    if(w>=900){const sh=await page.evaluate(()=>document.querySelector('#app .st-stage').getBoundingClientRect().height);if(sh<h*.45)fails.push(`${id}@${w}x${h}: 3D stage only ${Math.round(sh)}px tall (< 45% of viewport)`);
-    const off=await page.evaluate(()=>[...document.querySelectorAll('#app .st-card')].some(e=>{const r=e.getBoundingClientRect();return r.bottom>innerHeight+1||r.top<0;}));if(off)fails.push(`${id}@${w}x${h}: choice cards not all on screen`);}
+    const off=await page.evaluate(()=>[...document.querySelectorAll('#app .st-card')].some(e=>{const r=e.getBoundingClientRect();return r.bottom>innerHeight+1||r.top<0;}));if(off)fails.push(`${id}@${w}x${h}: choice cards not all on screen`);
+    const fitv=await page.evaluate(()=>{const g=document.querySelector('#app .gamehead').getBoundingClientRect(),st=document.querySelector('#app .st-stage').getBoundingClientRect();return g.top>=0&&st.bottom<=innerHeight+1;});if(!fitv)fails.push(`${id}@${w}x${h}: game header + stage do not fit the viewport`);}
+   else if(id==='claw'){const off=await page.evaluate(()=>[...document.querySelectorAll('#app .st-card')].some(e=>{const r=e.getBoundingClientRect();return r.bottom>innerHeight+1||r.top<0||r.height<44||r.width<44;}));if(off)fails.push(`claw@${w}: prize choices off screen or under 44px`);}
    const snap=async()=>page.evaluate(()=>{const d=window.RikiStudio.debug&&window.RikiStudio.debug();return d;});
    const a=await cv.screenshot();const d0=await snap();
    await page.waitForTimeout(3000);
