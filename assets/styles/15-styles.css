@@ -52,3 +52,6 @@ h1,h2,h3{color:var(--ink)!important;letter-spacing:-.01em;text-wrap:balance}
 .music-panel label{color:var(--muted)!important}
 .music-panel input{accent-color:var(--berry)!important}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--sky)!important;outline-offset:2px!important}
+
+/* Hide the permanent guest/test-version banner without changing guest access. */
+div[role="status"][aria-label="Testing version"]{display:none!important}
