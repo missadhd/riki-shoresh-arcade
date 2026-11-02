@@ -1,6 +1,6 @@
 /* Riki Arcade: offline shell for previously loaded, same-origin game resources.
    three.js r128 is vendored and precached, so 3D works offline. External audio is not cached. */
-const CACHE='riki-arcade-shell-v5';
+const CACHE='riki-arcade-shell-v6';
 const SHELL=['./','./index.html','./manifest.webmanifest','./assets/icons/arcade-icon.svg','./assets/icons/icon-192.png','./assets/icons/icon-512.png','./assets/icons/icon-maskable-512.png','./assets/icons/apple-touch-icon-180.png','./assets/vendor/three-r128.min.js'];
 self.addEventListener('install',event=>{
  event.waitUntil((async()=>{
