@@ -92,6 +92,43 @@ function roomFeatures(g,id,W,D,H){
   else if(id==='playroom'){band(1.05,.525,mat(shadeHex(roomWallBase(id),.86),.9),true);rail(1.06,true,'#fff3fb');round(-W*.22,H*.62,-D/2+.01,0,.45);windowOn(g,W*.2,H*.58,-D/2+.01,0,id);}
   else if(id==='living'){const w=windowOn(g,-.2,H*.58,-D/2+.01,0,id);w.scale.set(1.6,1,1);windowOn(g,W/2-.01,H*.58,0,-Math.PI/2,id);}
   else {windowOn(g,-W*.18,H*.58,-D/2+.01,0,id);}
+  // Built-in architectural details are part of each room, not free shop
+  // furniture. They don't enter inventory, placement, or saved progress.
+  const detail=new THREE.Group();detail.name='built-in-room-detail';g.add(detail);
+  const back=-D/2+.12;
+  if(id==='kitchen'){
+    const cream=mat('#fff8ef',.85),sage=mat('#a9cbb9',.85);
+    BX(detail,1.12,.54,.24,cream,-W*.26,1.95,back+.08);
+    BX(detail,1.12,.045,.31,wood('#d9b58e'),-W*.26,1.65,back+.13);
+    BX(detail,.035,.44,.03,sage,-W*.26,1.95,back+.235);
+    BX(detail,.7,.055,.24,wood('#d9b58e'),W*.28,1.9,back+.09);
+    [-.23,.23].forEach(dx=>CY(detail,.065,.065,.18,mat('#f4c8c9'),W*.28+dx,2.02,back+.09,12));
+  }else if(id==='bathroom'){
+    const aqua=mat('#b9dcd9'),ivory=mat('#fffaf5');
+    BX(detail,1.05,.08,.19,ivory,W*.26,1.18,back+.07);
+    [-.35,.35].forEach(dx=>CY(detail,.055,.055,.17,aqua,W*.26+dx,1.3,back+.08,12));
+    BX(detail,.85,.045,.18,ivory,W*.26,1.8,back+.06);
+    BX(detail,.1,.42,.09,mat('#e6c4cf'),-W*.36,1.3,back+.08);
+    BX(detail,.35,.07,.09,mat('#f5d7e1'),-W*.36,1.5,back+.08);
+  }else if(id==='living'){
+    const trim=mat('#f8f0e4'),wooden=wood('#d4ad91');
+    BX(detail,1.25,.09,.2,wooden,W*.24,1.72,back+.08);
+    [-.42,0,.42].forEach(dx=>BX(detail,.18,.28,.08,mat(dx===0?'#e5b7ad':'#e8d9c5'),W*.24+dx,1.91,back+.08));
+    BX(detail,1.05,.7,.05,trim,W*.24,.53,back+.04);
+    BX(detail,.87,.53,.07,mat('#c8aaa1'),W*.24,.55,back+.085);
+  }else if(id==='playroom'){
+    const pink=mat('#f3b9d0'),mint=mat('#bce5d7'),ivory=mat('#fff8e9');
+    BX(detail,1.55,.62,.065,ivory,0,1.45,back+.02);
+    [-.48,0,.48].forEach((dx,i)=>BX(detail,.36,.36,.075,[pink,mint,mat('#f4dca9')][i],dx,1.46,back+.07));
+    BX(detail,1.7,.075,.19,wood('#e6b99d'),0,.65,back+.1);
+    BX(detail,.24,.29,.07,pink,-W*.3,2.02,back+.06);
+    BX(detail,.24,.29,.07,mint,-W*.3+.31,2.02,back+.06);
+  }else if(id==='bedroom'){
+    const pink=mat('#f3d6e4'),cream=mat('#fff8f0');
+    BX(detail,1.1,.12,.12,wood('#e8c5ad'),W*.23,1.68,back+.06);
+    BX(detail,.42,.52,.045,cream,W*.23,2.06,back+.035);
+    BX(detail,.28,.39,.05,pink,W*.23,2.06,back+.075);
+  }
 }
 function wallFor(room){
   const owned=G('owned')||[],ri=(G('roomInteriors')||{})[room]||{},INTER=G('INTERIORS')||[];
