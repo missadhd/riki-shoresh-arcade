@@ -6,6 +6,8 @@ try{
   const context=await browser.newContext({viewport:{width,height:width===390?844:800},serviceWorkers:'block',reducedMotion:'reduce'});
   const page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
+  // No-WebGL device: Bakery Orders must fall back to the 2D order scene (3D Cupcake Café is covered by multiplication-ci).
+  await page.addInitScript(()=>{const g=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(t,...a){return /webgl/i.test(t)?null:g.call(this,t,...a)};});
   await page.addInitScript(()=>{
    if(sessionStorage.getItem('rkRecipeSeed'))return;
    sessionStorage.setItem('rkRecipeSeed','yes');
