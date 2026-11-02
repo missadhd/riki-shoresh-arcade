@@ -694,7 +694,7 @@ function burstAt(el,n=26){if(!el||matchMedia('(prefers-reduced-motion: reduce)')
   for(let i=0;i<n;i++){const d=document.createElement('i');d.className='rk-spark';d.style.left=(r.left+r.width/2)+'px';d.style.top=(r.top+r.height/2)+'px';d.style.background=cols[i%5];const a=Math.random()*Math.PI*2,rr=60+Math.random()*120;d.style.setProperty('--dx',Math.cos(a)*rr+'px');d.style.setProperty('--dy',Math.sin(a)*rr+'px');document.body.appendChild(d);setTimeout(()=>d.remove(),1000);}}
 function celebrateGame(g){
   requestAnimationFrame(()=>{const app=document.getElementById('app');if(!app)return;const pr=app.querySelector('.prompt');
-    if(g==='sort'&&pr){const rk=[...pr.children].find(c=>/🚀/.test(c.textContent)&&c.children.length===0);if(rk&&!rk.classList.contains('rk-launch')){rk.classList.add('rk-launch');pr.classList.add('rk-launchpad');}burstAt(pr,18);}
+    if(g==='sort'&&pr){const rk=[...pr.children].find(c=>c.classList.contains('rk-clay-hero')||(/🚀/.test(c.textContent)&&c.children.length===0));if(rk&&!rk.classList.contains('rk-launch')){rk.classList.add('rk-launch');pr.classList.add('rk-launchpad');}burstAt(pr,18);}
     else if(g==='detective'&&pr){if(!pr.querySelector('.rk-stamp')){pr.style.position='relative';pr.insertAdjacentHTML('beforeend','<div class="rk-stamp">CASE SOLVED</div>');}burstAt(pr,20);}
     else if(g==='builder'){app.querySelectorAll('.slot').forEach((s,i)=>{s.style.animationDelay=(i*.08)+'s';s.classList.add('rk-hop');});burstAt(app.querySelector('.buildslots'),22);}
     else if(g==='bubbles'){burstAt(app.querySelector('.bubble.pop')||pr,24);}
@@ -1238,7 +1238,18 @@ const nav=document.querySelector('.top .stats');if(nav&&!document.getElementById
 (function(){
  const map={cupcakes:0,dressup:1,pets:2,cake:3,boutique:4,claw:5,aquarium:6,quest:7,giftwrap:8,garden:9,detective:10,memory:11,bubbles:12,builder:13,sort:14,wheel:15,show:16,pairs:17};
  function icon(game){const n=map[game]??0,cw=296,ch=296,x=n%6*cw,y=Math.floor(n/6)*ch;return `<svg class="game-icon-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><svg x="2" y="2" width="96" height="96" viewBox="${x} ${y} ${cw} ${ch}" preserveAspectRatio="xMidYMid meet" overflow="hidden"><image href="assets/images/dolls/game-icons-18.webp?v=game-icons-11" width="1776" height="888"/></svg></svg>`;}
- function paint(){document.querySelectorAll('.gamecard').forEach(c=>{const id=c.dataset.game||c.dataset.creative||c.dataset.extra||c.dataset.special,el=c.querySelector('.emoji');if(!id||!el||el.dataset.softToy)return;el.dataset.softToy='1';el.classList.add('game-card-art');el.innerHTML='<img class="game-art-marker" alt="" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=">'+icon(id);});document.querySelectorAll('.learning-rocket').forEach(el=>{if(el.dataset.softToy)return;el.dataset.softToy='1';el.innerHTML=icon('sort');});}
+ function paint(){document.querySelectorAll('.gamecard').forEach(c=>{const id=c.dataset.game||c.dataset.creative||c.dataset.extra||c.dataset.special,el=c.querySelector('.emoji');if(!id||!el||el.dataset.softToy)return;el.dataset.softToy='1';el.classList.add('game-card-art');el.innerHTML='<img class="game-art-marker" alt="" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=">'+icon(id);});document.querySelectorAll('.learning-rocket').forEach(el=>{if(el.dataset.softToy)return;el.dataset.softToy='1';el.innerHTML=icon('sort');});
+  // #203 (Grok, Nov 1): big emoji heroes inside the Hebrew quiz games become the same clay art as the menu tiles.
+  const hero=(el,id)=>{if(!el||el.dataset.softToy||el.children.length)return;el.dataset.softToy='1';el.classList.add('rk-clay-hero');el.setAttribute('aria-hidden','true');el.removeAttribute('style');el.innerHTML=icon(id);};
+  document.querySelectorAll('#app .prompt>div').forEach(el=>{if(el.textContent.trim()==='🚀')hero(el,'sort');});
+  hero(document.querySelector('#app .show-spotlight>div:first-child'),'show');
+  if(!document.getElementById('rkClayHeroCss')){const st=document.createElement('style');st.id='rkClayHeroCss';st.textContent=`#app .rk-clay-hero{width:104px;height:104px;margin:0 auto 4px;filter:drop-shadow(0 6px 8px rgba(120,50,80,.18))}#app .rk-clay-hero svg{width:100%;height:100%;display:block}
+#app .show-grid .show-cell{background:linear-gradient(170deg,#fde3ea 0%,#f7c3d3 100%)!important;color:#8a2f5c!important;box-shadow:inset 0 -5px 0 #eaa8bf,0 5px 10px rgba(150,70,100,.18)!important;text-shadow:0 1px 0 #fff8!important;min-height:48px}
+#app .show-grid .show-cell:nth-child(5n+2){background:linear-gradient(170deg,#fff1dc 0%,#fbd9b4 100%)!important;box-shadow:inset 0 -5px 0 #efc08f,0 5px 10px rgba(150,90,60,.16)!important;color:#8a4a22!important}
+#app .show-grid .show-cell:nth-child(5n+3){background:linear-gradient(170deg,#e4f4e8 0%,#c3e4cc 100%)!important;box-shadow:inset 0 -5px 0 #9ccaa9,0 5px 10px rgba(60,120,80,.16)!important;color:#2f6a45!important}
+#app .show-grid .show-cell:nth-child(5n+4){background:linear-gradient(170deg,#efe6fb 0%,#d9c8f2 100%)!important;box-shadow:inset 0 -5px 0 #b9a2e0,0 5px 10px rgba(100,70,150,.16)!important;color:#5b3f8f!important}
+#app .show-grid .show-cell:nth-child(5n){background:linear-gradient(170deg,#e3f0fb 0%,#c3dcf1 100%)!important;box-shadow:inset 0 -5px 0 #9fc0de,0 5px 10px rgba(60,100,150,.16)!important;color:#2f5682!important}`;document.head.appendChild(st);}
+ }
  window.RikiGameArt={icon};const app=document.getElementById('app');if(app)new MutationObserver(paint).observe(app,{childList:true,subtree:true});paint();
 })();
 
