@@ -66,9 +66,9 @@ function playComic(c){
   const stop=()=>{timers.forEach(clearTimeout);timers=[];try{speechSynthesis.cancel();}catch(e){}};
   function run(){stop();parts.forEach((p,i)=>{const el=$id('comicPanel'+i);el.classList.remove('on');el.querySelector('.comic-line').textContent='';});
     $id('comicReplay').hidden=true;$id('comicNext').hidden=true;let t=300;
-    parts.forEach((p,i)=>{later(()=>{const el=$id('comicPanel'+i);if(!el)return;el.classList.add('on');el.scrollIntoView({block:'nearest',behavior:reduce?'auto':'smooth'});audio('tap');speak((p.label?p.label+'. ':'')+p.line,el.querySelector('.comic-actor'));
+    parts.forEach((p,i)=>{later(()=>{const el=$id('comicPanel'+i);if(!el)return;el.classList.add('on');audio('tap');speak((p.label?p.label+'. ':'')+p.line,el.querySelector('.comic-actor'));
       const line=el.querySelector('.comic-line');if(reduce){line.textContent=p.line;return;}let k=0;const ty=setInterval(()=>{if(!line.isConnected){clearInterval(ty);return;}k++;line.textContent=p.line.slice(0,k);if(k>=p.line.length)clearInterval(ty);},38);timers.push(ty);},t);t+=reduce?600:Math.max(2400,p.line.length*38+1500);});
-    later(()=>{if(!$id('comicNext'))return;audio('good');$id('comicReplay').hidden=false;$id('comicNext').hidden=false;$id('comicNext').scrollIntoView({block:'nearest'});
+    later(()=>{if(!$id('comicNext'))return;audio('good');$id('comicReplay').hidden=false;$id('comicNext').hidden=false;
       later(()=>{if(comicStep===doneStep&&game==='sel'&&$id('comicNext'))$id('comicNext').click();},6000);},t+200);}
   $id('comicReplay').onclick=run;
   $id('comicNext').onclick=()=>{stop();comicStep++;comicOrder=[];drawComic();};
@@ -190,7 +190,7 @@ drawBoard=function(){
   document.querySelectorAll('#slCh .sl-choice').forEach(b=>b.onclick=async()=>{if(b.disabled)return;const said=opts[+b.dataset.i];document.querySelectorAll('#slCh .sl-choice').forEach(x=>x.disabled=true);slHush('B');
     await slSay('A',said.replace(/^“|”$/g,''),said===q.good?'happy':'upset');if(!live()||boardPick!==pick)return;
     if(said===q.good){slExpr('B','excited','bounce');slFx(['💖','✨','👏','🌟'],10);audio('good');await slSay('B',['Thanks! That helps.','Aw, thank you!','That feels so much better.','You’re a great friend!'][Math.floor(Math.random()*4)],'excited');if(!live())return;
-      if(first)boardScore+=q.points;slGain(1);const n=$id('slNote');if(n){n.hidden=false;n.textContent='🌟 '+q.why;}const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();boardUsed.add(pick);boardPick=null;drawBoard();};nx.scrollIntoView({block:'nearest',behavior:'smooth'});}}
+      if(first)boardScore+=q.points;slGain(1);const n=$id('slNote');if(n){n.hidden=false;n.textContent='🌟 '+q.why;}const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();boardUsed.add(pick);boardPick=null;drawBoard();};}}
     else{zMiss();first=false;slExpr('B','sad','shake');slFx(['💧','🌧️'],5);audio('tap');await slSay('B','Oh… that hurts my feelings.','sad');if(!live())return;const n=$id('slNote');if(n){n.hidden=false;n.textContent='💜 How would Maya feel? Try a kinder answer.';}
       document.querySelectorAll('#slCh .sl-choice').forEach(x=>{if(x!==b)x.disabled=false;});slHush('A');slExpr('A','think');}});
 };
@@ -236,7 +236,7 @@ drawPlan=function(){
   document.querySelectorAll('#slCh .sl-choice').forEach(b=>b.onclick=async()=>{if(b.disabled||!live())return;const c=p.choices[+b.dataset.i];const k=SL_PLAN[c[1]]||['✨',c[0],'That could work!'];document.querySelectorAll('#slCh .sl-choice').forEach(x=>x.disabled=true);slHush('B');
     await slSay('A',k[1],c[1]==='stuck'?'upset':'happy');if(!live()||planStep!==step)return;
     if(c[1]==='stuck'){zMiss();slProp('⛈️');slExpr('B','sad','shake');audio('tap');await slSay('B',k[2],'sad');if(!live())return;const n=$id('slNote');if(n){n.hidden=false;n.textContent='💜 It’s okay to be upset. Pick a plan that could still be fun.';}slProp('');document.querySelectorAll('#slCh .sl-choice').forEach(x=>{if(x!==b)x.disabled=false;});slHush('A');slExpr('A','think');}
-    else{const n0=$id('slNote');if(n0)n0.hidden=true;slProp(k[0]);slExpr('B','excited','bounce');slFx([k[0],'✨','💖'],9);audio('good');await slSay('B',k[2],'excited');if(!live())return;slExpr('A','excited','bounce');slGain(1);const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();planStep++;planChoice=null;drawPlan();};nx.scrollIntoView({block:'nearest',behavior:'smooth'});}}});
+    else{const n0=$id('slNote');if(n0)n0.hidden=true;slProp(k[0]);slExpr('B','excited','bounce');slFx([k[0],'✨','💖'],9);audio('good');await slSay('B',k[2],'excited');if(!live())return;slExpr('A','excited','bounce');slGain(1);const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();planStep++;planChoice=null;drawPlan();};}}});
 };
 
 /* ---------- More live games (Claude, Oct 29): replace the older separate Social Skills set ---------- */
@@ -271,7 +271,7 @@ function drawSet(key){
   (async()=>{await slWait(250);await slSay('B',it.say,it.mood);if(!live()||slSetStep[key]!==step)return;const ch=$id('slCh');if(ch){ch.hidden=false;if(easy(curUnit()))hintBtn(ch,()=>[...ch.querySelectorAll('.sl-choice')].find(b=>opts[+b.dataset.i]&&opts[+b.dataset.i][1]));if(window.RikiFit)RikiFit();}})();
   document.querySelectorAll('#slCh .sl-choice').forEach(b=>b.onclick=async()=>{if(b.disabled||!live())return;const o=opts[+b.dataset.i];document.querySelectorAll('#slCh .sl-choice').forEach(x=>x.disabled=true);slHush('B');slActionPlay(it,o[0],!!o[1]);
     await slSay('A',o[0].replace(/^Say /,'').replace(/^“|”$/g,''),o[1]?'happy':'upset');if(!live()||slSetStep[key]!==step)return;
-    if(o[1]){const n0=$id('slNote');if(n0)n0.hidden=true;slExpr('B','excited','bounce');slFx(['💖','✨','⭐'],9);audio('good');await slSay('B',it.ok,'excited');if(!live())return;slGain(1);const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();slSetStep[key]++;drawSet(key);};nx.scrollIntoView({block:'nearest',behavior:'smooth'});}}
+    if(o[1]){const n0=$id('slNote');if(n0)n0.hidden=true;slExpr('B','excited','bounce');slFx(['💖','✨','⭐'],9);audio('good');await slSay('B',it.ok,'excited');if(!live())return;slGain(1);const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();slSetStep[key]++;drawSet(key);};}}
     else{zMiss();slExpr('B','sad','shake');slFx(['💧'],4);audio('tap');await slSay('B',set.wrong||'Hmm… that doesn’t feel good.','sad');if(!live())return;const n=$id('slNote');if(n){n.hidden=false;n.textContent='💜 '+set.lead+' Try another choice.';}document.querySelectorAll('#slCh .sl-choice').forEach(x=>{if(x!==b)x.disabled=false;});slHush('A');slExpr('A','think');}});
 }
 /* ---------- Skill Zones (Claude, Oct 30): games grouped by skill ---------- */
@@ -299,7 +299,7 @@ const zLive=t=>t===zTok&&!!$id('zRoot');
 const zShell=(title,body)=>{zStop();zTok++;slShell(title,`<div id="zRoot">${body}</div>`);const back=$id('selBackNew');if(back){const o=back.onclick;back.onclick=()=>{zStop();o&&o();};}return zTok;};
 const zPriorGain=slGain;slGain=function(n=1){zPriorGain(n);if(zCur){zSave.stars[zCur]=(zSave.stars[zCur]||0)+n;zPut();}};
 const zNote=txt=>{const n=$id('slNote');if(n){n.hidden=false;n.textContent=txt;}};
-function zDone(t,msg,again,coins=2){if(!zLive(t))return;if(coins){try{award(coins);}catch(e){}}const d=document.createElement('div');d.className='z-end';d.innerHTML=`<b>${msg}</b>${coins?`<span>+${coins} 🪙</span>`:''}<button class="sl-big" id="zAgain">Play again ↻</button>`;$id('zRoot').appendChild(d);$id('zAgain').onclick=()=>{audio('tap');(again||ZRUN[zCur])();};d.scrollIntoView({block:'nearest',behavior:'smooth'});}
+function zDone(t,msg,again,coins=2){if(!zLive(t))return;if(coins){try{award(coins);}catch(e){}}const d=document.createElement('div');d.className='z-end';d.innerHTML=`<b>${msg}</b>${coins?`<span>+${coins} 🪙</span>`:''}<button class="sl-big" id="zAgain">Play again ↻</button>`;$id('zRoot').appendChild(d);$id('zAgain').onclick=()=>{audio('tap');(again||ZRUN[zCur])();};}
 
 /* Brain Boss 1: Memory Shopper (working memory) */
 const ZM=[['🥛','milk'],['🍎','apples'],['🥚','eggs'],['🍞','bread'],['🧀','cheese'],['🍌','bananas'],['🥕','carrots'],['🍪','cookies'],['🧃','juice'],['🍓','strawberries'],['🧈','butter'],['🍇','grapes'],['🍝','pasta'],['🥒','pickles']];
@@ -444,7 +444,7 @@ function drawSize(){
    stage=3;ch.querySelectorAll('button').forEach(x=>x.disabled=true);b.classList.add('zz-helpful');audio('good');slGain(1);slFx(['⭐','✨'],8);slHush('B');
    zNote('💡 '+detail[2]);
    await slSay('A',it[2],'happy');if(!zLive(t))return;
-   const nx=$id('slNext');nx.hidden=false;nx.onclick=()=>{slStop();zSizeI++;drawSize();};nx.scrollIntoView({block:'nearest',behavior:'smooth'});
+   const nx=$id('slNext');nx.hidden=false;nx.onclick=()=>{slStop();zSizeI++;drawSize();};
   });
   if(window.RikiFit)RikiFit();
  };
@@ -1695,7 +1695,7 @@ function drawClueHunt(){zCur='cluehunt';if(!chDeck||chI%CH_CASES.length===0)chDe
   done=true;audio('good');slGain(1);b.classList.add('ch-ok');$id('chV').querySelectorAll('button').forEach(x=>x.disabled=true);
   const th=$id('chThink');th.textContent='💭 '+c.think;th.classList.add('on');await slWait(2000);if(!zLive(t))return;
   const narr=/^Riki /.test(c.fix);$id('agM').textContent=(c.truth?'Case closed: on purpose. ':'Case closed: an accident! ')+(narr?c.fix:'Riki: “'+c.fix+'”');if(!narr){try{await g6Say('riki',c.fix);}catch(e){}}else await slWait(1200);
-  chI++;if(chI%CH_CASES.length===0){zDone(t,'🔎 Super detective! You solved every case.',drawClueHunt,4);return;}const nx=$id('chNext');nx.hidden=false;nx.onclick=()=>{audio('tap');drawClueHunt();};nx.scrollIntoView({block:'nearest',behavior:'smooth'});});}
+  chI++;if(chI%CH_CASES.length===0){zDone(t,'🔎 Super detective! You solved every case.',drawClueHunt,4);return;}const nx=$id('chNext');nx.hidden=false;nx.onclick=()=>{audio('tap');drawClueHunt();};});}
 
 Object.assign(ZRUN,{backpack:drawBackpack,cluehunt:drawClueHunt});
 CAT.brain.games=[['backpack','🎒','Backpack Packer'],...CAT.brain.games.filter(g=>g[0]!=='backpack')];
