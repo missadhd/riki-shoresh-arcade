@@ -132,7 +132,7 @@ function diorama(host,kind,o){if(!host)return;const K=window.RK3;if(!K||!K.loadT
 function startHome(){
  active=null;
  let buttons='';for(let n=2;n<=9;n++)buttons+='<button type="button" data-family="'+n+'" class="'+(progress.families.includes(n)?'on':'')+'" aria-pressed="'+progress.families.includes(n)+'">×'+n+'</button>';
- show('<section class="rk-math-hero"><div class="rk-math-dio rk-math-dio-hero" id="rkMathDio"><span aria-hidden="true">🧁🐠🎀</span></div><h1>🍰 Multiplication Arcade</h1><p>Think of the product first — then serve the customer!</p><div>⭐ '+(Number(progress.correct)||0)+' answers correct</div></section>'+
+ show('<section class="rk-math-hero"><div class="rk-math-dio rk-math-dio-hero rk-clay-art" id="rkMathDio"><img src="assets/images/clay-sample/math-home.webp" width="960" height="720" alt="" aria-hidden="true" decoding="async"></div><h1>🍰 Multiplication Arcade</h1><p>Think of the product first — then serve the customer!</p><div>⭐ '+(Number(progress.correct)||0)+' answers correct</div></section>'+
  '<section class="rk-math-panel"><h2>Choose the tables to practice</h2><div class="rk-math-families">'+buttons+'</div><p id="rkMathFamilyMessage" role="status">Tap to include or exclude a table. Keep at least one selected.</p></section>'+
  '<div class="rk-math-choices">'+[
  ['recipe','🧁','Bakery Orders','Multiply, then choose the plate to serve.'],
@@ -140,7 +140,7 @@ function startHome(){
  ['fashion','👗','Fashion Studio','Multiply, then pack the right accessories.'],
  ['array','⚡','Quick Math','Solve the fact in your head and type it.'],
  ['match','🎴','Fact Match','Find the correct product for each fact.']
- ].map(g=>'<button type="button" '+({recipe:'id="rkMathRecipe"',array:'id="rkMathArray"',match:'id="rkMathMatch"'}[g[0]]||'')+' data-math-game="'+g[0]+'"><span>'+g[1]+'</span><b>'+g[2]+'</b><small>'+g[3]+'</small><em>'+(g[0]==='match'?'4 pairs':'5 questions')+'</em></button>').join('')+'</div>'+
+ ].map(g=>'<button type="button" '+({recipe:'id="rkMathRecipe"',array:'id="rkMathArray"',match:'id="rkMathMatch"'}[g[0]]||'')+' data-math-game="'+g[0]+'"><span class="rk-clay-tile" aria-hidden="true"><img src="assets/images/clay-sample/'+g[0]+'.webp" width="256" height="256" alt="" decoding="async"></span><b>'+g[2]+'</b><small>'+g[3]+'</small><em>'+(g[0]==='match'?'4 pairs':'5 questions')+'</em></button>').join('')+'</div>'+
  '<button type="button" class="rk-math-link" id="rkMathMain">← Main home</button>');
  app.querySelectorAll('[data-family]').forEach(b=>b.onclick=()=>{
   const n=Number(b.dataset.family);
@@ -152,7 +152,7 @@ function startHome(){
  });
  app.querySelectorAll('[data-math-game]').forEach(b=>b.onclick=()=>start(b.dataset.mathGame));
  $('rkMathMain').onclick=goHub;
- diorama($('rkMathDio'),'arcade');
+ /* clay sample: home hero is pre-rendered clay art (no live 3D) */
 }
 let active=null;
 // Aquarium, Bakery Orders and Fashion Studio play the matching Shoreshim 3D clay studio games with

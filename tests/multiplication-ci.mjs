@@ -60,8 +60,9 @@ try {
   await page.locator('#rkMathRecipe').waitFor();
   assert.equal(await page.locator('.rk-math-choices button').count(),5);
   assert.equal(await page.locator('header .top').count(),0);
-  // Clay diorama on the math home (3D, WebGL available in CI).
-  await page.locator('#rkMathDio canvas').waitFor({timeout:20000});
+  // Clay sample: math home hero + tiles are pre-rendered clay art images.
+  await page.locator('#rkMathDio img').waitFor();
+  assert.equal(await page.locator('.rk-math-choices .rk-clay-tile img').count(),5);
   // Bakery Orders: the Shoreshim 3D Cupcake Café with multiplication questions (6 coins each).
   let coins=await playStudio(page,'recipe','cupcakes',100);
   // Quick Math: a numeric answer is available immediately, not after building rows.

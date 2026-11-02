@@ -299,3 +299,10 @@ html body .top .stats>#gamesShortcut:focus-visible{outline:3px solid #557fa7!imp
 #app .rk-math-families button{min-height:48px;border-radius:18px;box-shadow:inset 0 -4px 0 #0000000f}
 @media(prefers-reduced-motion:reduce){#app .rk-math-choices>button{transition:none}}
 #app .rk-math-hero>.rk-math-dio{display:flex;width:100%;padding:0;border-radius:26px;background:radial-gradient(120% 90% at 50% 0%,#fff6ec 0%,#fbe3dc 55%,#f1cfc8 100%)}
+
+/* Clay sample (draft): pre-rendered clay diorama hero + clay tile art on the math home */
+#app .rk-math-hero>.rk-math-dio.rk-clay-art{display:block;overflow:hidden;aspect-ratio:4/3;max-height:none;background:#f6dcd2;box-shadow:inset 0 0 0 1px #fff8}
+#app .rk-math-dio.rk-clay-art img{display:block;width:100%;height:100%;object-fit:cover}
+#app .rk-math-choices>button>span.rk-clay-tile{width:112px;height:112px;padding:0;overflow:hidden;border-radius:26px;background:#f7e6dc;box-shadow:0 6px 14px #a7748230}
+#app .rk-math-choices>button>span.rk-clay-tile img{width:100%;height:100%;object-fit:cover;display:block}
+@media(max-width:700px){#app .rk-math-choices>button>span.rk-clay-tile{width:84px;height:84px;border-radius:20px}#app .rk-math-choices button{grid-template-columns:84px 1fr}}
