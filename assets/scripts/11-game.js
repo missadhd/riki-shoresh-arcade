@@ -405,11 +405,12 @@ function floorTex(id){
       const page = (0,eval)("housePage");
       const old = document.getElementById('rkFloorShop');
       if (old) old.remove();
-      const room = (0,eval)("currentRoom") || 'bedroom';
+      const room = (0,eval)("shopRoom") || 'bedroom';
+      const category = (0,eval)("shopType");
       const coins = (0,eval)("coins") || 0;
       const list = FLOORS.filter(f => room === 'garden' ? true : f.id !== 'grass');
-      if (page === 'shop') {
-        const panel = document.querySelector('.panel');
+      if (page === 'shop' && category === 'Flooring') {
+        const panel = document.querySelector('.shop-categories.subcats')?.parentElement;
         if (!panel) return r;
         const box = document.createElement('section');
         box.id = 'rkFloorShop';
