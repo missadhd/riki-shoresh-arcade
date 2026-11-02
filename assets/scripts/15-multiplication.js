@@ -297,13 +297,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 function addTile(){
  const grid=app.querySelector('.hub-grid');if(grid&&!$('hubMath')){
   const button=document.createElement('button');button.type='button';button.className='hub-tile hub-math';button.id='hubMath';
-  button.innerHTML='<span class="hub-ic rk-math-hub-icon" aria-hidden="true">✖️</span><b>Multiplication</b><span>Serve, style & solve</span>';
+  button.innerHTML='<span class="rk-math-only-icon" aria-hidden="true">🧮</span><b>Multiplication</b><span>Serve, style & solve</span>';
   const houseTile=$('hubHouse');if(houseTile)grid.insertBefore(button,houseTile);else grid.appendChild(button);
   button.onclick=()=>{sound();startHome()};
  }
- const mathTile=$('hubMath');if(mathTile){mathTile.querySelector('.hub-ic')?.replaceChildren(document.createTextNode('✖️'));mathTile.setAttribute('aria-label','Multiplication games — multiply and solve');}
+ const mathTile=$('hubMath');if(mathTile){mathTile.querySelector('.hub-ic,.rk-math-only-icon')?.replaceChildren(document.createTextNode('🧮'));mathTile.setAttribute('aria-label','Multiplication games — multiply and solve');}
  // Other home layouts can provide their own Multiplication tile; correct its artwork too.
- app.querySelectorAll('button, .hub-tile').forEach(tile=>{const label=tile.querySelector('b,strong,h2,h3');if(!label||!/^(multiplication|multiply|multiplication games)$/i.test(label.textContent.trim()))return;const ic=tile.querySelector('.hub-ic,.hub-icon,.tile-icon,.menu-icon,.game-icon');if(ic)ic.textContent='✖️';});
+ app.querySelectorAll('button, .hub-tile').forEach(tile=>{const label=tile.querySelector('b,strong,h2,h3');if(!label||!/^(multiplication|multiply|multiplication games)$/i.test(label.textContent.trim()))return;const ic=tile.querySelector('.hub-ic,.hub-icon,.tile-icon,.menu-icon,.game-icon');if(ic){ic.classList.remove('hub-ic');ic.classList.add('rk-math-only-icon');ic.textContent='🧮';}});
  activeTab();
 }
 let scheduled=false;new MutationObserver(()=>{if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;addTile()})}).observe(app,{childList:true});
