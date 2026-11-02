@@ -507,11 +507,11 @@ function roomShell(g,id,W,D,H,opts={}){
     slab.castShadow = false;
     slab.userData.dioramaRoofSlab = true;
     // A shallow rear canopy reads as a finished ceiling without covering the room.
-    const canopy = add(ceil, new THREE.BoxGeometry(W - 0.12, 0.055, D * 0.28), mat(st.color, 0.82, 0, {side: THREE.DoubleSide}), 0, H - 0.115, -D * 0.355);
+    const canopy = add(ceil, new THREE.BoxGeometry(W - 0.12, 0.055, D * 0.52), mat(st.color, 0.82, 0, {side: THREE.DoubleSide}), 0, H - 0.115, -D * 0.24);
     canopy.castShadow = false; canopy.receiveShadow = true; canopy.raycast = () => {};
     // A second inset soffit and continuous inner trim create a finished
     // ceiling plane while keeping the front open for the cutaway camera.
-    const soffit = add(ceil, new THREE.BoxGeometry(W - 0.28, 0.035, D * 0.18), mat('#fffaf4', 0.55, 0, {side: THREE.DoubleSide}), 0, H - 0.18, -D * 0.385);
+    const soffit = add(ceil, new THREE.BoxGeometry(W - 0.28, 0.035, D * 0.42), mat('#fffaf4', 0.55, 0, {side: THREE.DoubleSide}), 0, H - 0.18, -D * 0.385);
     soffit.castShadow = false; soffit.raycast = () => {};
     const lip = mat('#fffaf4', 0.48);
     BX(ceil, W - 0.12, 0.075, 0.085, lip, 0, H - 0.20, -D * 0.215);
@@ -922,15 +922,15 @@ function dioCut(){if(!ED.dioMeshes)return;const cx=ED.cam.position.x,W=ED.W;cons
   ED.dioMeshes.forEach(o=>{const x=o.userData.dc[0];o.visible=!((hideR&&x>W/2-.26)||(hideL&&x<-W/2+.26)||(o.userData.dside&&((hideR&&o.userData.dside>0)||(hideL&&o.userData.dside<0))));});if(ED.ceiling){ED.ceiling.visible=true;ED.ceiling.traverse(o=>{if(o.userData.dioramaRoofSlab)o.visible=false;});}}
 function dioCamera(){if(ED.R.toneMappingExposure!==.84)ED.R.toneMappingExposure=.84;const c=ED.R.domElement,w=c.clientWidth||1,h=c.clientHeight||1;ED.cam.aspect=w/h;ED.cam.fov=30;
   const key=[ED.az.toFixed(3),ED.el.toFixed(3),ED.zoom.toFixed(3),w,h,ED.W,ED.D,ED.H].join();if(ED.dioKey===key)return;ED.dioKey=key;
-  const W=ED.W,D=ED.D,H=ED.H,gd=ED.room==='garden';const xs=gd?[-W/2-.65,W/2+.65]:[-W/2-.28,W/2+.28],zs=gd?[-D/2-.3,D/2+.5]:[-D/2-.28,D/2+.28],ys=[-.2,gd?1:H+.04];
+  const W=ED.W,D=ED.D,H=ED.H,gd=ED.room==='garden';const xs=gd?[-W/2-.65,W/2+.65]:[-W/2-.11,W/2+.11],zs=gd?[-D/2-.3,D/2+.5]:[-D/2-.11,D/2+.11],ys=[-.09,gd?1:H+.18];
   const P=[];xs.forEach(x=>zs.forEach(z=>ys.forEach(y=>P.push(new THREE.Vector3(x,y,z)))));
   const dir=new THREE.Vector3(Math.sin(ED.az)*Math.cos(ED.el),Math.sin(ED.el),Math.cos(ED.az)*Math.cos(ED.el));
-  const topPad=Math.min(.19,52/h*2),botPad=Math.min(.09,18/h*2),side=.018;const yMax=1-topPad,yMin=-1+botPad;
+  const topPad=Math.min(.095,25/h*2),botPad=Math.min(.065,14/h*2),side=.012;const yMax=1-topPad,yMin=-1+botPad;
   const tgt=new THREE.Vector3(0,gd?.2:H*.35,gd?.3:0),v=new THREE.Vector3();
   const box=dist=>{ED.cam.position.copy(tgt).addScaledVector(dir,dist);ED.cam.lookAt(tgt);ED.cam.near=.1;ED.cam.far=dist*4+20;ED.cam.updateProjectionMatrix();ED.cam.updateMatrixWorld();let a=9,b=-9,c2=9,d=-9;P.forEach(p=>{v.copy(p).project(ED.cam);a=Math.min(a,v.x);b=Math.max(b,v.x);c2=Math.min(c2,v.y);d=Math.max(d,v.y);});return [a,b,c2,d];};
   const fit=()=>{let lo=1,hi=80;for(let k=0;k<26;k++){const m=(lo+hi)/2,[a,b,c2,d]=box(m);if(b-a<=2-2*side&&d-c2<=yMax-yMin)hi=m;else lo=m;}return hi;};
   for(let pass=0;pass<3;pass++){const dist=fit(),[a,b,c2,d]=box(dist);const cx=(a+b)/2,cy=(c2+d)/2,wantY=(yMax+yMin)/2;const hh=dist*Math.tan(ED.cam.fov*Math.PI/360),hw=hh*ED.cam.aspect;const right=new THREE.Vector3().setFromMatrixColumn(ED.cam.matrixWorld,0),up=new THREE.Vector3().setFromMatrixColumn(ED.cam.matrixWorld,1);tgt.addScaledVector(right,cx*hw).addScaledVector(up,(cy-wantY)*hh);}
-  const dist=fit()*cl(ED.zoom/DIO.zoom,.72,1.7);box(dist);}
+  const dist=fit()*cl(ED.zoom/DIO.zoom,.80,1.7);box(dist);}
 function dioToggleBtn(box){let b=box.querySelector('.rk3-dio');if(!b){b=document.createElement('button');b.type='button';b.className='rk3-dio';box.appendChild(b);b.onclick=e=>{e.stopPropagation();DIO.on=!DIO.on;edBuild(ED.room);dioToggleBtn(box);};}
   b.textContent=DIO.on?'👀 Look inside':'🏠 Dollhouse view';const cb=document.getElementById('rk3CeilingToggle');if(cb)cb.style.display=DIO.on?'none':'';
   if(!document.getElementById('dioCss')){const st=document.createElement('style');st.id='dioCss';st.textContent='.rk3-dio{position:absolute;left:10px;bottom:10px;z-index:6;border:0;border-radius:999px;padding:8px 13px;background:#fff;color:#4a2338;font-weight:900;font-size:13px;box-shadow:0 3px 10px #0002;cursor:pointer}';document.head.appendChild(st);}}
