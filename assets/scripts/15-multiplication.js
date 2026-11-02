@@ -301,6 +301,7 @@ function addTile(){
   const houseTile=$('hubHouse');if(houseTile)grid.insertBefore(button,houseTile);else grid.appendChild(button);
   button.onclick=()=>{sound();startHome()};
  }
+ const mathTile=$('hubMath');if(mathTile){mathTile.querySelector('.hub-ic')?.replaceChildren(document.createTextNode('✖️'));mathTile.setAttribute('aria-label','Multiplication games — multiply and solve');}
  activeTab();
 }
 let scheduled=false;new MutationObserver(()=>{if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;addTile()})}).observe(app,{childList:true});
