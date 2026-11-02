@@ -1131,7 +1131,22 @@ function useToken(){if(S.tokens<=0){outOf();return false;}S.tokens--;S.plays++;s
 function outOf(){const p=document.getElementById('pdPanel');if(!p)return;p.innerHTML=`<div class="pd-out"><b>🎟️ Out of plays!</b><span>Win games to earn more plays for your dolls.</span><div class="pd-row"><button class="sl-big" id="pdEarnG">אב Shoresh Games</button><button class="sl-big alt" id="pdEarnS">💖 Social Skills</button></div></div>`;
  document.getElementById('pdEarnG').onclick=()=>{tap();G('menu')();};document.getElementById('pdEarnS').onclick=()=>{tap();G('selHub')();};p.scrollIntoView({block:'nearest',behavior:'smooth'});bub('We need more plays! Let’s win some!');}
 async function act(spot){if(busy||!live())return;const sceneNode=document.getElementById('pdScene'),still=()=>document.getElementById('pdScene')===sceneNode;const r=ROOMS[S.room];
- if(spot==='pet'){const p=document.getElementById('pdPet');p.innerHTML=pet(S.pet,'love');p.classList.remove('hop');void p.offsetWidth;p.classList.add('hop');fx(['💖','💕'],5,parseFloat(p.style.left),70);good();setTimeout(()=>p.isConnected&&(p.innerHTML=pet(S.pet)),1300);return;}
+ if(spot==='pet'){
+ const panel=document.getElementById('pdPanel');
+ panel.innerHTML='<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:12px"><button type="button" id="pdFeedPet">🥣 Feed pet</button><button type="button" id="pdPetCuddle">💗 Pet gently</button></div><p id="pdPetCareStatus" role="status" aria-live="polite">What would you like to do with your pet?</p>';
+ const p=document.getElementById('pdPet'),status=document.getElementById('pdPetCareStatus');
+ document.getElementById('pdPetCuddle').onclick=()=>{p.innerHTML=pet(S.pet,'love');p.classList.remove('hop');void p.offsetWidth;p.classList.add('hop');status.textContent='Your pet enjoys the cuddle!';good();setTimeout(()=>p.isConnected&&(p.innerHTML=pet(S.pet)),1300);};
+ document.getElementById('pdFeedPet').onclick=()=>{
+   const btn=document.getElementById('pdFeedPet');if(btn.disabled)return;btn.disabled=true;
+   const bowl=document.createElement('div');bowl.setAttribute('aria-label','Food bowl');
+   bowl.style.cssText='position:absolute;bottom:10%;left:64%;width:58px;height:20px;border-radius:5px 5px 35px 35px;background:#d78c9d;border:3px solid #fff1de;box-shadow:inset 0 7px #9b674d;z-index:4;transition:transform .5s,opacity .5s';
+   sceneNode.appendChild(bowl);status.textContent='Your pet is coming over to eat!';
+   p.style.transition='transform .45s ease';p.style.transform='translateY(12px) rotate(5deg)';
+   setTimeout(()=>{if(!still())return;status.textContent='Crunch, crunch!';p.style.transform='translateY(19px) rotate(-5deg)';bowl.style.transform='scale(.85)';},650);
+   setTimeout(()=>{if(!still())return;p.style.transform='translateY(0) rotate(0)';p.innerHTML=pet(S.pet,'love');bowl.style.opacity='0';status.textContent='All fed! Your pet looks happy.';good();},1650);
+   setTimeout(()=>{bowl.remove();if(p.isConnected)p.innerHTML=pet(S.pet);if(btn.isConnected)btn.disabled=false;},2350);
+ };return;
+ }
  if(spot==='closet'||spot==='mirror'){busy=true;await walk(realX[spot]??r.spots[spot][0]);if(!still())return;busy=false;if(spot==='closet'){wardrobe();return;}if(spot==='mirror'){pose('wave');fx(['✨','💫','⭐'],8,r.spots[spot][0]);bub('Look at me! So cute!');}style();return;}
  const s=r.spots[spot];if(!s)return;document.getElementById('pdPanel').innerHTML='';if(!useToken())return;busy=true;tap();const sx=realX[spot]??s[0];await walk(sx);if(!still())return;const x=sx;const d=document.getElementById('pdDoll');
  const A={
