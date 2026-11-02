@@ -5,6 +5,7 @@ Add a row when you open your draft PR and remove it in the same PR when you fini
 
 | Who | Branch | Files | Status |
 |---|---|---|---|
+| ChatGPT | `chatgpt/room-camera-ceiling-stability-nov1` | `11-game.js`, `COORDINATION.md` | Fixing camera framing and ceiling controls |
 
 ## Map of the code
 
