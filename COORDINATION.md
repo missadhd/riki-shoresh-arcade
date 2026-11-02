@@ -5,7 +5,6 @@ Add a row when you open your draft PR and remove it in the same PR when you fini
 
 | Who | Branch | Files | Status |
 |---|---|---|---|
-| ChatGPT | `chatgpt/fix-washed-out-room-roof` | `11-game.js`, `COORDINATION.md` | Fixing translucent roof obscuring rooms |
 
 ## Map of the code
 
