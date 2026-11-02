@@ -367,3 +367,22 @@ html body #app .hub-grid #hubMath .hub-ic::before{
    Multiplication must not inherit Shoreshim's sprite. */
 #app #hubMath .hub-ic::before,#app .hub-math .hub-ic::before{content:none!important;display:none!important;background-image:none!important}
 #app #hubMath .hub-ic,#app .hub-math .hub-ic{background-image:none!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:54px!important;color:#a94772!important;min-height:88px!important}
+
+/* Real-browser screenshot correction: use a dedicated icon, never the Shoreshim sprite. */
+#app .rk-math-only-icon{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;height:88px!important;min-height:88px!important;font-size:60px!important;line-height:1!important;background:none!important}
+#app .rk-math-only-icon::before,#app .rk-math-only-icon::after{content:none!important;display:none!important}
+
+/* Keep the wallet in a header row ABOVE the navigation on all screens. */
+.top .brand,body:has(#app .gamehead) .top .brand{display:flex!important;min-height:40px!important;padding-right:92px!important}
+.top .stats>#coins{position:absolute!important;top:9px!important;right:12px!important;left:auto!important;grid-area:auto!important;justify-self:auto!important;width:auto!important;max-width:84px!important;height:34px!important;min-height:34px!important;padding:4px 7px!important;font-size:12px!important;z-index:2!important}
+
+/* Every navigation destination has the same-sized cell, including Parent and Audio. */
+.top .stats>#rikiParentMenuButton{grid-area:3/1/4/3!important;justify-self:stretch!important;width:100%!important;height:50px!important;min-height:50px!important}
+.top .stats>#settingsToggle{grid-area:3/3/4/5!important;justify-self:stretch!important;align-self:stretch!important;width:100%!important;height:50px!important;min-height:50px!important}
+.top .stats>#hubHomeBtn,.top .stats>#gamesShortcut,.top .stats>#rkMathShortcut,.top .stats>#houseShortcut,.top .stats>#hubSocialBtn,.top .stats>#rkDollsShortcut,.top .stats>#rkShopShortcut{height:56px!important;min-height:56px!important;max-height:56px!important;overflow:hidden!important}
+@media(max-width:540px){.top .brand,body:has(#app .gamehead) .top .brand{padding-right:84px!important}.top .stats>#coins{top:9px!important;right:8px!important;max-width:76px!important}.top .stats>#hubHomeBtn,.top .stats>#gamesShortcut,.top .stats>#rkMathShortcut,.top .stats>#houseShortcut,.top .stats>#hubSocialBtn,.top .stats>#rkDollsShortcut,.top .stats>#rkShopShortcut{height:58px!important;min-height:58px!important;max-height:58px!important}.top .stats>#rikiParentMenuButton,.top .stats>#settingsToggle{height:48px!important;min-height:48px!important}}
+
+/* The shop sprite contains a sliver of its neighboring atlas cell.
+   Replace that clipped atlas crop with a clean, centered standalone icon. */
+#app .hub-grid #hubShop .hub-ic{display:grid!important;place-items:center!important;width:100%!important;height:88px!important;min-height:88px!important;margin:0 0 5px!important;padding:0!important;overflow:visible!important;font-size:0!important}
+#app .hub-grid #hubShop .hub-ic::before{content:"🛍️"!important;display:grid!important;place-items:center!important;background:none!important;background-image:none!important;width:88px!important;height:88px!important;max-width:100%!important;font-size:66px!important;line-height:1!important;text-align:center!important;transform:none!important;margin:0 auto!important}
