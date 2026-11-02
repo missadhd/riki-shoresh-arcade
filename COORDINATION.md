@@ -5,7 +5,6 @@ Add a row when you open your draft PR and remove it in the same PR when you fini
 
 | Who | Branch | Files | Status |
 |---|---|---|---|
-| ChatGPT | `chatgpt/orbit-ceiling-interior` | `11-game.js`, `COORDINATION.md` | Orbit camera and angle-aware ceiling |
 
 ## Map of the code
 
