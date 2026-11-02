@@ -1267,6 +1267,34 @@ function sofa(g,o){o=Object.assign({W:1.8,D:.9,c:'#9fcbe6',c2:null,arm:'roll',ba
   if(o.tufted&&o.back!=='cloud'&&o.back!=='shell'){const tm=M(o.c2||o.c);const tc=new T.Color(o.c).multiplyScalar(.82);const tmd=M('#'+tc.getHexString());for(let r=0;r<(o.back==='chester'?2:1);r++)for(let i=0;i<(W>1.2?4:2);i++){const cols=W>1.2?4:2;tuft(g,tmd,-W*.33+i*(W*.66/(cols-1||1)),.68+r*.14,-D/2+.29);}}
   [-1,1].forEach(s=>{const x=s*(W/2-.12);if(o.arm==='ball'){ball(g,.21,C,x,.5,0,.9,1,1.25);}else if(o.arm==='square'){add(g,puff(.24,.48,D,.1,.09),C,x,.4,0);}else{add(g,puff(.24,.36,D,.1,.09),C,x,.33,0);const r=add(g,new T.CylinderGeometry(.14,.14,D-.02,14),C,x,.56,0);r.rotation.x=Math.PI/2;}});
   if(o.pillows)o.pillows.forEach((c,i)=>{if(i>=n)return;const sx=n===1?0:(i?1:-1)*W*.24;const p=add(g,puff(.36,.34,.13,.11,.06),M(c),sx,.68,-D/2+.38);p.rotation.x=-.25;p.rotation.z=(i?-1:1)*.12;if(o.star)add(g,ext(starShape(.08,.035),.02,.008,'ps'),M('#f6c453'),sx,.69,-D/2+.46,-.25);});
+  // One-object visual sample: hand-sculpted bubble sofa detailing, inspired by
+  // the rounded chibi dolls. Keep its original ID, footprint and shop behavior.
+  if(o.dollFinish){
+    const pearl=M('#fff9f3'),rose=M('#e988b0'),stitch=M('#d67b9d'),mint=M('#b9e6d8');
+    // Rounded seat piping, modeled as actual 3D beads rather than flat CSS.
+    for(let i=0;i<15;i++){
+      const x=-.68+i*(1.36/14);
+      ball(g,.018,pearl,x,.395,D/2-.075,1,.65,.8);
+    }
+    // Embroidered heart at the center of the sofa back.
+    const heart=add(g,ext(heartShape(.115),.024,.012,'bubble-heart'),rose,0,.76,-D/2+.315);
+    heart.rotation.x=-.08;
+    ball(g,.025,pearl,0,.78,-D/2+.354,.85,.85,.4);
+    // Two little button-tufted, mint and cream cushions.
+    [-1,1].forEach((side)=>{
+      const x=side*.42;
+      const pillow=add(g,puff(.30,.29,.13,.11,.07),side<0?pearl:mint,x,.62,.18);
+      pillow.rotation.z=side*.12;
+      ball(g,.028,stitch,x,.63,.265,1,1,.5);
+      // Tiny stitched perimeter accents on each pillow.
+      [-1,1].forEach(k=>ball(g,.014,rose,x+k*.105,.64,.25,1,1,.5));
+    });
+    // Pearl detailing around the rounded armrests.
+    [-1,1].forEach(side=>{for(let j=0;j<5;j++){
+      const theta=(j/4)*Math.PI*.75;
+      ball(g,.021,pearl,side*(W/2-.12),.5+.18*Math.sin(theta),.18*Math.cos(theta),1,1,.8);
+    }});
+  }
   if(o.bow){const bm=M(o.bowC||'#f39bb2');[-1,1].forEach(s=>ball(g,.11,bm,s*.12,1.02,-D/2+.18,1.2,.8,.5));ball(g,.06,bm,0,1.02,-D/2+.2);}
 }
 /* ===== CHAIR ===== */
@@ -1555,7 +1583,7 @@ const CLAY_PIECES={
  bedcanopy:['bed',{head:'arch',headC:'#f6c9d6',blanketC:'#fde1e7',p1:'#ffffff',p2:'#f6c9d6',braidC:'#ffffff',canopy:{post:'#fff4e6',sheer:'#ffd6e4'}}],
  softsofa:['sofa',{c:'#f2a9b3',c2:'#f6bcc4',pillows:['#fff2d6','#fff2d6'],legC:'#f2a9b3'}],
  lamp:['sofa',{c:'#9fcbe6',c2:'#b3d7ee',pillows:['#f6c9d6','#fff2d6']}],
- sofabubble:['sofa',{c:'#f6b6c8',arm:'ball',back:'round',pillows:['#fff2d6','#c8b2f2'],legC:'gold'}],
+ sofabubble:['sofa',{c:'#f6b6c8',arm:'ball',back:'round',pillows:['#fff2d6','#c8b2f2'],legC:'gold',dollFinish:true}],
  sofamint:['sofa',{c:'#a8dcc6',c2:'#bfe6d4',pillows:['#fff2d6','#f6c9d6'],legC:'#f2dcbc'}],
  sofastar:['sofa',{c:'#c8b2f2',c2:'#d8c8f8',pillows:['#fff2d6','#fff2d6'],star:true,legC:'gold'}],
  sofachester:['sofa',{c:'#f39bb2',back:'chester',arm:'roll',pillows:['#fff2d6','#fff2d6'],legC:'#8a5a44'}],
