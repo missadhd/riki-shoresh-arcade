@@ -49,3 +49,6 @@ jobs:
       - name: Bakery Shift conveyor (#281)
         if: always()
         run: node tests/bakery-conveyor-ci.mjs
+      - name: Studio games keep a stable camera and anchored pieces
+        if: always()
+        run: node tests/studio-camera-ci.mjs http://127.0.0.1:8765/
