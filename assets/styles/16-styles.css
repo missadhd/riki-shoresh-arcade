@@ -694,3 +694,15 @@ html{scroll-padding-top:240px}
   min-width:44px!important;min-height:44px!important;
  }
 }
+/* Desktop/laptop studio layout (Grok, Nov 1): choices sit beside the 3D stage so the stage can be big
+   instead of being squeezed to ~135px by the fit-to-screen pass. Phones/portrait keep the stacked layout. */
+@media (min-width:900px) and (min-aspect-ratio:5/4){
+ #app .st:not(.st-end){display:grid;grid-template-columns:minmax(0,1.75fr) minmax(300px,1fr);grid-auto-flow:row dense;column-gap:16px;row-gap:8px;align-items:start;align-content:start}
+ #app .st:not(.st-end)>*{grid-column:2}
+ #app .st:not(.st-end)>.st-stage{grid-column:1;grid-row:1/span 12;height:clamp(340px,calc(100svh - 290px),760px)!important;align-self:start}
+ #app .st:not(.st-end) .st-cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #app .st:not(.st-end) .st-cards.four{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #app .st:not(.st-end) .st-card img,#app .st:not(.st-end) .st-card .ph{max-height:22svh}
+ #app .st:not(.st-end) .st-cards.four:has(>:nth-child(5)){grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ #app .st:not(.st-end) .st-cards.four .st-card img,#app .st:not(.st-end) .st-cards.four .st-card .ph{max-height:14svh}
+}

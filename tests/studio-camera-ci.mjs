@@ -17,6 +17,8 @@ try{
    await page.waitForFunction(()=>document.querySelector('#app canvas'),{timeout:15000});
    const cv=page.locator('#app canvas').first();await cv.scrollIntoViewIfNeeded();
    await page.waitForTimeout(1500);
+   if(w>=900){const sh=await page.evaluate(()=>document.querySelector('#app .st-stage').getBoundingClientRect().height);if(sh<h*.45)fails.push(`${id}@${w}x${h}: 3D stage only ${Math.round(sh)}px tall (< 45% of viewport)`);
+    const off=await page.evaluate(()=>[...document.querySelectorAll('#app .st-card')].some(e=>{const r=e.getBoundingClientRect();return r.bottom>innerHeight+1||r.top<0;}));if(off)fails.push(`${id}@${w}x${h}: choice cards not all on screen`);}
    const snap=async()=>page.evaluate(()=>{const d=window.RikiStudio.debug&&window.RikiStudio.debug();return d;});
    const a=await cv.screenshot();const d0=await snap();
    await page.waitForTimeout(3000);
