@@ -66,9 +66,9 @@ function playComic(c){
   const stop=()=>{timers.forEach(clearTimeout);timers=[];try{speechSynthesis.cancel();}catch(e){}};
   function run(){stop();parts.forEach((p,i)=>{const el=$id('comicPanel'+i);el.classList.remove('on');el.querySelector('.comic-line').textContent='';});
     $id('comicReplay').hidden=true;$id('comicNext').hidden=true;let t=300;
-    parts.forEach((p,i)=>{later(()=>{const el=$id('comicPanel'+i);if(!el)return;el.classList.add('on');el.scrollIntoView({block:'nearest',behavior:reduce?'auto':'smooth'});audio('tap');speak((p.label?p.label+'. ':'')+p.line,el.querySelector('.comic-actor'));
+    parts.forEach((p,i)=>{later(()=>{const el=$id('comicPanel'+i);if(!el)return;el.classList.add('on');audio('tap');speak((p.label?p.label+'. ':'')+p.line,el.querySelector('.comic-actor'));
       const line=el.querySelector('.comic-line');if(reduce){line.textContent=p.line;return;}let k=0;const ty=setInterval(()=>{if(!line.isConnected){clearInterval(ty);return;}k++;line.textContent=p.line.slice(0,k);if(k>=p.line.length)clearInterval(ty);},38);timers.push(ty);},t);t+=reduce?600:Math.max(2400,p.line.length*38+1500);});
-    later(()=>{if(!$id('comicNext'))return;audio('good');$id('comicReplay').hidden=false;$id('comicNext').hidden=false;$id('comicNext').scrollIntoView({block:'nearest'});
+    later(()=>{if(!$id('comicNext'))return;audio('good');$id('comicReplay').hidden=false;$id('comicNext').hidden=false;
       later(()=>{if(comicStep===doneStep&&game==='sel'&&$id('comicNext'))$id('comicNext').click();},6000);},t+200);}
   $id('comicReplay').onclick=run;
   $id('comicNext').onclick=()=>{stop();comicStep++;comicOrder=[];drawComic();};
@@ -190,7 +190,7 @@ drawBoard=function(){
   document.querySelectorAll('#slCh .sl-choice').forEach(b=>b.onclick=async()=>{if(b.disabled)return;const said=opts[+b.dataset.i];document.querySelectorAll('#slCh .sl-choice').forEach(x=>x.disabled=true);slHush('B');
     await slSay('A',said.replace(/^“|”$/g,''),said===q.good?'happy':'upset');if(!live()||boardPick!==pick)return;
     if(said===q.good){slExpr('B','excited','bounce');slFx(['💖','✨','👏','🌟'],10);audio('good');await slSay('B',['Thanks! That helps.','Aw, thank you!','That feels so much better.','You’re a great friend!'][Math.floor(Math.random()*4)],'excited');if(!live())return;
-      if(first)boardScore+=q.points;slGain(1);const n=$id('slNote');if(n){n.hidden=false;n.textContent='🌟 '+q.why;}const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();boardUsed.add(pick);boardPick=null;drawBoard();};nx.scrollIntoView({block:'nearest',behavior:'smooth'});}}
+      if(first)boardScore+=q.points;slGain(1);const n=$id('slNote');if(n){n.hidden=false;n.textContent='🌟 '+q.why;}const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();boardUsed.add(pick);boardPick=null;drawBoard();};}}
     else{zMiss();first=false;slExpr('B','sad','shake');slFx(['💧','🌧️'],5);audio('tap');await slSay('B','Oh… that hurts my feelings.','sad');if(!live())return;const n=$id('slNote');if(n){n.hidden=false;n.textContent='💜 How would Maya feel? Try a kinder answer.';}
       document.querySelectorAll('#slCh .sl-choice').forEach(x=>{if(x!==b)x.disabled=false;});slHush('A');slExpr('A','think');}});
 };
@@ -236,7 +236,7 @@ drawPlan=function(){
   document.querySelectorAll('#slCh .sl-choice').forEach(b=>b.onclick=async()=>{if(b.disabled||!live())return;const c=p.choices[+b.dataset.i];const k=SL_PLAN[c[1]]||['✨',c[0],'That could work!'];document.querySelectorAll('#slCh .sl-choice').forEach(x=>x.disabled=true);slHush('B');
     await slSay('A',k[1],c[1]==='stuck'?'upset':'happy');if(!live()||planStep!==step)return;
     if(c[1]==='stuck'){zMiss();slProp('⛈️');slExpr('B','sad','shake');audio('tap');await slSay('B',k[2],'sad');if(!live())return;const n=$id('slNote');if(n){n.hidden=false;n.textContent='💜 It’s okay to be upset. Pick a plan that could still be fun.';}slProp('');document.querySelectorAll('#slCh .sl-choice').forEach(x=>{if(x!==b)x.disabled=false;});slHush('A');slExpr('A','think');}
-    else{const n0=$id('slNote');if(n0)n0.hidden=true;slProp(k[0]);slExpr('B','excited','bounce');slFx([k[0],'✨','💖'],9);audio('good');await slSay('B',k[2],'excited');if(!live())return;slExpr('A','excited','bounce');slGain(1);const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();planStep++;planChoice=null;drawPlan();};nx.scrollIntoView({block:'nearest',behavior:'smooth'});}}});
+    else{const n0=$id('slNote');if(n0)n0.hidden=true;slProp(k[0]);slExpr('B','excited','bounce');slFx([k[0],'✨','💖'],9);audio('good');await slSay('B',k[2],'excited');if(!live())return;slExpr('A','excited','bounce');slGain(1);const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();planStep++;planChoice=null;drawPlan();};}}});
 };
 
 /* ---------- More live games (Claude, Oct 29): replace the older separate Social Skills set ---------- */
@@ -263,15 +263,15 @@ function slActionArt(kind){if(kind==='tower'||kind==='blockhouse')return `<span 
 function slActionSetup(it){const p=$id('slProp');if(!p)return;const kind=slActionKind(it);p.className='sl-prop sl-action-prop on';p.dataset.kind=kind;p.innerHTML=slActionArt(kind);}
 function slActionPlay(it,text,good){const p=$id('slProp');if(!p)return;const kind=slActionKind(it),s=String(text).toLowerCase();p.className='sl-prop sl-action-prop on';p.dataset.kind=kind;p.innerHTML=slActionArt(kind);let action=good?'help':'bad';if(kind==='tower')action=good?'rebuild':/knock|push|kick/.test(s)?'knock':'bad';else if(kind==='blockhouse')action=good?'build':'bad';else if(kind==='cards')action=/throw/.test(s)?'scatter':good?'reset':'bad';else if(kind==='tablet')action=/hide|keep playing|run/.test(s)?'hide':good?'putaway':'bad';else if(kind==='markers')action=/hide/.test(s)?'hide':good?'share':'bad';else if(kind==='drawing')action=good?'repair':/walk/.test(s)?'away':'bad';else if(kind==='crayon')action=/snap/.test(s)?'snap':good?'share':'bad';else if(kind==='swing')action=good?'turns':'stuck';else if(kind==='juice')action=good?'clean':/pretend/.test(s)?'ignore':'laugh';else if(kind==='tag')action=good?'join':/push/.test(s)?'push':'wait';void p.offsetWidth;p.classList.add('act-'+action);}
 function drawSet(key){
-  const set=SL_SETS[key];const it=set.items[slSetStep[key]%set.items.length];const who=it.who||set.who;slWho={A:'riki',B:who};const step=slSetStep[key];let opts=[...it.opts].sort(()=>Math.random()-.5);opts=trimOpts(opts,o=>o[1]);
+  const set=SL_SETS[key];if(!set||!set.items||!set.items.length){console.error('Missing social story set:',key);return;}if(!Number.isFinite(slSetStep[key]))slSetStep[key]=0;const it=set.items[slSetStep[key]%set.items.length];const who=it.who||set.who;slWho={A:'riki',B:who};const step=slSetStep[key];let opts=[...it.opts].sort(()=>Math.random()-.5);opts=trimOpts(opts,o=>o[1]);
   const roomKey=key==='no'||key==='cookiejar'?'kitchen':key==='calmq'?'calmroom':'helproom';
-  slShell(set.title,`${slMeterHTML()}<div id="setHost" style="margin-bottom:8px"></div><div class="sl-choices" id="slCh" hidden>${opts.map((o,i)=>`<button class="sl-choice c${i}" data-i="${i}">${o[0]}</button>`).join('')}</div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Next →</button>`);
+  slShell(set.title,`${slMeterHTML()}${slSceneHTML("riki",who)}<div id="setHost" style="margin-bottom:8px"></div><div class="sl-choices" id="slCh" hidden>${opts.map((o,i)=>`<button class="sl-choice c${i}" data-i="${i}">${o[0]}</button>`).join('')}</div><p class="sl-note" id="slNote" hidden></p><button class="sl-big" id="slNext" hidden>Next →</button>`);
   rpLoad(()=>{const R=rpWithChars('setHost',roomKey,[['riki',.4,1.6],[who,-.4,1.2]]);});
   const scene=$id('slScene'),live=()=>!!scene&&scene.isConnected&&$id('slScene')===scene;slActionSetup(it);
   (async()=>{await slWait(250);await slSay('B',it.say,it.mood);if(!live()||slSetStep[key]!==step)return;const ch=$id('slCh');if(ch){ch.hidden=false;if(easy(curUnit()))hintBtn(ch,()=>[...ch.querySelectorAll('.sl-choice')].find(b=>opts[+b.dataset.i]&&opts[+b.dataset.i][1]));if(window.RikiFit)RikiFit();}})();
   document.querySelectorAll('#slCh .sl-choice').forEach(b=>b.onclick=async()=>{if(b.disabled||!live())return;const o=opts[+b.dataset.i];document.querySelectorAll('#slCh .sl-choice').forEach(x=>x.disabled=true);slHush('B');slActionPlay(it,o[0],!!o[1]);
     await slSay('A',o[0].replace(/^Say /,'').replace(/^“|”$/g,''),o[1]?'happy':'upset');if(!live()||slSetStep[key]!==step)return;
-    if(o[1]){const n0=$id('slNote');if(n0)n0.hidden=true;slExpr('B','excited','bounce');slFx(['💖','✨','⭐'],9);audio('good');await slSay('B',it.ok,'excited');if(!live())return;slGain(1);const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();slSetStep[key]++;drawSet(key);};nx.scrollIntoView({block:'nearest',behavior:'smooth'});}}
+    if(o[1]){const n0=$id('slNote');if(n0)n0.hidden=true;slExpr('B','excited','bounce');slFx(['💖','✨','⭐'],9);audio('good');await slSay('B',it.ok,'excited');if(!live())return;slGain(1);const nx=$id('slNext');if(nx){nx.hidden=false;nx.onclick=()=>{slStop();slSetStep[key]++;drawSet(key);};}}
     else{zMiss();slExpr('B','sad','shake');slFx(['💧'],4);audio('tap');await slSay('B',set.wrong||'Hmm… that doesn’t feel good.','sad');if(!live())return;const n=$id('slNote');if(n){n.hidden=false;n.textContent='💜 '+set.lead+' Try another choice.';}document.querySelectorAll('#slCh .sl-choice').forEach(x=>{if(x!==b)x.disabled=false;});slHush('A');slExpr('A','think');}});
 }
 /* ---------- Skill Zones (Claude, Oct 30): games grouped by skill ---------- */
@@ -299,7 +299,7 @@ const zLive=t=>t===zTok&&!!$id('zRoot');
 const zShell=(title,body)=>{zStop();zTok++;slShell(title,`<div id="zRoot">${body}</div>`);const back=$id('selBackNew');if(back){const o=back.onclick;back.onclick=()=>{zStop();o&&o();};}return zTok;};
 const zPriorGain=slGain;slGain=function(n=1){zPriorGain(n);if(zCur){zSave.stars[zCur]=(zSave.stars[zCur]||0)+n;zPut();}};
 const zNote=txt=>{const n=$id('slNote');if(n){n.hidden=false;n.textContent=txt;}};
-function zDone(t,msg,again,coins=2){if(!zLive(t))return;if(coins){try{award(coins);}catch(e){}}const d=document.createElement('div');d.className='z-end';d.innerHTML=`<b>${msg}</b>${coins?`<span>+${coins} 🪙</span>`:''}<button class="sl-big" id="zAgain">Play again ↻</button>`;$id('zRoot').appendChild(d);$id('zAgain').onclick=()=>{audio('tap');(again||ZRUN[zCur])();};d.scrollIntoView({block:'nearest',behavior:'smooth'});}
+function zDone(t,msg,again,coins=2){if(!zLive(t))return;if(coins){try{award(coins);}catch(e){}}const d=document.createElement('div');d.className='z-end';d.innerHTML=`<b>${msg}</b>${coins?`<span>+${coins} 🪙</span>`:''}<button class="sl-big" id="zAgain">Play again ↻</button>`;$id('zRoot').appendChild(d);$id('zAgain').onclick=()=>{audio('tap');(again||ZRUN[zCur])();};}
 
 /* Brain Boss 1: Memory Shopper (working memory) */
 const ZM=[['🥛','milk'],['🍎','apples'],['🥚','eggs'],['🍞','bread'],['🧀','cheese'],['🍌','bananas'],['🥕','carrots'],['🍪','cookies'],['🧃','juice'],['🍓','strawberries'],['🧈','butter'],['🍇','grapes'],['🍝','pasta'],['🥒','pickles']];
@@ -444,7 +444,7 @@ function drawSize(){
    stage=3;ch.querySelectorAll('button').forEach(x=>x.disabled=true);b.classList.add('zz-helpful');audio('good');slGain(1);slFx(['⭐','✨'],8);slHush('B');
    zNote('💡 '+detail[2]);
    await slSay('A',it[2],'happy');if(!zLive(t))return;
-   const nx=$id('slNext');nx.hidden=false;nx.onclick=()=>{slStop();zSizeI++;drawSize();};nx.scrollIntoView({block:'nearest',behavior:'smooth'});
+   const nx=$id('slNext');nx.hidden=false;nx.onclick=()=>{slStop();zSizeI++;drawSize();};
   });
   if(window.RikiFit)RikiFit();
  };
@@ -1059,7 +1059,7 @@ const CATS=[
  {id:'arcade',ic:'🎪',name:'Skill Arcade',d:'Pop, grab, race, bonk the best answer',c:'#ffe08a',games:Object.entries(ARC_GAMES).map(([k,[e,n]])=>['arc:'+k,e,n])}];
 const CAT=Object.fromEntries(CATS.map(c=>[c.id,c]));
 CATS.forEach(c=>c.games.forEach(g=>{if(!g[0].startsWith('arc:')&&!GAME_UNIT[g[0]]&&UNIT[c.id])GAME_UNIT[g[0]]=c.id;}));
-const playCatGame=(id,cat)=>{audio('tap');if(id.startsWith('arc:'))drawArc(id.slice(4),cat&&UNIT[cat]?cat:null);else runGame(id);window.scrollTo(0,0);};
+const playCatGame=(id,cat)=>{audio('tap');if(id.startsWith('arc:'))drawArc(id.slice(4),cat&&UNIT[cat]?cat:null);else if(id.startsWith('set:'))drawSet(id.slice(4));else runGame(id);window.scrollTo(0,0);};
 function drawCat(cid){const c=CAT[cid];if(!c)return newHub();zStop();zCur='';lastUnit=cid;game='sel';const isArc=cid==='arcade';
  app.innerHTML=`<section class="panel sk" style="--zc:${c.c}"><div class="gamehead"><button class="secondary" id="ctBack">← Social Skills</button><strong>${c.ic} ${c.name}</strong><span class="pill">🪙 ${coins}</span></div>
   <div class="sk-grid">${c.games.map(([id,e,n])=>{const st=zSave.stars[id]||0;return `<button class="sk-g" data-cg="${id}" type="button" style="--c:${c.c}"><b>${e}</b><strong>${n}</strong>${st?`<i>⭐${st}</i>`:''}</button>`;}).join('')}</div>
@@ -1695,7 +1695,7 @@ function drawClueHunt(){zCur='cluehunt';if(!chDeck||chI%CH_CASES.length===0)chDe
   done=true;audio('good');slGain(1);b.classList.add('ch-ok');$id('chV').querySelectorAll('button').forEach(x=>x.disabled=true);
   const th=$id('chThink');th.textContent='💭 '+c.think;th.classList.add('on');await slWait(2000);if(!zLive(t))return;
   const narr=/^Riki /.test(c.fix);$id('agM').textContent=(c.truth?'Case closed: on purpose. ':'Case closed: an accident! ')+(narr?c.fix:'Riki: “'+c.fix+'”');if(!narr){try{await g6Say('riki',c.fix);}catch(e){}}else await slWait(1200);
-  chI++;if(chI%CH_CASES.length===0){zDone(t,'🔎 Super detective! You solved every case.',drawClueHunt,4);return;}const nx=$id('chNext');nx.hidden=false;nx.onclick=()=>{audio('tap');drawClueHunt();};nx.scrollIntoView({block:'nearest',behavior:'smooth'});});}
+  chI++;if(chI%CH_CASES.length===0){zDone(t,'🔎 Super detective! You solved every case.',drawClueHunt,4);return;}const nx=$id('chNext');nx.hidden=false;nx.onclick=()=>{audio('tap');drawClueHunt();};});}
 
 Object.assign(ZRUN,{backpack:drawBackpack,cluehunt:drawClueHunt});
 CAT.brain.games=[['backpack','🎒','Backpack Packer'],...CAT.brain.games.filter(g=>g[0]!=='backpack')];
@@ -1779,10 +1779,11 @@ function sc3Build(key){const S=SC3_SETS[key];const K=window.RK3;const s=new THRE
  return s;}
 function sc3Cam(key){const S=SC3_SETS[key]||{};const [w,h]=S.size||[960,560];const c=S.cam||{};const cam=new THREE.PerspectiveCamera(c.fov||34,w/h,.1,80);cam.position.set(...(c.pos||[0,1.35,4.6]));cam.lookAt(...(c.at||[0,1.05,-.6]));cam.updateMatrixWorld();cam.updateProjectionMatrix();return cam;}
 function sc3Proj(key,x,y,z){if(!window.THREE)return [50,50];const v=new THREE.Vector3(x,y,z).project(sc3Cam(key));return [(v.x+1)/2*100,(1-v.y)/2*100];}
-function sc3Render(key){if(SC3.cache[key])return SC3.cache[key];try{const ss=sessionStorage.getItem('rikiSc3_'+key);if(ss){SC3.cache[key]=ss;return ss;}}catch(e){}
- if(!window.THREE||!SC3_SETS[key])return null;const R=sc3Rig();const S0=SC3_SETS[key];const [w0,h0]=S0.size||[960,560];R.setSize(w0,h0,false);const s=sc3Build(key);const cam=sc3Cam(key);R.render(s,cam);const url=R.domElement.toDataURL('image/jpeg',.86);
- s.traverse(o=>{if(o.geometry)o.geometry.dispose();});SC3.cache[key]=url;try{sessionStorage.setItem('rikiSc3_'+key,url);}catch(e){}return url;}
-function sc3Get(key,cb){const u=sc3Render(key);if(u)return cb(u);const K=window.RK3;if(!K||!K.loadThree)return;(SC3.waits[key]=SC3.waits[key]||[]).push(cb);if(SC3.waits[key].length>1)return;K.loadThree(()=>{const url=sc3Render(key);const w=SC3.waits[key]||[];SC3.waits[key]=null;if(url)w.forEach(f=>f(url));},()=>{SC3.waits[key]=null;});}
+function sc3Fallback(key){const S=SC3_SETS[key]||{};const wall=S.wall||'#f8dce9',low=S.low||'#e8b5ca';const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560"><rect width="960" height="560" fill="#fff1f7"/><path d="M0 0H960V350L480 465 0 350Z" fill="'+wall+'"/><path d="M0 350L480 465 960 350V560H0Z" fill="'+low+'"/><path d="M40 45H920V340L480 443 40 340Z" fill="none" stroke="#fff" stroke-width="15"/><path d="M480 443V555" stroke="#ffffff" stroke-width="5" opacity=".55"/></svg>';return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);}
+function sc3Render(key){if(SC3.cache[key])return SC3.cache[key];try{const ss=sessionStorage.getItem('rikiSc3_v2_'+key);if(ss){SC3.cache[key]=ss;return ss;}}catch(e){}
+ if(!window.THREE||!SC3_SETS[key])return null;const R=sc3Rig();const S0=SC3_SETS[key];const [w0,h0]=S0.size||[960,560];R.setSize(w0,h0,false);const s=sc3Build(key);const cam=sc3Cam(key);R.render(s,cam);const px=new Uint8Array(4);const gl=R.getContext();try{gl.readPixels(Math.floor(w0/2),Math.floor(h0/2),1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);}catch(_){}const failed=px[0]<9&&px[1]<9&&px[2]<9;const url=failed?sc3Fallback(key):R.domElement.toDataURL('image/jpeg',.86);
+ s.traverse(o=>{if(o.geometry)o.geometry.dispose();});SC3.cache[key]=url;try{sessionStorage.setItem('rikiSc3_v2_'+key,url);}catch(e){}return url;}
+function sc3Get(key,cb){const u=sc3Render(key);if(u)return cb(u);const K=window.RK3;if(!K||!K.loadThree){cb(sc3Fallback(key));return;}(SC3.waits[key]=SC3.waits[key]||[]).push(cb);if(SC3.waits[key].length>1)return;K.loadThree(()=>{const url=sc3Render(key);const w=SC3.waits[key]||[];SC3.waits[key]=null;w.forEach(f=>f(url||sc3Fallback(key)));},()=>{const w=SC3.waits[key]||[];SC3.waits[key]=null;w.forEach(f=>f(sc3Fallback(key)));});}
 window.RikiScene3D={render:sc3Render,get:sc3Get,sets:Object.keys(SC3_SETS)};
 
 

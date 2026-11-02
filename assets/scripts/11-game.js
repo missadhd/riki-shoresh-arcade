@@ -10,7 +10,7 @@ let threeWaiters=null;
 function loadThree(cb,fail){if(window.THREE)return cb();if(threeWaiters){threeWaiters.push([cb,fail]);return;}threeWaiters=[[cb,fail]];const add=(url,next)=>{const s=document.createElement('script');s.src=url;s.onload=()=>{const w=threeWaiters;threeWaiters=null;w.forEach(x=>x[0]());};s.onerror=()=>{s.remove();if(next)return add(next,null);const w=threeWaiters;threeWaiters=null;w.forEach(x=>x[1]&&x[1]());};document.head.appendChild(s);};add(THREE_URL,THREE_CDN);}
 
 /* ================= styles ================= */
-const css=`.rk3-room{position:relative;height:clamp(440px,105vw,680px);width:100%;max-width:1100px;border-radius:26px;overflow:hidden;touch-action:none;background:linear-gradient(#f7ebe4,#efe0d6);border:3px solid #fff;box-shadow:0 18px 34px -16px #4a233866;margin:10px auto}
+const css=`.rk3-room{position:relative;height:clamp(370px,90vw,620px);width:100%;max-width:1100px;border-radius:26px;overflow:hidden;touch-action:none;background:linear-gradient(#f7ebe4,#efe0d6);border:3px solid #fff;box-shadow:0 18px 34px -16px #4a233866;margin:10px auto}
 .rk3-room canvas{display:block;width:100%;height:100%;outline:none}
 .rk3-room .riki3d-hud{position:absolute;left:10px;right:10px;top:10px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;pointer-events:none;z-index:2}
 @media(max-width:600px){.rk3-room .riki3d-hud{top:6px;left:6px;right:6px;gap:4px;justify-content:center;align-content:start}.rk3-room .riki3d-hud span{font-size:11px;padding:3px 7px}.rk3-room .riki3d-hud span:nth-child(2){display:none}.rk3-room .riki3d-hud button{font-size:12px!important;padding:4px 8px!important;min-height:29px!important;margin-left:0!important}}\n.rk3-room .riki3d-hud span{background:#ffffffde;border-radius:999px;padding:5px 12px;font-weight:800;font-size:13px;color:#4a2338;box-shadow:0 2px 8px #0001}
@@ -405,11 +405,12 @@ function floorTex(id){
       const page = (0,eval)("housePage");
       const old = document.getElementById('rkFloorShop');
       if (old) old.remove();
-      const room = (0,eval)("currentRoom") || 'bedroom';
+      const room = (0,eval)("shopRoom") || 'bedroom';
+      const category = (0,eval)("shopType");
       const coins = (0,eval)("coins") || 0;
       const list = FLOORS.filter(f => room === 'garden' ? true : f.id !== 'grass');
-      if (page === 'shop') {
-        const panel = document.querySelector('.panel');
+      if (page === 'shop' && category === 'Flooring') {
+        const panel = document.querySelector('.shop-categories.subcats')?.parentElement;
         if (!panel) return r;
         const box = document.createElement('section');
         box.id = 'rkFloorShop';
@@ -873,7 +874,7 @@ function edBuild(room){
   lights(s,Math.max(W,D),1024);
   const shell=new THREE.Group();s.add(shell);roomShell(shell,room,W,D,H);roomIdentity(shell,room,W,D,H);
   if(room!=='garden'){const L=new THREE.PointLight(0xffe2b8,.35,9,2);L.position.set(0,H-.4,.6);s.add(L);}
-  dioDress(shell,s,room,W,D,H);if(DIO.on){const bx=document.getElementById('dreamRoom');const asp=bx&&bx.clientHeight?bx.clientWidth/bx.clientHeight:1.2;DIO.el=asp<.95?.7:.5;DIO.az=asp<.95?-.42:-.62;ED.az=ED.azT=DIO.az;ED.el=ED.elT=DIO.el;ED.zoom=DIO.zoom;ED.dioKey=null;}
+  dioDress(shell,s,room,W,D,H);if(DIO.on){const bx=document.getElementById('dreamRoom');const asp=bx&&bx.clientHeight?bx.clientWidth/bx.clientHeight:1.2;DIO.el=asp<.95?.72:.60;DIO.az=asp<.95?-.30:-.40;ED.az=ED.azT=DIO.az;ED.el=ED.elT=DIO.el;ED.zoom=DIO.zoom;ED.dioKey=null;}
   ED.group=new THREE.Group();s.add(ED.group);ED.items=fillItems(ED.group,room,W,D,1.5);if(window.RK3.hydrateStorage)ED.items.forEach(g=>window.RK3.hydrateStorage(g,room));
   ED.ceiling = shell.userData.ceiling || null;
   const ceilBtn = document.getElementById('rk3CeilingToggle');
@@ -884,8 +885,8 @@ function edBuild(room){
     };
   }
   const zIn = document.getElementById('rk3ZoomIn'), zOut = document.getElementById('rk3ZoomOut');
-  if (zIn) zIn.onclick = () => { ED.zoom = cl(ED.zoom - 0.12, 0.72, 1.8); ED.dioKey=null; };
-  if (zOut) zOut.onclick = () => { ED.zoom = cl(ED.zoom + 0.12, 0.72, 1.8); ED.dioKey=null; };
+  if (zIn) zIn.onclick = () => { ED.zoom = cl(ED.zoom - 0.12, DIO.on ? DIO.zoom*.68 : .72, DIO.on ? DIO.zoom*1.9 : 1.8); ED.dioKey=null; };
+  if (zOut) zOut.onclick = () => { ED.zoom = cl(ED.zoom + 0.12, DIO.on ? DIO.zoom*.68 : .72, DIO.on ? DIO.zoom*1.9 : 1.8); ED.dioKey=null; };
   const center = document.getElementById('rk3Center');
   if (center) center.onclick = () => { if(DIO.on){ED.azT=DIO.az;ED.elT=DIO.el;ED.zoom=DIO.zoom;return;} ED.azT = 0; ED.elT = 0.42; ED.zoom = 1.35; };
 
@@ -894,7 +895,7 @@ function edBuild(room){
   const selId=ED.sel;ED.sel=null;if(selId)edSelect(selId,true);
 }
 /* ===== Diorama view (Claude, Nov 1): look into the room from outside, like a cutaway dollhouse box ===== */
-const DIO={on:true,az:-.62,el:.5,zoom:1.09,glow:null};
+const DIO={on:true,az:-.30,el:.72,zoom:1.09,glow:null};
 function dioMix(a,b,t){const A=parseInt(a.slice(1),16),Bq=parseInt(b.slice(1),16);const f=(s)=>Math.round(((A>>s)&255)*(1-t)+((Bq>>s)&255)*t);return '#'+((1<<24)|(f(16)<<16)|(f(8)<<8)|f(0)).toString(16).slice(1);}
 function dioWall(room){const owned=G('owned')||[],ri=(G('roomInteriors')||{})[room]||{},INTER=G('INTERIORS')||[];const w=INTER.find(t=>t[0]===ri.wall&&owned.includes(t[0]));if(w&&/^#[0-9a-f]{6}$/i.test(w[3]))return w[3];return roomWallBase(room);}
 function dioGlow(){if(DIO.glow)return DIO.glow;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');const g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,240,200,1)');g.addColorStop(.22,'rgba(255,214,150,.6)');g.addColorStop(1,'rgba(255,200,120,0)');x.fillStyle=g;x.fillRect(0,0,64,64);DIO.glow=new THREE.CanvasTexture(c);return DIO.glow;}
@@ -925,12 +926,12 @@ function dioCamera(){if(ED.R.toneMappingExposure!==.84)ED.R.toneMappingExposure=
   const W=ED.W,D=ED.D,H=ED.H,gd=ED.room==='garden';const xs=gd?[-W/2-.65,W/2+.65]:[-W/2-.11,W/2+.11],zs=gd?[-D/2-.3,D/2+.5]:[-D/2-.11,D/2+.11],ys=[-.09,gd?1:H+.18];
   const P=[];xs.forEach(x=>zs.forEach(z=>ys.forEach(y=>P.push(new THREE.Vector3(x,y,z)))));
   const dir=new THREE.Vector3(Math.sin(ED.az)*Math.cos(ED.el),Math.sin(ED.el),Math.cos(ED.az)*Math.cos(ED.el));
-  const topPad=.065,botPad=.065,side=.045;const yMax=1-topPad,yMin=-1+botPad;
+  const topPad=.14,botPad=.12,side=.08;const yMax=1-topPad,yMin=-1+botPad;
   const tgt=new THREE.Vector3(0,gd?.2:H*.35,gd?.3:0),v=new THREE.Vector3();
   const box=dist=>{ED.cam.position.copy(tgt).addScaledVector(dir,dist);ED.cam.lookAt(tgt);ED.cam.near=.1;ED.cam.far=dist*4+20;ED.cam.updateProjectionMatrix();ED.cam.updateMatrixWorld();let a=9,b=-9,c2=9,d=-9;P.forEach(p=>{v.copy(p).project(ED.cam);a=Math.min(a,v.x);b=Math.max(b,v.x);c2=Math.min(c2,v.y);d=Math.max(d,v.y);});return [a,b,c2,d];};
   const fit=()=>{let lo=1,hi=80;for(let k=0;k<26;k++){const m=(lo+hi)/2,[a,b,c2,d]=box(m);if(b-a<=2-2*side&&d-c2<=yMax-yMin)hi=m;else lo=m;}return hi;};
   for(let pass=0;pass<3;pass++){const dist=fit(),[a,b,c2,d]=box(dist);const cx=(a+b)/2,cy=(c2+d)/2,wantY=(yMax+yMin)/2;const hh=dist*Math.tan(ED.cam.fov*Math.PI/360),hw=hh*ED.cam.aspect;const right=new THREE.Vector3().setFromMatrixColumn(ED.cam.matrixWorld,0),up=new THREE.Vector3().setFromMatrixColumn(ED.cam.matrixWorld,1);tgt.addScaledVector(right,cx*hw).addScaledVector(up,(cy-wantY)*hh);}
-  const dist=fit()*cl(ED.zoom/DIO.zoom,1,1.7);box(dist);}
+  const dist=fit()*cl(ED.zoom/DIO.zoom,.68,1.9);box(dist);}
 function dioToggleBtn(box){let b=box.querySelector('.rk3-dio');if(!b){b=document.createElement('button');b.type='button';b.className='rk3-dio';box.appendChild(b);b.onclick=e=>{e.stopPropagation();DIO.on=!DIO.on;edBuild(ED.room);dioToggleBtn(box);};}
   b.textContent=DIO.on?'👀 Look inside':'🏠 Dollhouse view';const cb=document.getElementById('rk3CeilingToggle');if(cb)cb.style.display=DIO.on?'none':'';
   if(!document.getElementById('dioCss')){const st=document.createElement('style');st.id='dioCss';st.textContent='.rk3-dio{position:absolute;left:10px;bottom:10px;z-index:6;border:0;border-radius:999px;padding:8px 13px;background:#fff;color:#4a2338;font-weight:900;font-size:13px;box-shadow:0 3px 10px #0002;cursor:pointer}';document.head.appendChild(st);}}

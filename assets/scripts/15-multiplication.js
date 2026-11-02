@@ -301,6 +301,9 @@ function addTile(){
   const houseTile=$('hubHouse');if(houseTile)grid.insertBefore(button,houseTile);else grid.appendChild(button);
   button.onclick=()=>{sound();startHome()};
  }
+ const mathTile=$('hubMath');if(mathTile){mathTile.querySelector('.hub-ic')?.replaceChildren(document.createTextNode('✖️'));mathTile.setAttribute('aria-label','Multiplication games — multiply and solve');}
+ // Other home layouts can provide their own Multiplication tile; correct its artwork too.
+ app.querySelectorAll('button, .hub-tile').forEach(tile=>{const label=tile.querySelector('b,strong,h2,h3');if(!label||!/^(multiplication|multiply|multiplication games)$/i.test(label.textContent.trim()))return;const ic=tile.querySelector('.hub-ic,.hub-icon,.tile-icon,.menu-icon,.game-icon');if(ic)ic.textContent='✖️';});
  activeTab();
 }
 let scheduled=false;new MutationObserver(()=>{if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;addTile()})}).observe(app,{childList:true});

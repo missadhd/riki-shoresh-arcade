@@ -299,3 +299,71 @@ html body .top .stats>#gamesShortcut:focus-visible{outline:3px solid #557fa7!imp
 #app .rk-math-families button{min-height:48px;border-radius:18px;box-shadow:inset 0 -4px 0 #0000000f}
 @media(prefers-reduced-motion:reduce){#app .rk-math-choices>button{transition:none}}
 #app .rk-math-hero>.rk-math-dio{display:flex;width:100%;padding:0;border-radius:26px;background:radial-gradient(120% 90% at 50% 0%,#fff6ec 0%,#fbe3dc 55%,#f1cfc8 100%)}
+
+/* Consistent six-destination navigation: identical button boxes on mobile and desktop. */
+.top .stats{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;align-items:stretch!important}
+.top .stats>#hubHomeBtn,.top .stats>#gamesShortcut,.top .stats>#rkMathShortcut,.top .stats>#houseShortcut,.top .stats>#hubSocialBtn,.top .stats>#rkDollsShortcut,.top .stats>#rkShopShortcut{box-sizing:border-box!important;width:100%!important;min-width:0!important;min-height:54px!important;height:100%!important;margin:0!important;padding:8px 5px!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;white-space:normal!important;line-height:1.15!important;font-size:clamp(11px,1.65vw,15px)!important;border-radius:19px!important;grid-row:auto!important;grid-column:auto!important}
+.top .stats>#hubHomeBtn{grid-area:1/1!important}.top .stats>#gamesShortcut{grid-area:1/2!important}.top .stats>#rkMathShortcut{grid-area:1/3!important}.top .stats>#houseShortcut{grid-area:1/4!important}.top .stats>#hubSocialBtn{grid-area:2/1!important}.top .stats>#rkDollsShortcut{grid-area:2/2!important}.top .stats>#rkShopShortcut{grid-area:2/3/3/5!important}
+.top .stats>#settingsToggle{grid-area:3/3/4/5!important;min-height:44px!important;width:100%!important}.top .stats>#rikiParentMenuButton{grid-area:3/1/4/3!important;justify-self:start!important;align-self:center!important}
+@media(max-width:540px){.top .stats{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important}.top .stats>#hubHomeBtn,.top .stats>#gamesShortcut,.top .stats>#rkMathShortcut,.top .stats>#houseShortcut,.top .stats>#hubSocialBtn,.top .stats>#rkDollsShortcut,.top .stats>#rkShopShortcut{font-size:clamp(10px,2.7vw,13px)!important;min-height:50px!important;padding:7px 3px!important}}
+
+/* Screenshot-driven repair: earlier .top selectors lost to html body specificity.
+   Explicitly reset grid placement inherited from the original 7-column layout. */
+html body .top .stats{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:7px!important;align-items:stretch!important;overflow:visible!important}
+html body .top .stats>#hubHomeBtn,
+html body .top .stats>#gamesShortcut,
+html body .top .stats>#rkMathShortcut,
+html body .top .stats>#houseShortcut,
+html body .top .stats>#hubSocialBtn,
+html body .top .stats>#rkDollsShortcut,
+html body .top .stats>#rkShopShortcut{
+  grid-area:auto!important;grid-row:auto!important;grid-column:auto!important;
+  width:100%!important;min-width:0!important;min-height:64px!important;height:100%!important;
+  margin:0!important;padding:8px 4px!important;box-sizing:border-box!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  text-align:center!important;white-space:normal!important;line-height:1.15!important;
+  font-size:clamp(11px,2.6vw,16px)!important;border-radius:19px!important
+}
+html body .top .stats>#hubHomeBtn{grid-area:1/1/2/2!important}
+html body .top .stats>#gamesShortcut{grid-area:1/2/2/3!important}
+html body .top .stats>#rkMathShortcut{grid-area:1/3/2/4!important}
+html body .top .stats>#houseShortcut{grid-area:1/4/2/5!important}
+html body .top .stats>#hubSocialBtn{grid-area:2/1/3/2!important}
+html body .top .stats>#rkDollsShortcut{grid-area:2/2/3/3!important}
+html body .top .stats>#rkShopShortcut{grid-area:2/3/3/5!important}
+html body .top .stats>#rikiParentMenuButton{grid-area:3/1/4/3!important;justify-self:start!important;align-self:center!important}
+html body .top .stats>#settingsToggle{grid-area:3/3/4/5!important;width:100%!important;min-height:44px!important;justify-self:stretch!important}
+html body .top .stats>#coins{position:static!important;grid-area:4/1/5/5!important;justify-self:end!important;align-self:center!important;top:auto!important;right:auto!important;left:auto!important;width:auto!important;max-width:none!important;pointer-events:none!important}
+html body .top .stats>.sound-settings{grid-area:5/1/6/5!important}
+@media(max-width:540px){
+ html body .top .stats{gap:6px!important}
+ html body .top .stats>#hubHomeBtn,html body .top .stats>#gamesShortcut,html body .top .stats>#rkMathShortcut,html body .top .stats>#houseShortcut,
+ html body .top .stats>#hubSocialBtn,html body .top .stats>#rkDollsShortcut,html body .top .stats>#rkShopShortcut{
+  min-height:58px!important;padding:7px 3px!important;font-size:clamp(10px,2.7vw,14px)!important
+ }
+}
+/* Clay icon sprite hides text and supplies Shoresh artwork by default.
+   Disable it specifically for multiplication; keep Shoresh artwork untouched. */
+html body #app .hub-grid #hubMath .hub-ic{
+ display:grid!important;place-items:center!important;
+ font-size:48px!important;line-height:1!important;color:#a94772!important;
+ background:none!important;width:100%!important;height:80px!important
+}
+html body #app .hub-grid #hubMath .hub-ic::before{
+ content:none!important;display:none!important;background-image:none!important
+}
+
+/* Screenshot QA Nov 1: wallet must occupy its OWN grid cell, not cover Dollhouse.
+   The brand is sometimes hidden while games run, so absolute positioning is unsafe. */
+.top .brand{padding-right:0!important}
+.top .stats>#coins{position:static!important;grid-area:3/2/4/3!important;justify-self:stretch!important;align-self:center!important;width:100%!important;max-width:none!important;min-width:0!important;height:44px!important;min-height:44px!important;top:auto!important;right:auto!important;left:auto!important;padding:5px 2px!important;font-size:clamp(11px,2.5vw,14px)!important}
+.top .stats>#rikiParentMenuButton{grid-area:3/1/4/2!important;justify-self:stretch!important;width:100%!important;min-width:0!important;height:44px!important;min-height:44px!important;margin:0!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:19px!important}
+.top .stats>#settingsToggle{grid-area:3/3/4/5!important;justify-self:stretch!important;align-self:stretch!important;min-width:0!important;height:44px!important;min-height:44px!important;margin:0!important;box-sizing:border-box!important;border-radius:19px!important;text-align:center!important}
+.top .stats>#streak{display:none!important}
+.top .stats>.sound-settings{grid-area:4/1/5/5!important}
+@media(max-width:540px){.top .brand{padding-right:0!important}.top .stats>#coins{position:static!important;top:auto!important;right:auto!important;max-width:none!important;font-size:12px!important}}
+
+/* The global clay sprite stylesheet paints a book over every .hub-ic::before.
+   Multiplication must not inherit Shoreshim's sprite. */
+#app #hubMath .hub-ic::before,#app .hub-math .hub-ic::before{content:none!important;display:none!important;background-image:none!important}
+#app #hubMath .hub-ic,#app .hub-math .hub-ic{background-image:none!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:54px!important;color:#a94772!important;min-height:88px!important}
