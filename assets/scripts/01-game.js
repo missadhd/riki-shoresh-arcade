@@ -822,14 +822,28 @@ const headerStats=document.querySelector('.stats');if(headerStats){const btn=doc
 
 /* Hands-on learning: drag Hebrew tiles and launch only after choosing the right root. */
 function rocketLaunchMini(s){
- if(session!==s)return;const result=document.getElementById('result'),next=document.getElementById('next');if(!result||!next)return;next.hidden=true;
- const field=document.createElement('div');field.className='learning-rocket-field';field.innerHTML='<p>Fuel ready! Drag your rocket to the star, or tap it to launch.</p><span class="learning-star" aria-hidden="true">⭐</span><button type="button" class="learning-rocket" aria-label="Launch your rocket to the star">🚀</button><span class="learning-planet" aria-hidden="true">🪐</span>';
- result.appendChild(field);const rocket=field.querySelector('button'),star=field.querySelector('.learning-star');let drag=null,launched=false,suppress=0;
- const launch=()=>{if(launched||session!==s)return;launched=true;rocket.classList.add('launched');field.querySelector('p').textContent='Mission complete! Your Hebrew fuel worked!';setTimeout(()=>{if(session!==s)return;next.hidden=false;next.click();},750);};
- rocket.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY};try{rocket.setPointerCapture(e.pointerId);}catch(_){};};
- rocket.onpointermove=e=>{if(!drag||launched)return;const r=field.getBoundingClientRect();rocket.style.left=Math.max(10,Math.min(r.width-55,e.clientX-r.left-24))+'px';rocket.style.top=Math.max(30,Math.min(r.height-50,e.clientY-r.top-24))+'px';};
- rocket.onpointerup=e=>{if(!drag)return;const moved=Math.hypot(e.clientX-drag.x,e.clientY-drag.y);drag=null;if(moved>=9)suppress=performance.now()+250;const r=star.getBoundingClientRect();if(moved<9||Math.hypot(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2))<65)launch();else{rocket.style.left='';rocket.style.top='';}};
- rocket.onpointercancel=()=>{drag=null;rocket.style.left='';rocket.style.top='';};rocket.onclick=()=>{if(!drag&&performance.now()>=suppress)launch();};
+ if(session!==s)return;
+ const result=document.getElementById('result'),next=document.getElementById('next');
+ if(!result||!next)return;
+ next.hidden=true;
+ const finalQuestion=s.at===s.order.length-1;
+ const field=document.createElement('div');field.className='learning-rocket-field';
+ field.innerHTML='<p class="rocket-status" role="status" aria-live="polite">Fuel meter charging…</p><div class="rocket-count" style="font-size:25px;font-weight:800">10</div><div class="rocket-meter" style="height:13px;border-radius:20px;background:#e7d9ee;overflow:hidden;margin:8px auto;max-width:250px"><div class="rocket-fill" style="height:100%;width:0%;background:#ec82ac;transition:width .24s"></div></div><span class="learning-rocket" aria-label="Rocket waiting for launch" style="display:inline-block;font-size:56px">🚀</span><div class="rocket-effects" aria-hidden="true" style="font-size:34px;min-height:48px"></div>';
+ result.appendChild(field);
+ const count=field.querySelector('.rocket-count'),fill=field.querySelector('.rocket-fill'),status=field.querySelector('.rocket-status'),rocket=field.querySelector('.learning-rocket'),effects=field.querySelector('.rocket-effects');
+ let remaining=10;
+ const tick=()=>{
+   if(session!==s||!field.isConnected)return;
+   count.textContent=String(remaining);fill.style.width=((10-remaining)*10)+'%';
+   if(remaining>0){remaining--;setTimeout(tick,260);return;}
+   status.textContent=finalQuestion?'Blast off! Level complete!':'Fuel loaded! Next question!';
+   rocket.classList.add('launched');
+   rocket.style.transition='transform 1.2s ease-in, opacity 1.2s';
+   if(finalQuestion){effects.textContent='🔥🔥 ✨🎆✨';rocket.style.transform='translateY(-145px) scale(.7)';rocket.style.opacity='0';}
+   else{effects.textContent='⛽✨';}
+   setTimeout(()=>{if(session!==s||!field.isConnected)return;next.hidden=false;next.click();},finalQuestion?1600:450);
+ };
+ tick();
 }
 (function(){let suppressUntil=0;
  document.addEventListener('click',e=>{if(performance.now()<suppressUntil&&e.target.closest('.letter')){e.preventDefault();e.stopImmediatePropagation();}},true);
