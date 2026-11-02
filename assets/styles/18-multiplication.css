@@ -352,3 +352,18 @@ html body #app .hub-grid #hubMath .hub-ic{
 html body #app .hub-grid #hubMath .hub-ic::before{
  content:none!important;display:none!important;background-image:none!important
 }
+
+/* Screenshot QA Nov 1: wallet must occupy its OWN grid cell, not cover Dollhouse.
+   The brand is sometimes hidden while games run, so absolute positioning is unsafe. */
+.top .brand{padding-right:0!important}
+.top .stats>#coins{position:static!important;grid-area:3/2/4/3!important;justify-self:stretch!important;align-self:center!important;width:100%!important;max-width:none!important;min-width:0!important;height:44px!important;min-height:44px!important;top:auto!important;right:auto!important;left:auto!important;padding:5px 2px!important;font-size:clamp(11px,2.5vw,14px)!important}
+.top .stats>#rikiParentMenuButton{grid-area:3/1/4/2!important;justify-self:stretch!important;width:100%!important;min-width:0!important;height:44px!important;min-height:44px!important;margin:0!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:19px!important}
+.top .stats>#settingsToggle{grid-area:3/3/4/5!important;justify-self:stretch!important;align-self:stretch!important;min-width:0!important;height:44px!important;min-height:44px!important;margin:0!important;box-sizing:border-box!important;border-radius:19px!important;text-align:center!important}
+.top .stats>#streak{display:none!important}
+.top .stats>.sound-settings{grid-area:4/1/5/5!important}
+@media(max-width:540px){.top .brand{padding-right:0!important}.top .stats>#coins{position:static!important;top:auto!important;right:auto!important;max-width:none!important;font-size:12px!important}}
+
+/* The global clay sprite stylesheet paints a book over every .hub-ic::before.
+   Multiplication must not inherit Shoreshim's sprite. */
+#app #hubMath .hub-ic::before,#app .hub-math .hub-ic::before{content:none!important;display:none!important;background-image:none!important}
+#app #hubMath .hub-ic,#app .hub-math .hub-ic{background-image:none!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:54px!important;color:#a94772!important;min-height:88px!important}
