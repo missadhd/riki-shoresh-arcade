@@ -227,17 +227,31 @@ function ensure(){
 
 /* Clay settings behind each studio game (Claude, Oct 31): a little room/diorama in the dollhouse style */
 const ENV={
- cupcakes:{glow:1,lights:1,bg:['#ffe9dc','#ffd3df'],wall:'#ffd9e6',stripe:'#ffc2d6',floor:['#fff4ea','#ffd6e2'],items:[['cupcakecase',-1.55,-1.75,.25,1.15],['coffeemachine',1.55,-1.8,-.25,.95],['donuttower',-.75,-2.25,0,.7],['breadbasket',.8,-2.25,0,.45],['plantmini',2.2,-1.1,0,.5]],bunt:1},
+ cupcakes:{glow:1,lights:1,bg:['#ffe9dc','#ffd3df'],wall:'#ffd9e6',stripe:'#ffc2d6',floor:['#fff4ea','#ffd6e2'],items:[['cupcakecase',-1.55,-1.75,.25,1.15],['donuttower',-.6,-2.35,0,.7],['plantmini',2.45,-.75,0,.5]],glb:[['oven',.4,-2.4,-.12,.8],['fridge',1.35,-2.15,-.4,1.4]],bunt:1},
  cake:{glow:1,lights:1,bg:['#f3e2ff','#ffd9e6'],wall:'#eadbff',stripe:'#dcc7ff',floor:['#f7dfcf','#ead3f5'],items:[['partyarch',0,-2.35,0,2.1],['birthdayballoons',-1.9,-1.6,.3,1.7],['birthdayballoons',1.9,-1.6,-.3,1.6],['birthdaygifts',1.45,-1.1,-.3,.5],['pinata',-1.45,-1.15,.3,.6]],bunt:1},
  dressup:{glow:.85,lights:1,bg:['#ffe6ee','#ffd6c8'],wall:'#ffe3ec',stripe:'#ffd0de',floor:['#fff6f2','#ffe6ee'],items:[['wardrobe',-1.7,-1.8,.3,1.7],['vanityhollywood',1.7,-1.8,-.3,1.4],['plant',2.4,-.9,0,.9],['jewels',-1.1,-1.05,0,.35]]},
  boutique:{glow:.85,lights:1,bg:['#ffe6ee','#ffd6c8'],wall:'#ffe3ec',stripe:'#ffd0de',floor:['#fff6f2','#ffe6ee'],items:[['wardrobe',-2.0,-1.8,.3,1.7],['shelfladder',2.0,-1.8,-.3,1.6],['plant',2.5,-.7,0,.9]]},
- pets:{glow:.8,lights:1,bg:['#e2f5ef','#ffe2d6'],wall:'#d8f3ea',stripe:'#c4ecdf',floor:['#f4e3d6','#cfe7f1'],items:[['bath',-1.7,-1.7,.3,.85],['towels',1.6,-1.85,-.2,.55],['petbedpink',1.8,-1.4,-.2,.35],['pettoy',-1.6,-1.3,0,.3],['bathplant',2.3,-.8,0,.8]]},
+ pets:{glow:.8,lights:1,bg:['#e2f5ef','#ffe2d6'],wall:'#d8f3ea',stripe:'#c4ecdf',floor:['#f4e3d6','#cfe7f1'],items:[['bath',-1.7,-1.7,.3,.85],['petbedpink',1.8,-1.4,-.2,.35],['pettoy',-1.6,-1.3,0,.3]],glb:[['towel-rack',1.0,-3.3,-.28,.45,1.05],['plant-snake',1.55,-2.0,-.5,.75]]},
  giftwrap:{glow:1.1,lights:1,bg:['#ffe8d4','#ffd0c4'],wall:'#ffe6d2',stripe:'#ffd8bd',floor:['#fff7ef','#ffe9d6'],items:[['birthdaygifts',-1.7,-1.6,.3,.6],['crafts',1.6,-1.6,-.3,.5],['fairylights',0,-2.4,0,1.9],['plant',2.3,-.8,0,.9]]},
  claw:{glow:1.2,lights:1,bg:['#e9dcff','#ffd0e6'],wall:'#e4d6ff',stripe:'#d3c0ff',floor:['#f4ecff','#e3d4ff'],items:[['neonrainbow',0,-2.6,0,1.0,1.9],['lavalamp',-1.7,-1.5,0,.6],['partydisco',2.0,-1.7,-.3,1.7],['clawpiggy',-1.9,-1.9,.3,.35]]},
  garden:{out:1,items:[['tree',-2.2,-2.0,0,2.4],['tree',2.3,-2.2,0,2.2],['flowers2',-1.6,-1.0,0,.6],['butterfly',1.5,-1.2,0,.5,.8],['birdhouse',1.7,-1.8,0,1.2],['mushroomring',-1.4,1.3,0,.3]]},
  aquarium:{glow:.7,lights:1,bg:['#dceeff','#ffe4dc'],wall:'#cfe9ff',stripe:'#bfe0ff',floor:['#f2f8ff','#dcefff'],items:[['fishtank',-1.9,-1.7,.3,.9],['seastar',1.9,-2.0,0,.3],['bubbles',1.8,-1.9,0,1.2],['plant',2.3,-.8,0,.9]]},
  quest:{out:1,items:[['tree',-3.0,-2.6,0,2.4],['tree',3.0,-2.6,0,2.2]]}};
 const envTex=(w,h,draw)=>{const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;};
+
+/* Clay GLB props (Grok): restyled CC0 Quaternius models in assets/models/clay, loaded lazily per scene.
+   ENV[id].glb=[[name,x,z,ry,height,y]]; fingerprint-noise bump + contact shadow so they read as clay. */
+let CLAYN=null,GLTFP=null;const GLBC={};
+function clayNoise(){if(CLAYN)return CLAYN;const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),d=x.createImageData(128,128);for(let i=0;i<16384;i++){const v=128+(Math.random()-.5)*50;d.data[i*4]=d.data[i*4+1]=d.data[i*4+2]=v;d.data[i*4+3]=255;}x.putImageData(d,0,0);
+ x.globalAlpha=.12;for(let k=0;k<70;k++){x.strokeStyle=k%2?'#000':'#fff';x.lineWidth=1+Math.random()*2;x.beginPath();x.arc(Math.random()*128,Math.random()*128,3+Math.random()*8,0,Math.PI*(1+Math.random()));x.stroke();}
+ CLAYN=new THREE.CanvasTexture(c);CLAYN.wrapS=CLAYN.wrapT=THREE.RepeatWrapping;CLAYN.repeat.set(4,4);return CLAYN;}
+function gltfReady(){if(THREE.GLTFLoader)return Promise.resolve();if(GLTFP)return GLTFP;GLTFP=new Promise((ok,no)=>{const s=document.createElement('script');s.src='assets/vendor/three-r128-gltfloader.min.js?v=1';s.onload=ok;s.onerror=no;document.head.appendChild(s);});return GLTFP;}
+function clayGLB(name){if(!GLBC[name])GLBC[name]=gltfReady().then(()=>new THREE.GLTFLoader().loadAsync('assets/models/clay/'+name+'.glb')).then(g=>g.scene).catch(e=>{delete GLBC[name];throw e;});return GLBC[name].then(sc0=>sc0.clone(true));}
+function clayProps(g,list){const blob=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),gr=x.createRadialGradient(32,32,2,32,32,32);gr.addColorStop(0,'rgba(90,40,50,.45)');gr.addColorStop(1,'rgba(90,40,50,0)');x.fillStyle=gr;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
+ list.forEach(([name,x,z,ry,h,y0])=>{clayGLB(name).then(m=>{if(!g.parent)return;m.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.material=o.material.clone();o.material.bumpMap=clayNoise();o.material.bumpScale=.02;o.material.roughness=.92;o.material.metalness=0;}});
+  const bb=new THREE.Box3().setFromObject(m),sz=bb.getSize(new THREE.Vector3()),c=bb.getCenter(new THREE.Vector3());const w=new THREE.Group();m.position.set(-c.x,-bb.min.y,-c.z);w.add(m);const k=h/Math.max(sz.y,.01);w.scale.setScalar(k);w.rotation.y=ry;w.position.set(x,y0||0,z);g.add(w);
+  if(!y0){const r=Math.max(sz.x,sz.z)*k*.62,sh=new THREE.Mesh(new THREE.PlaneGeometry(r*2,r*2),new THREE.MeshBasicMaterial({map:blob,transparent:true,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.position.set(x,.012,z);sh.renderOrder=1;g.add(sh);}
+ }).catch(e=>console.warn('clay prop',name,e));});}
 function buildEnv(id){const E=ENV[id];if(!E)return;const g=new THREE.Group();g.userData.env=1;const Rr=3.6;
  if(E.out){const grass=envTex(128,128,(c,w,h)=>{c.fillStyle='#9fdc7c';c.fillRect(0,0,w,h);for(let i=0;i<500;i++){c.fillStyle=`rgba(70,${150+Math.random()*60|0},60,.35)`;c.fillRect(Math.random()*w,Math.random()*h,2,5);}});grass.repeat.set(6,6);const f=new THREE.Mesh(new THREE.CircleGeometry(Rr+1.5,48),new THREE.MeshStandardMaterial({map:grass,roughness:1}));f.rotation.x=-Math.PI/2;f.position.y=-.005;f.receiveShadow=true;g.add(f);
   const sky=envTex(8,256,(c,w,h)=>{const gr=c.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#8fd0ff');gr.addColorStop(.75,'#e6f6ff');gr.addColorStop(1,'#d7f0c8');c.fillStyle=gr;c.fillRect(0,0,w,h);});const sk=new THREE.Mesh(new THREE.CylinderGeometry(Rr+2,Rr+2,7,40,1,true),new THREE.MeshBasicMaterial({map:sky,side:THREE.BackSide}));sk.position.y=3.4;g.add(sk);
@@ -250,6 +264,7 @@ function buildEnv(id){const E=ENV[id];if(!E)return;const g=new THREE.Group();g.u
   if(E.lights&&RK3.stringLights)RK3.stringLights(g,{r:Rr-.16,y:1.75,a0:Math.PI*.64,al:Math.PI*.72,n:22,sag:.22});
   if(E.bg&&RK3.gradient){scene.background=RK3.gradient(E.bg[0],E.bg[1]);scene.fog=new THREE.Fog(new THREE.Color(E.bg[1]).getHex(),8,22);}
   if(E.bunt){const cols=[0xff8fb8,0xffd36b,0x8fd3ff,0xa8e6a1,0xc9a7ff];for(let i=0;i<15;i++){const t=(i/14-.5)*Math.PI*.8;const fl2=new THREE.Mesh(new THREE.ConeGeometry(.11,.26,3),new THREE.MeshStandardMaterial({color:cols[i%5],roughness:.7}));fl2.rotation.z=Math.PI;fl2.position.set(Math.sin(t)*(Rr-.15),2.75-Math.cos((i/14)*Math.PI*2)*.08,-Math.cos(t)*(Rr-.15));g.add(fl2);}}}
+ if(E.glb)clayProps(g,E.glb);
  const ITEMS=G('ITEMS')||[];(E.items||[]).forEach(([iid,x,z,ry,h,y0])=>{const it=ITEMS.find(i=>i[0]===iid);if(!it||!K.makeItem)return;let m;try{m=K.makeItem(it);}catch(e){return;}m.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}if(o.isLight)o.intensity*=.5;});m.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(m),sz=bb.getSize(new THREE.Vector3()),c=bb.getCenter(new THREE.Vector3());const w2=new THREE.Group();m.position.set(-c.x,-bb.min.y,-c.z);w2.add(m);w2.scale.setScalar(h/Math.max(sz.y,.01));w2.rotation.y=ry;w2.position.set(x,y0||0,z);g.add(w2);});
  scene.add(g);}
 function newScene(def){

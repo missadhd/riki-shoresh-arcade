@@ -1,0 +1,73 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clay room sample: Cupcake Café kitchen (draft)</title>
+<style>html,body{margin:0;height:100%;background:#f3d6cf;font-family:system-ui,sans-serif}#c{display:block;width:100vw;height:100vh}
+#info{position:fixed;left:10px;bottom:10px;background:#fff9;border-radius:12px;padding:6px 10px;font-size:12px;color:#7a4a55}</style></head>
+<body><canvas id="c" aria-label="Clay kitchen diorama sample"></canvas><div id="info">Draft sample · restyled CC0 models (Quaternius) · <span id="fps"></span></div>
+<script src="../assets/vendor/three-r128.min.js"></script><script src="../assets/vendor/three-r128-gltfloader.min.js"></script>
+<script>
+(async()=>{
+const LC=c=>new THREE.Color(c).convertSRGBToLinear();
+const cv=document.getElementById('c'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true});R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=.95;
+R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.setPixelRatio(Math.min(devicePixelRatio,1.5));
+const sc=new THREE.Scene();
+{const c=document.createElement('canvas');c.width=4;c.height=256;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,'#f8e2da');g.addColorStop(1,'#e9b9b8');x.fillStyle=g;x.fillRect(0,0,4,256);sc.background=new THREE.CanvasTexture(c);sc.background.encoding=THREE.sRGBEncoding;}
+// warm light: sky/ground fill + soft key with shadows + window glow
+sc.add(new THREE.HemisphereLight(LC('#fff3e8'),LC('#c98f8c'),.62));
+const key=new THREE.DirectionalLight(LC('#ffe2c0'),1.6);key.position.set(4,7,5);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.radius=6;key.shadow.bias=-.0006;
+Object.assign(key.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:1,far:20});sc.add(key);
+const win=new THREE.PointLight(LC('#ffd9a0'),.6,6,2);win.position.set(-2,1.8,.8);sc.add(win);
+// fingerprint clay noise (bump)
+const noise=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d'),d=x.createImageData(256,256);for(let i=0;i<65536;i++){const v=128+(Math.random()-.5)*50;d.data.set([v,v,v,255],i*4);}x.putImageData(d,0,0);
+ x.globalAlpha=.12;for(let k=0;k<180;k++){x.strokeStyle=k%2?'#000':'#fff';x.lineWidth=1+Math.random()*2;x.beginPath();x.arc(Math.random()*256,Math.random()*256,3+Math.random()*10,0,Math.PI*(1+Math.random()));x.stroke();}
+ const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(4,4);return t;})();
+const clay=(col)=>new THREE.MeshStandardMaterial({color:LC(col),roughness:.92,metalness:0,bumpMap:noise,bumpScale:.02});
+// rounded slab (bevelled clay)
+function slab(w,h,d,r,col){const bs=Math.min(r,h*.45,w*.3,d*.3),W=w-2*bs,D=d-2*bs,rr=Math.max(.002,Math.min(bs,W/2-.002,D/2-.002));const s=new THREE.Shape(),x=-W/2,z=-D/2;
+ s.moveTo(x+rr,z);s.lineTo(x+W-rr,z);s.quadraticCurveTo(x+W,z,x+W,z+rr);s.lineTo(x+W,z+D-rr);s.quadraticCurveTo(x+W,z+D,x+W-rr,z+D);s.lineTo(x+rr,z+D);s.quadraticCurveTo(x,z+D,x,z+D-rr);s.lineTo(x,z+rr);s.quadraticCurveTo(x,z,x+rr,z);
+ const g=new THREE.ExtrudeGeometry(s,{depth:Math.max(.001,h-2*bs),bevelEnabled:true,bevelSize:bs,bevelThickness:bs,bevelSegments:3,curveSegments:5});g.rotateX(Math.PI/2);g.translate(0,h-bs,0);
+ const P=g.attributes.position,uv=new Float32Array(P.count*2);for(let i=0;i<P.count;i++){uv[i*2]=(P.getX(i)+P.getZ(i))*.5;uv[i*2+1]=(P.getY(i)+P.getZ(i)*.5)*.5;}g.setAttribute('uv',new THREE.BufferAttribute(uv,2));
+ const m=new THREE.Mesh(g,clay(col));m.receiveShadow=true;return m;}
+const blobTex=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,2,32,32,32);g.addColorStop(0,'rgba(95,45,55,.5)');g.addColorStop(.6,'rgba(95,45,55,.16)');g.addColorStop(1,'rgba(95,45,55,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
+function contact(x,z,rx,rz,y=0){const m=new THREE.Mesh(new THREE.PlaneGeometry(rx*2,rz*2),new THREE.MeshBasicMaterial({map:blobTex,transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(x,y+.045,z);m.renderOrder=1;sc.add(m);}
+const seamTex=(()=>{const c=document.createElement('canvas');c.width=4;c.height=64;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,64);g.addColorStop(0,'rgba(110,50,60,.35)');g.addColorStop(1,'rgba(110,50,60,0)');x.fillStyle=g;x.fillRect(0,0,4,64);return new THREE.CanvasTexture(c);})();
+function seam(len,x,z,ry,vert){const m=new THREE.Mesh(new THREE.PlaneGeometry(len,.55),new THREE.MeshBasicMaterial({map:seamTex,transparent:true,depthWrite:false}));if(vert){m.position.set(x,.3,z);m.rotation.y=ry;m.rotation.z=Math.PI;}else{m.rotation.x=-Math.PI/2;m.rotation.z=ry;m.position.set(x,.04,z);}m.renderOrder=1;sc.add(m);}
+// room shell: base, plank floor, two walls, trim, wainscot
+const S=4.4,H=2.9,T=.26,h=S/2;
+{const b=slab(S+.34,.4,S+.34,.2,'#e7b9a4');b.position.y=-.4;sc.add(b);}
+for(let i=0;i<9;i++){const p=slab(S/9-.02,.05,S-.03,.04,i%2?'#e9c09a':'#f0cba6');p.position.set(-h+(i+.5)*S/9,-.02,0);sc.add(p);}
+const wb=slab(S+T,H,T,.12,'#f6c4c8');wb.position.set(T/2,0,-h-T/2);sc.add(wb);
+const wl=slab(T,H,S,.12,'#f9d3cf');wl.position.set(-h-T/2,0,0);sc.add(wl);
+[[S+T+.08,.16,T+.12,T/2,H,-h-T/2],[T+.12,.16,S+.08,-h-T/2,H,0]].forEach(([w,hh,d,x,y,z])=>{const c=slab(w,hh,d,.07,'#e3b398');c.position.set(x,y,z);sc.add(c);});
+// mint tile splash behind counter (like the reference kitchen)
+{const sp=slab(2.5,.9,.04,.02,'#bfe3cf');sp.position.set(.55,.95,-h+.02);sc.add(sp);}
+seam(S,0,-h+.27,0,false);seam(S,-h+.27,0,Math.PI/2,false);
+// string lights
+{const cols=[0xffd59a,0xfff1c2,0xffc58f];const halo=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,220,150,1)');g.addColorStop(1,'rgba(255,220,150,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
+ const hm=new THREE.SpriteMaterial({map:halo,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.6});
+ const run=(a,b,n)=>{const pts=[];for(let i=0;i<=n;i++){const t=i/n;pts.push(new THREE.Vector3(a[0]+(b[0]-a[0])*t,a[1]-Math.sin(t*Math.PI*3)**2*.18,a[2]+(b[2]-a[2])*t));}
+  sc.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0x8f6f62})));
+  pts.forEach((p,i)=>{if(!i)return;const bl=new THREE.Mesh(new THREE.SphereGeometry(.05,10,8),new THREE.MeshBasicMaterial({color:cols[i%3]}));bl.position.copy(p);bl.position.y-=.06;sc.add(bl);const s=new THREE.Sprite(hm);s.scale.setScalar(.34);s.position.copy(bl.position);sc.add(s);});};
+ run([-h+.12,H-.3,-h+.12],[h,H-.3,-h+.12],12);run([-h+.12,H-.3,-h+.12],[-h+.12,H-.3,h],12);}
+// models (restyled CC0 Quaternius furniture), placed by target height
+const L=new THREE.GLTFLoader(),base='../assets/models/clay/';
+async function put(name,x,z,ry,hgt,y=0,shadow=true){const g=(await L.loadAsync(base+name+'.glb')).scene;g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const m=o.material;m.bumpMap=noise;m.bumpScale=.02;m.roughness=.92;}});
+ const bb=new THREE.Box3().setFromObject(g),sz=bb.getSize(new THREE.Vector3()),c=bb.getCenter(new THREE.Vector3());const w=new THREE.Group();g.position.set(-c.x,-bb.min.y,-c.z);w.add(g);const s=hgt<0?-hgt/Math.max(sz.x,sz.z):hgt/sz.y;w.scale.setScalar(s);w.rotation.y=ry;w.position.set(x,y,z);sc.add(w);
+ if(shadow&&!y){const r=Math.max(sz.x,sz.z)*s*.62;contact(x,z,r,r);}return w;}
+const t0=performance.now();
+await Promise.all([
+ put('fridge',-1.65,-1.75,0,1.75),put('kitchen-sink',-.45,-1.82,0,.95),put('oven',.55,-1.82,0,.95),put('shelf-small',.6,-2.12,0,.32,1.75,false),
+ put('window-round',-2.18,.2,Math.PI/2,1.15,1.0,false),put('rug-round',.35,.55,0,-2.1,.035,false),put('table-round',.35,.55,0,.72),put('stool',1.25,.95,0,.62),put('stool',-.45,1.15,0,.62),
+ put('plant-leafy',-1.75,1.6,0,.75),put('plate',.35,.55,0,.04,.72,false)]);
+// little clay cupcakes on the table (hand-built, matches the game)
+function cupcake(x,z,y,col){const g=new THREE.Group();const l=new THREE.Mesh(new THREE.CylinderGeometry(.075,.055,.09,16),clay('#f4a9bb'));l.position.y=.045;g.add(l);const f=new THREE.Mesh(new THREE.SphereGeometry(.08,16,10),clay(col));f.scale.y=.8;f.position.y=.11;g.add(f);
+ const ch=new THREE.Mesh(new THREE.SphereGeometry(.025,10,8),clay('#e2457a'));ch.position.y=.18;g.add(ch);g.traverse(o=>{if(o.isMesh)o.castShadow=true;});g.position.set(x,y,z);sc.add(g);}
+cupcake(.28,.5,.755,'#fff1dc');cupcake(.45,.62,.755,'#c9b8e8');
+window.__loadMs=Math.round(performance.now()-t0);
+// fixed isometric camera
+const cam=new THREE.PerspectiveCamera(24,1,.1,60);
+function size(){const w=innerWidth,h=innerHeight;R.setSize(w,h,false);cam.aspect=w/h;const d=w/h<.8?21:16;cam.position.set(d*Math.cos(.6)*Math.sin(Math.PI/4)-.4,d*Math.sin(.6)+.9,d*Math.cos(.6)*Math.cos(Math.PI/4)-.4);cam.lookAt(-.4,.9,-.4);cam.updateProjectionMatrix();}
+size();addEventListener('resize',size);
+let n=0,ts=performance.now();const fe=document.getElementById('fps');
+(function loop(){requestAnimationFrame(loop);R.render(sc,cam);n++;const now=performance.now();if(now-ts>1000){fe.textContent=Math.round(n*1000/(now-ts))+' fps';n=0;ts=now;}})();
+window.__ready=true;})();
+</script></body></html>
